@@ -1,6 +1,338 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Verifikasi & Tracking SPJ GU - DPRKPP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { dprkpp: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' } } } } }
+    </script>
+    <style>
+      #login-screen { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      #main-app { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+      <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-lock"></i></div>
+        <h2 class="text-xl font-bold text-slate-800 mb-1">Akses Sistem SPJ</h2>
+        <p class="text-xs text-slate-500 mb-2">PPTK: 12345678 | Verifikator: admin</p>
+        <input type="password" id="pin-input" placeholder="••••••" class="w-full text-center tracking-widest text-2xl py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none mb-4" onkeypress="if(event.key==='Enter') checkPin()">
+        <button onclick="checkPin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk</button>
+        <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium">PIN Salah!</p>
+      </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="main-app" class="flex flex-col min-h-screen">
+      <!-- HEADER -->
+      <header class="bg-dprkpp-800 text-white shadow-md sticky top-0 z-30">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="flex items-center space-x-3 text-center sm:text-left">
+                  <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20"><i class="fa-solid me-0 fa-building-columns text-emerald-300 text-xl"></i></div>
+                  <div>
+                      <h1 class="font-bold text-lg leading-tight">Sistem SPJ GU (<span id="role-badge" class="text-emerald-300"></span>)</h1>
+                      <p class="text-xs text-emerald-200">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p>
+                  </div>
+              </div>
+              <div class="flex items-center gap-2">
+                  <button id="btnAjukanBaru" onclick="openModal('modalNewSpj')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i><span>Ajukan SPJ Baru</span></button>
+                  <button onclick="fetchDataFromGoogleSheets()" class="bg-slate-700 text-slate-300 px-3 py-2 rounded-lg text-sm border border-slate-600"><i class="fa-solid fa-rotate" id="refresh-icon"></i></button>
+              </div>
+          </div>
+      </header>
+
+      <!-- MAIN CONTENT -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-4">
+          <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+              <div class="overflow-x-auto rounded-lg border border-slate-200">
+                  <table class="w-full text-left border-collapse text-sm">
+                      <thead>
+                          <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
+                              <th class="py-3 px-4">Tgl & No. NPD</th>
+                              <th class="py-3 px-4">PPTK & Unit Kerja</th>
+                              <th class="py-3 px-4">Uraian SPJ GU</th>
+                              <th class="py-3 px-4 text-right">Nominal (Rp)</th>
+                              <th class="py-3 px-4 text-center">Status</th>
+                              <th class="py-3 px-4 text-center">Aksi</th>
+                          </tr>
+                      </thead>
+                      <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
+                          <tr><td colspan="6" class="text-center py-6 text-slate-500">Menghubungkan ke Database...</td></tr>
+                      </tbody>
+                  </table>
+              </div>
+          </section>
+      </main>
+    </div>
+
+    <!-- MODAL 1: FORM INPUT SPJ BARU -->
+    <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 space-y-4 my-8">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold">Form Pengajuan SPJ GU Baru</h3>
+                <button onclick="closeModal('modalNewSpj')" class="text-xl font-bold">&times;</button>
+            </div>
+            <form id="formNewSpj" onsubmit="submitNewSpjToSheets(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label><input type="text" id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
+                        <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                            <option value="">-- Pilih Unit --</option><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <!-- TAMBAHAN INPUT EMAIL -->
+                    <div><label class="block text-xs font-semibold mb-1">Email PPTK (Untuk Notif) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold mb-1">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Nominal (Rp) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                </div>
+                <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
+                <div><label class="block text-xs font-semibold mb-1">Link Drive Berkas SPJ *</label><input type="url" id="inputLink" required class="w-full px-3 py-2 border rounded-lg text-sm text-blue-600"></div>
+                
+                <div class="flex justify-end gap-2 border-t pt-3">
+                    <button type="button" onclick="closeModal('modalNewSpj')" class="px-4 py-2 bg-slate-200 rounded-lg text-sm">Batal</button>
+                    <button type="submit" id="btnSubmitNew" class="px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold">Kirim Pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: DETAIL & VERIFIKASI -->
+    <div id="modalVerify" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-8">
+            <div class="flex justify-between items-start border-b pb-3">
+                <div><h3 class="text-xl font-bold text-slate-800" id="detailUraian">Uraian</h3></div>
+                <button onclick="closeModal('modalVerify')" class="text-xl font-bold text-slate-500">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 text-sm bg-slate-50 p-3 rounded border">
+               <div><span class="text-slate-500 text-xs block">PPTK / Email:</span> <strong id="detailPptk"></strong></div>
+               <div><span class="text-slate-500 text-xs block">Link Dokumen:</span> <a id="detailLink" href="#" target="_blank" class="text-blue-600 font-bold underline">Buka Drive</a></div>
+            </div>
+
+            <!-- TIMELINE RIWAYAT LOG -->
+            <div class="bg-slate-100 p-3 rounded-lg border border-slate-200">
+                <h4 class="font-bold text-xs text-slate-600 mb-2 uppercase"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat & Status Dokumen</h4>
+                <div id="detailRiwayatBox" class="max-h-40 overflow-y-auto space-y-1"></div>
+            </div>
+            
+            <!-- PANEL AKSI (HANYA MUNCUL JIKA LOGIN VERIFIKATOR) -->
+            <div id="panelAksiVerifikator" class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl hidden">
+                <h4 class="font-bold text-sm text-emerald-900 mb-3"><i class="fa-solid fa-user-check"></i> Panel Keputusan Verifikator</h4>
+                
+                <div id="revisiContainer" class="hidden mb-3">
+                    <label class="block text-xs font-bold text-amber-800 mb-1">Catatan Kekurangan/Revisi *</label>
+                    <textarea id="catatanRevisiInput" rows="2" class="w-full p-2 border border-amber-300 rounded text-sm"></textarea>
+                </div>
+                <div id="pindahbukuContainer" class="hidden grid grid-cols-2 gap-3 mb-3">
+                    <div><label class="block text-xs font-bold text-blue-800 mb-1">Nomor PB *</label><input type="text" id="noPbInput" class="w-full p-2 border border-blue-300 rounded text-sm"></div>
+                    <div><label class="block text-xs font-bold text-blue-800 mb-1">Tanggal PB *</label><input type="date" id="tglPbInput" class="w-full p-2 border border-blue-300 rounded text-sm"></div>
+                </div>
+
+                <div class="flex gap-2 mb-2">
+                    <button onclick="actionSetujui()" class="px-3 py-2 bg-emerald-600 text-white rounded text-xs font-bold shadow">Setujui SPJ</button>
+                    <button onclick="toggleActionForm('REVISI')" class="px-3 py-2 bg-amber-500 text-white rounded text-xs font-bold shadow">Minta Revisi</button>
+                    <button onclick="toggleActionForm('DIPINDAHBUKUKAN')" class="px-3 py-2 bg-blue-600 text-white rounded text-xs font-bold shadow">Pindahbuku</button>
+                </div>
+                <div id="confirmActionContainer" class="hidden border-t border-emerald-200 pt-2 mt-2">
+                    <button id="btnConfirmAction" onclick="submitStatusUpdate()" class="px-3 py-2 bg-slate-800 text-white rounded text-xs font-bold w-full shadow">Kirim Keputusan (Otomatis Kirim Email)</button>
+                </div>
+            </div>
+            
+            <!-- TOMBOL WA MANUAL (Hanya untuk Verifikator) -->
+            <div id="waContainer" class="hidden text-right pt-2 border-t border-slate-200">
+                 <a id="btnSendWa" href="#" target="_blank" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold inline-flex items-center gap-2"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Notifikasi Manual ke WA PPTK</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all z-50">
+        <span id="toastMessage">Pesan</span>
+    </div>
+
+    <script>
+        // === PENGATURAN ===
+        const PIN_PPTK = "111111"; 
+        const PIN_VERIF = "999999";
+        const APPS_SCRIPT_URL = "URL_APPS_SCRIPT_KAMU_DISINI"; // MASUKKAN URL DEPLOY TERBARU
+        // ==================
+
+        let spjData = [];
+        let activeSelectedId = null;
+        let pendingStatusChange = null;
+        let userRole = ""; 
+
+        function checkPin() {
+            const pin = document.getElementById('pin-input').value;
+            if(pin === PIN_PPTK) {
+                userRole = "PPTK";
+                masukSistem();
+            } else if (pin === PIN_VERIF) {
+                userRole = "VERIFIKATOR";
+                masukSistem();
+            } else {
+                document.getElementById('pin-error').classList.remove('hidden');
+            }
+        }
+
+        function masukSistem() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            document.getElementById('role-badge').innerText = userRole;
+            fetchDataFromGoogleSheets();
+        }
+
+        function fetchDataFromGoogleSheets() {
+            document.getElementById('refresh-icon').classList.add('animate-spin');
+            fetch(APPS_SCRIPT_URL).then(res => res.json()).then(data => {
+                spjData = data.reverse(); renderApp();
+                document.getElementById('refresh-icon').classList.remove('animate-spin');
+            });
+        }
+
+        function submitNewSpjToSheets(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitNew');
+            btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+
+            const payload = {
+                action: 'create', id: 'SPJ-' + Date.now(), createdAt: new Date().toLocaleDateString('id-ID'),
+                pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value,
+                unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
+                nominal: document.getElementById('inputNominal').value, uraian: document.getElementById('inputUraian').value, 
+                wa: document.getElementById('inputWa').value, link: document.getElementById('inputLink').value, status: 'BELUM_DIPROSES'
+            };
+
+            fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json()).then(res => {
+                showToast('Pengajuan Berhasil! Email notifikasi akan dikirim.');
+                closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset();
+                btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; fetchDataFromGoogleSheets();
+            });
+        }
+
+        function actionSetujui() { pendingStatusChange = 'DISETUJUI'; submitStatusUpdate(); }
+        
+        function toggleActionForm(type) {
+            pendingStatusChange = type;
+            document.getElementById('revisiContainer').classList.add('hidden');
+            document.getElementById('pindahbukuContainer').classList.add('hidden');
+            document.getElementById('confirmActionContainer').classList.remove('hidden');
+            if(type === 'REVISI') document.getElementById('revisiContainer').classList.remove('hidden');
+            if(type === 'DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
+        }
+
+        function submitStatusUpdate() {
+            let payload = { action: 'update', id: activeSelectedId, status: pendingStatusChange, noPb: '', tglPb: '', catatanRevisi: '' };
+            if (pendingStatusChange === 'REVISI') {
+                payload.catatanRevisi = document.getElementById('catatanRevisiInput').value;
+                if(!payload.catatanRevisi) { showToast('Catatan wajib diisi!'); return; }
+            } else if (pendingStatusChange === 'DIPINDAHBUKUKAN') {
+                payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value;
+                if(!payload.noPb) { showToast('No PB wajib diisi!'); return; }
+            }
+
+            const btn = document.getElementById('btnConfirmAction');
+            btn.innerText = 'Memproses & Mengirim Email...'; btn.disabled = true;
+
+            fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json()).then(res => {
+                showToast(`Sukses! Email telah dikirim ke PPTK.`);
+                closeModal('modalVerify'); fetchDataFromGoogleSheets();
+                btn.innerText = 'Kirim Keputusan'; btn.disabled = false;
+            });
+        }
+
+        function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
+
+        function renderApp() {
+            const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
+            spjData.forEach(item => {
+                let badge = `<span class="px-2 py-1 rounded bg-slate-200 text-xs">${item.status}</span>`;
+                if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold">Disetujui</span>`;
+                if(item.status === 'BELUM_DIPROSES') badge = `<span class="px-2 py-1 rounded border font-bold">Belum Diproses</span>`;
+                if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold">Revisi</span>`;
+                if(item.status === 'DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold">PB: ${item.noPb}</span>`;
+
+                let actionBtnText = userRole === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail / Lacak';
+                let actionBtnColor = userRole === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b">
+                        <td class="py-3 px-4 text-xs font-semibold">${item.npd}</td>
+                        <td class="py-3 px-4 text-xs">${item.pptk}</td>
+                        <td class="py-3 px-4 text-xs max-w-xs truncate">${item.uraian}</td>
+                        <td class="py-3 px-4 text-xs text-right font-bold">${formatRupiah(item.nominal)}</td>
+                        <td class="py-3 px-4 text-center text-xs">${badge}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="openVerifyModal('${item.id}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        
+        function openVerifyModal(id) {
+            activeSelectedId = id; const item = spjData.find(i => i.id === id);
+            document.getElementById('detailUraian').innerText = item.uraian;
+            document.getElementById('detailPptk').innerText = item.pptk + " (" + (item.emailPptk || "-") + ")";
+            document.getElementById('detailLink').href = item.link;
+
+            // Merakit Tampilan Riwayat Bertumpuk
+            let logHtml = "";
+            if (item.riwayatLog) {
+                const lines = item.riwayatLog.split('\n');
+                lines.forEach(line => { if(line.trim() !== "") logHtml += `<div class="bg-white p-2 rounded text-[11px] text-slate-700 shadow-sm border border-slate-100">${line}</div>`; });
+            }
+            document.getElementById('detailRiwayatBox').innerHTML = logHtml || '<p class="text-xs text-slate-400">Belum ada riwayat</p>';
+
+            // Role Management untuk Modal
+            document.getElementById('revisiContainer').classList.add('hidden');
+            document.getElementById('pindahbukuContainer').classList.add('hidden');
+            document.getElementById('confirmActionContainer').classList.add('hidden');
+
+            if (userRole === 'VERIFIKATOR') {
+                document.getElementById('panelAksiVerifikator').classList.remove('hidden');
+                document.getElementById('waContainer').classList.remove('hidden');
+                
+                // Rakit Pesan WA Manual Verifikator
+                let cleanPhone = item.wa.replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+                let waText = `Yth. PPTK,\nBerikut update dokumen SPJ Anda (NPD: ${item.npd}):\n\n*Status: ${item.status}*\n`;
+                if(item.status === 'REVISI') waText += `Catatan: ${item.catatanRevisi}\n`;
+                if(item.status === 'DIPINDAHBUKUKAN') waText += `No PB: ${item.noPb}\nTanggal PB: ${item.tglPb}\n`;
+                document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+            } else {
+                document.getElementById('panelAksiVerifikator').classList.add('hidden');
+                document.getElementById('waContainer').classList.add('hidden');
+            }
+
+            openModal('modalVerify');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500);
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistem Verifikasi & Tracking SPJ GU - DPRKPP</title>
