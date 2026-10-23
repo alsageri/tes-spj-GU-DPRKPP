@@ -43,10 +43,16 @@
         <label>Tanggal Pengajuan</label>
         <input type="date" id="tanggal" required>
       </div>
-      <div class="form-group">
-        <label>Bidang / Bagian</label>
-        <input type="text" id="bidang" placeholder="Contoh: Bidang Perumahan" required>
-      </div>
+     <div class="form-group">
+  <label>Bidang / Bagian</label>
+  <select id="bidang" required>
+    <option value="">-- Pilih Bidang / Bagian --</option>
+    <option value="Sekretariat">Sekretariat</option>
+    <option value="Bidang Perumahan">Bidang Perumahan</option>
+    <option value="Bidang Kawasan Permukiman">Bidang Kawasan Permukiman</option>
+    <option value="Bidang Pertanahan">Bidang Pertanahan</option>
+  </select>
+</div>
       <div class="form-group">
         <label>Keterangan / Uraian</label>
         <input type="text" id="keterangan" placeholder="Contoh: Belanja ATK" required>
