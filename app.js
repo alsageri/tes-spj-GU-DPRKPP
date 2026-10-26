@@ -1,7 +1,7 @@
 // ==========================================
 const PAGU_TAHUNAN = 1500000000;  
 const PAGU_TRIWULAN = 350000000; 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOb34PxQa8sByYfVELfp5QjBwwRN_pXUB0Ei3ckxXmU4RvVndVcgo6yxWw4QtgcQZ7JA/exec"; 
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1wVbgJOAIVDnCqzgwe-7fchNnMG3ToSERHdlcE8AV_S27MIKVxgoToDFg2LRrIiY0tA/exec"; 
 
 const DATABASE_AKUN = [
     { username: "ahmad", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
