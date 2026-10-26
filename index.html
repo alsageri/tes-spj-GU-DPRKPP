@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Verifikasi & Tracking SPJ GU - DPRKPP</title>
+    <title>Sistem ERP & Verifikasi SPJ GU - DPRKPP</title>
     <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,23 +14,32 @@
     <style>
       #login-screen { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
       #main-app { display: none; }
+      /* Custom Scrollbar untuk Tabel Horizontal */
+      .table-scroll::-webkit-scrollbar { height: 8px; }
+      .table-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN SCREEN MULTI-AKUN -->
     <div id="login-screen">
       <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-lock"></i></div>
-        <h2 class="text-xl font-bold text-slate-800 mb-1">Akses Sistem SPJ</h2>
-        <p class="text-xs text-slate-500 mb-4">Verifikasi Keamanan Intranet</p>
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-users"></i></div>
+        <h2 class="text-xl font-bold text-slate-800 mb-1">DPRKPP ERP Login</h2>
+        <p class="text-xs text-slate-500 mb-5">Sistem Verifikasi & Tracking SPJ GU</p>
         
-        <div class="space-y-3 mb-4">
-            <input type="text" id="username-input" placeholder="Masukkan Nama Anda" class="w-full text-center py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-medium">
-            <input type="password" id="pin-input" placeholder="PIN Akses" class="w-full text-center tracking-widest text-2xl py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" onkeypress="if(event.key==='Enter') checkPin()">
+        <div class="space-y-4 mb-5 text-left">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Username</label>
+                <input type="text" id="username-input" placeholder="Masukkan Username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+                <input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" onkeypress="if(event.key==='Enter') checkLogin()">
+            </div>
         </div>
         
-        <button onclick="checkPin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk Sistem</button>
+        <button onclick="checkLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk Sistem</button>
         <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium">Error Message</p>
       </div>
     </div>
@@ -44,7 +53,7 @@
                   <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20"><i class="fa-solid me-0 fa-building-columns text-emerald-300 text-xl"></i></div>
                   <div>
                       <h1 class="font-bold text-lg leading-tight">Sistem SPJ GU (<span id="role-badge" class="text-emerald-300"></span>)</h1>
-                      <p class="text-xs text-emerald-200">Halo, <span id="user-display" class="font-bold"></span></p>
+                      <p class="text-xs text-emerald-200">User: <span id="user-display" class="font-bold"></span></p>
                   </div>
               </div>
               <div class="flex items-center gap-2">
@@ -54,25 +63,41 @@
           </div>
       </header>
 
-      <!-- MAIN CONTENT -->
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-4">
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-5">
+          <!-- KARTU SISA ANGGARAN REAL-TIME -->
+          <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
+                  <div class="flex justify-between items-center text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"><span>Sisa Pagu Tahunan</span><i class="fa-solid fa-vault text-emerald-400"></i></div>
+                  <div class="text-xl font-black text-slate-800" id="sisaTahunanVal">Rp 0</div>
+              </div>
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
+                  <div class="flex justify-between items-center text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"><span>Sisa Pagu Triwulan</span><i class="fa-solid fa-wallet text-blue-400"></i></div>
+                  <div class="text-xl font-black text-slate-800" id="sisaTriwulanVal">Rp 0</div>
+              </div>
+              <div class="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700">
+                  <div class="flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-wider mb-1"><span>Total Realisasi (Cair)</span><i class="fa-solid fa-money-bill-trend-up text-amber-400"></i></div>
+                  <div class="text-xl font-black text-amber-400" id="totalCairVal">Rp 0</div>
+              </div>
+          </section>
+
+          <!-- TABEL SCROLL HORIZONTAL LENGKAP -->
           <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <!-- TABEL LEBIH RINCI (7 Kolom) -->
-              <div class="overflow-x-auto rounded-lg border border-slate-200">
-                  <table class="w-full text-left border-collapse text-sm min-w-[800px]">
+              <div class="overflow-x-auto table-scroll rounded-lg border border-slate-200 pb-2">
+                  <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
                       <thead>
-                          <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold">
-                              <th class="py-3 px-4 w-1/6">No. NPD & Tgl</th>
-                              <th class="py-3 px-4 w-1/6">PPTK & Unit Kerja</th>
-                              <th class="py-3 px-4 w-1/6">Program & Kegiatan</th>
-                              <th class="py-3 px-4 w-1/4">Uraian SPJ GU</th>
+                          <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold uppercase tracking-wide text-[11px]">
+                              <th class="py-3 px-4">No. NPD & Tgl</th>
+                              <th class="py-3 px-4">PPTK & Unit Kerja</th>
+                              <th class="py-3 px-4">Program & Kegiatan</th>
+                              <th class="py-3 px-4">Uraian SPJ GU</th>
                               <th class="py-3 px-4 text-right">Nominal (Rp)</th>
                               <th class="py-3 px-4 text-center">Status</th>
-                              <th class="py-3 px-4 text-center w-24">Aksi</th>
+                              <th class="py-3 px-4 text-center">No. PB</th>
+                              <th class="py-3 px-4 text-center sticky right-0 bg-slate-100 shadow-[-5px_0_10px_rgba(0,0,0,0.05)]">Aksi</th>
                           </tr>
                       </thead>
                       <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
-                          <tr><td colspan="7" class="text-center py-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
+                          <tr><td colspan="8" class="text-center py-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
                       </tbody>
                   </table>
               </div>
@@ -80,7 +105,7 @@
       </main>
     </div>
 
-    <!-- MODAL 1: FORM INPUT SPJ BARU (DENGAN INPUT TANGGAL MANUAL) -->
+    <!-- MODAL 1: FORM INPUT SPJ BARU -->
     <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-8">
             <div class="flex justify-between items-center border-b pb-3">
@@ -88,23 +113,13 @@
                 <button onclick="closeModal('modalNewSpj')" class="text-xl font-bold text-slate-400 hover:text-slate-600">&times;</button>
             </div>
             <form id="formNewSpj" onsubmit="submitNewSpjToSheets(event)" class="space-y-4">
-                
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Informasi Berkas</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Tanggal Pengajuan Dokumen *</label>
-                            <input type="date" id="inputTanggal" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Nomor NPD *</label>
-                            <input type="text" id="inputNpd" placeholder="Contoh: NPD/001/2026" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
-                        </div>
+                        <div><label class="block text-xs font-semibold mb-1">Tanggal Pengajuan *</label><input type="date" id="inputTanggal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     </div>
                 </div>
-
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Data Pemohon</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                         <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label><input type="text" id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                         <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
@@ -114,28 +129,26 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Untuk Notif Email) *</label><input type="email" id="inputEmail" placeholder="email@gmail.com" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">No. WhatsApp (Awali dgn 08) *</label><input type="tel" id="inputWa" placeholder="08123456789" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Untuk Notif Email) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     </div>
                 </div>
-
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Rincian Anggaran</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                         <div><label class="block text-xs font-semibold mb-1">Program</label><input type="text" id="inputProgram" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                         <div><label class="block text-xs font-semibold mb-1">Kegiatan</label><input type="text" id="inputKegiatan" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                         <div><label class="block text-xs font-semibold mb-1">Subkegiatan</label><input type="text" id="inputSubkegiatan" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">Nominal Rp (Tanpa Titik) *</label><input type="number" id="inputNominal" placeholder="Contoh: 5000000" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Nominal Rp (Tanpa Titik) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     </div>
                     <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" rows="2" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
-                    <div class="mt-3"><label class="block text-xs font-semibold mb-1">Link Drive Berkas SPJ *</label><input type="url" id="inputLink" placeholder="https://drive.google.com/..." required class="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg text-sm text-blue-800 focus:ring-2 focus:ring-blue-500"></div>
+                    <div class="mt-3"><label class="block text-xs font-semibold mb-1">Link Drive Berkas Awal SPJ *</label><input type="url" id="inputLink" required class="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg text-sm text-blue-800 focus:ring-2 focus:ring-blue-500"></div>
                 </div>
                 
                 <div class="flex justify-end gap-2 border-t pt-3 mt-4">
                     <button type="button" onclick="closeModal('modalNewSpj')" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-semibold transition-colors">Batal</button>
-                    <button type="submit" id="btnSubmitNew" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition-colors"><i class="fa-solid fa-paper-plane me-1"></i> Kirim Pengajuan</button>
+                    <button type="submit" id="btnSubmitNew" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition-colors">Kirim Pengajuan</button>
                 </div>
             </form>
         </div>
@@ -155,12 +168,18 @@
                <div class="col-span-1 sm:col-span-2 mt-1"><span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider block mb-1">Program / Kegiatan:</span> <strong id="detailProgKeg" class="text-slate-700"></strong></div>
             </div>
 
-            <!-- PANEL UPLOAD REVISI (HANYA UNTUK PPTK SAAT STATUS REVISI) -->
+            <!-- TAMPILAN BUKTI PINDAHBUKU (MUNCUL JIKA STATUS SELESAI) -->
+            <div id="detailBuktiPbBox" class="bg-blue-50 border border-blue-200 p-4 rounded-xl hidden shadow-sm">
+                <h4 class="font-bold text-sm text-blue-900 mb-1"><i class="fa-solid fa-money-bill-transfer"></i> Bukti Pencairan / Pindahbuku</h4>
+                <p id="detailBuktiPbTeks" class="text-xs text-blue-800 mb-2 font-semibold"></p>
+                <div id="detailBuktiPbLink" class="text-sm"></div>
+            </div>
+
+            <!-- PANEL UPLOAD REVISI (HANYA UNTUK PPTK) -->
             <div id="panelPptkRevisi" class="bg-amber-50 border border-amber-300 p-4 rounded-xl hidden shadow-sm">
                 <h4 class="font-bold text-sm text-amber-900 mb-2"><i class="fa-solid fa-file-arrow-up"></i> Upload Perbaikan Dokumen</h4>
-                <p class="text-xs text-amber-800 mb-3">Silakan perbaiki berkas sesuai catatan Verifikator, lalu kirimkan link Drive yang baru di bawah ini:</p>
-                <input type="text" id="newLinkInput" placeholder="https://drive.google.com/..." class="w-full p-2.5 border border-amber-400 bg-white rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                <button onclick="submitRevisiPptk()" id="btnSubmitRevisi" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow transition-all"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Kirim Berkas Perbaikan</button>
+                <input type="text" id="newLinkInput" placeholder="https://drive.google.com/..." class="w-full p-2.5 border border-amber-400 bg-white rounded-lg text-sm mb-3">
+                <button onclick="submitRevisiPptk()" id="btnSubmitRevisi" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Kirim Berkas Perbaikan</button>
             </div>
 
             <!-- TIMELINE RIWAYAT LOG -->
@@ -175,12 +194,19 @@
                 
                 <div id="revisiContainer" class="hidden mb-4 bg-white p-3 rounded-lg border border-amber-200">
                     <label class="block text-xs font-bold text-amber-800 mb-2">Catatan Kekurangan/Revisi *</label>
-                    <textarea id="catatanRevisiInput" rows="2" placeholder="Jelaskan apa yang harus diperbaiki PPTK..." class="w-full p-2.5 border border-amber-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                    <textarea id="catatanRevisiInput" rows="2" placeholder="Jelaskan apa yang harus diperbaiki PPTK..." class="w-full p-2.5 border border-amber-300 rounded text-sm outline-none"></textarea>
                 </div>
                 
-                <div id="pindahbukuContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-white p-3 rounded-lg border border-blue-200">
-                    <div><label class="block text-xs font-bold text-blue-800 mb-2">Nomor PB *</label><input type="text" id="noPbInput" placeholder="Contoh: PB/001/2026" class="w-full p-2.5 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
-                    <div><label class="block text-xs font-bold text-blue-800 mb-2">Tanggal PB *</label><input type="date" id="tglPbInput" class="w-full p-2.5 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                <!-- TAMBAHAN INPUT BUKTI PB -->
+                <div id="pindahbukuContainer" class="hidden bg-white p-3 rounded-lg border border-blue-200 mb-4 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-bold text-blue-800 mb-1">Nomor PB *</label><input type="text" id="noPbInput" placeholder="PB/001/2026" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none"></div>
+                        <div><label class="block text-xs font-bold text-blue-800 mb-1">Tanggal PB *</label><input type="date" id="tglPbInput" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-blue-800 mb-1">Link Drive / Kata Kunci Bukti PB *</label>
+                        <input type="text" id="buktiPbInput" placeholder="Masukkan Link Folder Drive atau Nama File PDF" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none">
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap gap-2 mb-2">
@@ -194,7 +220,6 @@
                 </div>
             </div>
             
-            <!-- TOMBOL WA MANUAL (Hanya untuk Verifikator) -->
             <div id="waContainer" class="hidden text-right pt-3 border-t border-slate-200 mt-2">
                  <a id="btnSendWa" href="#" target="_blank" class="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-brands fa-whatsapp text-sm"></i> Beritahu PPTK via WA</a>
             </div>
@@ -207,7 +232,7 @@
         <span id="toastMessage" class="font-medium text-sm">Pesan</span>
     </div>
 
-    <!-- MENGHUBUNGKAN KE FILE LOGIKA (app.js) -->
+    <!-- SCRIPT TERTEMPEL (app.js) -->
     <script src="app.js"></script>
 
 </body>
