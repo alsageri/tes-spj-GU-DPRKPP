@@ -22,24 +22,27 @@
       <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-lock"></i></div>
         <h2 class="text-xl font-bold text-slate-800 mb-1">Akses Sistem SPJ</h2>
-        <!-- Teks petunjuk sudah disesuaikan dengan PIN asli di bawah -->
-        <p class="text-xs text-slate-500 mb-2">PPTK: 12345678 | Verifikator: admin</p>
-        <input type="password" id="pin-input" placeholder="••••••" class="w-full text-center tracking-widest text-2xl py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none mb-4" onkeypress="if(event.key==='Enter') checkPin()">
-        <button onclick="checkPin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk</button>
-        <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium">PIN Salah!</p>
+        <p class="text-xs text-slate-500 mb-4">PPTK: 12345678 | Verifikator: admin</p>
+        
+        <div class="space-y-3 mb-4">
+            <input type="text" id="username-input" placeholder="Masukkan Nama Anda" class="w-full text-center py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-medium">
+            <input type="password" id="pin-input" placeholder="PIN Akses" class="w-full text-center tracking-widest text-2xl py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" onkeypress="if(event.key==='Enter') checkPin()">
+        </div>
+        
+        <button onclick="checkPin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk Sistem</button>
+        <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium">PIN atau Username tidak valid!</p>
       </div>
     </div>
 
     <!-- MAIN APP WRAPPER -->
     <div id="main-app" class="flex flex-col min-h-screen">
-      <!-- HEADER -->
       <header class="bg-dprkpp-800 text-white shadow-md sticky top-0 z-30">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div class="flex items-center space-x-3 text-center sm:text-left">
                   <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20"><i class="fa-solid me-0 fa-building-columns text-emerald-300 text-xl"></i></div>
                   <div>
                       <h1 class="font-bold text-lg leading-tight">Sistem SPJ GU (<span id="role-badge" class="text-emerald-300"></span>)</h1>
-                      <p class="text-xs text-emerald-200">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p>
+                      <p class="text-xs text-emerald-200">Halo, <span id="user-display" class="font-bold"></span></p>
                   </div>
               </div>
               <div class="flex items-center gap-2">
@@ -49,7 +52,6 @@
           </div>
       </header>
 
-      <!-- MAIN CONTENT -->
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-4">
           <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
               <div class="overflow-x-auto rounded-lg border border-slate-200">
@@ -85,7 +87,7 @@
                     <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label><input type="text" id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
                         <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm">
-                            <option value="">-- Pilih Unit --</option><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option>
+                            <option value="">-- Pilih Unit --</option><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option><option value="Bidang Pertanahan">Bidang Pertanahan</option>
                         </select>
                     </div>
                 </div>
@@ -94,11 +96,18 @@
                     <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-semibold mb-1">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                    <div><label class="block text-xs font-semibold mb-1">Nominal (Rp) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Program</label><input type="text" id="inputProgram" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Kegiatan</label><input type="text" id="inputKegiatan" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                 </div>
-                <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
-                <div><label class="block text-xs font-semibold mb-1">Link Drive Berkas SPJ *</label><input type="url" id="inputLink" required class="w-full px-3 py-2 border rounded-lg text-sm text-blue-600"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold mb-1">Subkegiatan</label><input type="text" id="inputSubkegiatan" class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold mb-1">Nominal (Rp) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Link Drive Berkas SPJ *</label><input type="text" id="inputLink" required class="w-full px-3 py-2 border rounded-lg text-sm text-blue-600"></div>
+                </div>
+                <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" rows="2" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
                 
                 <div class="flex justify-end gap-2 border-t pt-3">
                     <button type="button" onclick="closeModal('modalNewSpj')" class="px-4 py-2 bg-slate-200 rounded-lg text-sm">Batal</button>
@@ -118,7 +127,16 @@
             
             <div class="grid grid-cols-2 gap-3 text-sm bg-slate-50 p-3 rounded border">
                <div><span class="text-slate-500 text-xs block">PPTK / Email:</span> <strong id="detailPptk"></strong></div>
-               <div><span class="text-slate-500 text-xs block">Link Dokumen:</span> <a id="detailLink" href="#" target="_blank" class="text-blue-600 font-bold underline">Buka Drive</a></div>
+               <div><span class="text-slate-500 text-xs block">Link Dokumen Terkini:</span> <a id="detailLink" href="#" target="_blank" class="text-blue-600 font-bold underline">Buka Drive</a></div>
+               <div class="col-span-2"><span class="text-slate-500 text-xs block">Program / Kegiatan:</span> <strong id="detailProgKeg"></strong></div>
+            </div>
+
+            <!-- PANEL UPLOAD REVISI (HANYA UNTUK PPTK SAAT STATUS REVISI) -->
+            <div id="panelPptkRevisi" class="bg-amber-50 border border-amber-200 p-4 rounded-xl hidden">
+                <h4 class="font-bold text-sm text-amber-900 mb-2"><i class="fa-solid fa-file-arrow-up"></i> Upload Perbaikan Dokumen</h4>
+                <p class="text-xs text-amber-800 mb-3">Silakan perbaiki berkas sesuai catatan Verifikator, lalu kirimkan link Drive yang baru di bawah ini:</p>
+                <input type="text" id="newLinkInput" placeholder="https://drive.google.com/..." class="w-full p-2 border border-amber-300 rounded text-sm mb-2">
+                <button onclick="submitRevisiPptk()" id="btnSubmitRevisi" class="px-4 py-2 bg-amber-600 text-white rounded text-xs font-bold shadow">Kirim Berkas Perbaikan</button>
             </div>
 
             <!-- TIMELINE RIWAYAT LOG -->
@@ -146,18 +164,17 @@
                     <button onclick="toggleActionForm('DIPINDAHBUKUKAN')" class="px-3 py-2 bg-blue-600 text-white rounded text-xs font-bold shadow">Pindahbuku</button>
                 </div>
                 <div id="confirmActionContainer" class="hidden border-t border-emerald-200 pt-2 mt-2">
-                    <button id="btnConfirmAction" onclick="submitStatusUpdate()" class="px-3 py-2 bg-slate-800 text-white rounded text-xs font-bold w-full shadow">Kirim Keputusan (Otomatis Kirim Email)</button>
+                    <button id="btnConfirmAction" onclick="submitStatusUpdate()" class="px-3 py-2 bg-slate-800 text-white rounded text-xs font-bold w-full shadow">Simpan & Kirim Email</button>
                 </div>
             </div>
             
             <!-- TOMBOL WA MANUAL (Hanya untuk Verifikator) -->
             <div id="waContainer" class="hidden text-right pt-2 border-t border-slate-200">
-                 <a id="btnSendWa" href="#" target="_blank" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold inline-flex items-center gap-2"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim Notifikasi Manual ke WA PPTK</a>
+                 <a id="btnSendWa" href="#" target="_blank" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold inline-flex items-center gap-2"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim WA ke PPTK</a>
             </div>
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all z-50">
         <span id="toastMessage">Pesan</span>
     </div>
@@ -166,26 +183,26 @@
         // === PENGATURAN ===
         const PIN_PPTK = "12345678"; 
         const PIN_VERIF = "admin";
-        
-        // URL Apps Script terbaru yang kamu berikan
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxd2o6nELcqYZS_gxLl9-2skAM8bf4QyI1SLLvemMl10u6A0h0FX7KcI-npmrwn_4LZLA/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvRgul2aY82kMWIb2ECwkC4OgjJA0MdXmMcOkqM3Of-ZaPiF_IjljdmIstDzJNS6BM5g/exec"; // MASUKKAN URL DEPLOY TERBARU
         // ==================
 
         let spjData = [];
         let activeSelectedId = null;
         let pendingStatusChange = null;
         let userRole = ""; 
+        let currentUsername = "";
 
         function checkPin() {
             const pin = document.getElementById('pin-input').value;
+            const uname = document.getElementById('username-input').value.trim();
+            if(!uname) { document.getElementById('pin-error').innerText = "Nama harus diisi!"; document.getElementById('pin-error').classList.remove('hidden'); return; }
+
             if(pin === PIN_PPTK) {
-                userRole = "PPTK";
-                masukSistem();
+                userRole = "PPTK"; currentUsername = uname; masukSistem();
             } else if (pin === PIN_VERIF) {
-                userRole = "VERIFIKATOR";
-                masukSistem();
+                userRole = "VERIFIKATOR"; currentUsername = uname; masukSistem();
             } else {
-                document.getElementById('pin-error').classList.remove('hidden');
+                document.getElementById('pin-error').innerText = "PIN Salah!"; document.getElementById('pin-error').classList.remove('hidden');
             }
         }
 
@@ -193,6 +210,7 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
             document.getElementById('role-badge').innerText = userRole;
+            document.getElementById('user-display').innerText = currentUsername;
             fetchDataFromGoogleSheets();
         }
 
@@ -200,6 +218,9 @@
             document.getElementById('refresh-icon').classList.add('animate-spin');
             fetch(APPS_SCRIPT_URL).then(res => res.json()).then(data => {
                 spjData = data.reverse(); renderApp();
+                document.getElementById('refresh-icon').classList.remove('animate-spin');
+            }).catch(e => {
+                showToast("Gagal mengambil data database.");
                 document.getElementById('refresh-icon').classList.remove('animate-spin');
             });
         }
@@ -211,20 +232,23 @@
 
             const payload = {
                 action: 'create', id: 'SPJ-' + Date.now(), createdAt: new Date().toLocaleDateString('id-ID'),
+                username: currentUsername, // Kirim username ke sheet
                 pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value,
                 unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
+                program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, subKegiatan: document.getElementById('inputSubkegiatan').value,
                 nominal: document.getElementById('inputNominal').value, uraian: document.getElementById('inputUraian').value, 
                 wa: document.getElementById('inputWa').value, link: document.getElementById('inputLink').value, status: 'BELUM_DIPROSES'
             };
 
             fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
             .then(res => res.json()).then(res => {
-                showToast('Pengajuan Berhasil! Email notifikasi akan dikirim.');
+                showToast('Pengajuan Berhasil Dikirim.');
                 closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset();
                 btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; fetchDataFromGoogleSheets();
             });
         }
 
+        // AKSI VERIFIKATOR
         function actionSetujui() { pendingStatusChange = 'DISETUJUI'; submitStatusUpdate(); }
         
         function toggleActionForm(type) {
@@ -237,7 +261,7 @@
         }
 
         function submitStatusUpdate() {
-            let payload = { action: 'update', id: activeSelectedId, status: pendingStatusChange, noPb: '', tglPb: '', catatanRevisi: '' };
+            let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: currentUsername, noPb: '', tglPb: '', catatanRevisi: '' };
             if (pendingStatusChange === 'REVISI') {
                 payload.catatanRevisi = document.getElementById('catatanRevisiInput').value;
                 if(!payload.catatanRevisi) { showToast('Catatan wajib diisi!'); return; }
@@ -247,13 +271,31 @@
             }
 
             const btn = document.getElementById('btnConfirmAction');
-            btn.innerText = 'Memproses & Mengirim Email...'; btn.disabled = true;
+            btn.innerText = 'Memproses...'; btn.disabled = true;
 
             fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
             .then(res => res.json()).then(res => {
-                showToast(`Sukses! Email telah dikirim ke PPTK.`);
+                showToast(`Sukses memperbarui status.`);
                 closeModal('modalVerify'); fetchDataFromGoogleSheets();
-                btn.innerText = 'Kirim Keputusan'; btn.disabled = false;
+                btn.innerText = 'Simpan & Kirim Email'; btn.disabled = false;
+            });
+        }
+
+        // AKSI PPTK (Upload Revisi)
+        function submitRevisiPptk() {
+            const newLink = document.getElementById('newLinkInput').value;
+            if(!newLink) { showToast('Link Drive wajib diisi!'); return; }
+            
+            const btn = document.getElementById('btnSubmitRevisi');
+            btn.innerText = 'Mengirim...'; btn.disabled = true;
+
+            const payload = { action: 'update_revisi', id: activeSelectedId, username: currentUsername, newLink: newLink };
+
+            fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json()).then(res => {
+                showToast(`Berkas Revisi Berhasil Dikirim.`);
+                closeModal('modalVerify'); fetchDataFromGoogleSheets();
+                btn.innerText = 'Kirim Berkas Perbaikan'; btn.disabled = false;
             });
         }
 
@@ -264,7 +306,7 @@
             spjData.forEach(item => {
                 let badge = `<span class="px-2 py-1 rounded bg-slate-200 text-xs">${item.status}</span>`;
                 if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold">Disetujui</span>`;
-                if(item.status === 'BELUM_DIPROSES') badge = `<span class="px-2 py-1 rounded border font-bold">Belum Diproses</span>`;
+                if(item.status === 'BELUM_DIPROSES') badge = `<span class="px-2 py-1 rounded border font-bold text-slate-600">Belum Diproses</span>`;
                 if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold">Revisi</span>`;
                 if(item.status === 'DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold">PB: ${item.noPb}</span>`;
 
@@ -273,9 +315,9 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b">
-                        <td class="py-3 px-4 text-xs font-semibold">${item.npd}</td>
-                        <td class="py-3 px-4 text-xs">${item.pptk}</td>
-                        <td class="py-3 px-4 text-xs max-w-xs truncate">${item.uraian}</td>
+                        <td class="py-3 px-4 text-xs font-semibold">${item.npd || '-'}</td>
+                        <td class="py-3 px-4 text-xs">${item.pptk || '-'}</td>
+                        <td class="py-3 px-4 text-xs max-w-xs truncate">${item.uraian || '-'}</td>
                         <td class="py-3 px-4 text-xs text-right font-bold">${formatRupiah(item.nominal)}</td>
                         <td class="py-3 px-4 text-center text-xs">${badge}</td>
                         <td class="py-3 px-4 text-center">
@@ -291,9 +333,16 @@
         
         function openVerifyModal(id) {
             activeSelectedId = id; const item = spjData.find(i => i.id === id);
-            document.getElementById('detailUraian').innerText = item.uraian;
-            document.getElementById('detailPptk').innerText = item.pptk + " (" + (item.emailPptk || "-") + ")";
-            document.getElementById('detailLink').href = item.link;
+            if(!item) return;
+
+            document.getElementById('detailUraian').innerText = item.uraian || '-';
+            document.getElementById('detailPptk').innerText = (item.pptk || "-") + " (" + (item.emailPptk || "-") + ")";
+            document.getElementById('detailProgKeg').innerText = (item.program || "-") + " / " + (item.kegiatan || "-") + " / " + (item.subKegiatan || "-");
+            
+            // Perbaikan URL agar selalu bisa diklik
+            let safeLink = item.link || '';
+            if(safeLink && !safeLink.startsWith('http')) safeLink = 'https://' + safeLink;
+            document.getElementById('detailLink').href = safeLink || '#';
 
             // Merakit Tampilan Riwayat Bertumpuk
             let logHtml = "";
@@ -307,13 +356,13 @@
             document.getElementById('revisiContainer').classList.add('hidden');
             document.getElementById('pindahbukuContainer').classList.add('hidden');
             document.getElementById('confirmActionContainer').classList.add('hidden');
+            document.getElementById('panelPptkRevisi').classList.add('hidden');
 
             if (userRole === 'VERIFIKATOR') {
                 document.getElementById('panelAksiVerifikator').classList.remove('hidden');
                 document.getElementById('waContainer').classList.remove('hidden');
                 
-                // Rakit Pesan WA Manual Verifikator
-                let cleanPhone = item.wa.replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+                let cleanPhone = (item.wa || '').replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
                 let waText = `Yth. PPTK,\nBerikut update dokumen SPJ Anda (NPD: ${item.npd}):\n\n*Status: ${item.status}*\n`;
                 if(item.status === 'REVISI') waText += `Catatan: ${item.catatanRevisi}\n`;
                 if(item.status === 'DIPINDAHBUKUKAN') waText += `No PB: ${item.noPb}\nTanggal PB: ${item.tglPb}\n`;
@@ -321,6 +370,12 @@
             } else {
                 document.getElementById('panelAksiVerifikator').classList.add('hidden');
                 document.getElementById('waContainer').classList.add('hidden');
+                
+                // Jika PPTK melihat status REVISI, munculkan panel Upload
+                if(item.status === 'REVISI') {
+                    document.getElementById('panelPptkRevisi').classList.remove('hidden');
+                    document.getElementById('newLinkInput').value = '';
+                }
             }
 
             openModal('modalVerify');
