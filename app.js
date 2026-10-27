@@ -1,54 +1,60 @@
-// ==========================================
-const PAGU_TAHUNAN = 1500000000;  
-const PAGU_TRIWULAN = 350000000; 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQy0o4fPYrY2aOVBzgKE3Ef3MvpqzjizKddfgsldQLkyikRQ6x5LBHUi0OzbbTgiBv0Q/exec"; 
+// File: app.js (Logika Aplikasi Bersih)
 
-const DATABASE_AKUN = [
-    { username: "ahmad", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
-    { username: "budi", password: "123", role: "PPTK", namaLengkap: "Budi Santoso, S.T. (Permukiman)" },
-    { username: "admin", password: "admin123", role: "VERIFIKATOR", namaLengkap: "Admin Keuangan DPRKPP" }
-];
-// ==========================================
+let spjData = []; let referensiData = {}; 
+let activeSelectedId = null; let pendingStatusChange = null;
+let sesiAktif = { role: "", username: "", namaLengkap: "" };
 
-let spjData = []; let referensiData = {}; let activeSelectedId = null; let pendingStatusChange = null;
-let userRole = ""; let currentUsername = ""; let currentNamaLengkap = "";
-
+// --- FUNGSI AUTENTIKASI ---
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
     const pass = document.getElementById('password-input').value;
     const userFound = DATABASE_AKUN.find(u => u.username === uname && u.password === pass);
-    if(userFound) { userRole = userFound.role; currentUsername = userFound.username; currentNamaLengkap = userFound.namaLengkap; masukSistem(); } 
-    else { showLoginError("Username atau Password salah!"); }
+    if(userFound) { 
+        sesiAktif = { role: userFound.role, username: userFound.username, namaLengkap: userFound.namaLengkap };
+        masukSistem(); 
+    } else { 
+        document.getElementById('pin-error').innerText = "Username atau Password salah!";
+        document.getElementById('pin-error').classList.remove('hidden'); 
+    }
 }
-function showLoginError(msg) { const err = document.getElementById('pin-error'); err.innerText = msg; err.classList.remove('hidden'); }
+
 function masukSistem() {
-    document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
-    document.getElementById('role-badge').innerText = userRole; document.getElementById('user-display').innerText = currentNamaLengkap;
-    fetchDataFromGoogleSheets();
+    document.getElementById('login-screen').style.display = 'none'; 
+    document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('role-badge').innerText = sesiAktif.role; 
+    document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
+    tarikDataDariServer();
 }
 
-function fetchDataFromGoogleSheets() {
+// --- FUNGSI AMBIL DATA ---
+function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
-    fetch(APPS_SCRIPT_URL).then(res => res.json()).then(data => {
-        if(data.spj) spjData = data.spj.reverse(); 
-        if(data.referensi) referensiData = data.referensi;
-        renderApp(); hitungPaguAnggaran(); populateProgramDropdown();
-        document.getElementById('refresh-icon').classList.remove('animate-spin');
-    }).catch(e => { 
-        alert("GAGAL MEMUAT DATA!"); document.getElementById('refresh-icon').classList.remove('animate-spin'); 
-    });
+    fetch(CONFIG.APPS_SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            if(data.spj) spjData = data.spj.reverse(); 
+            if(data.referensi) referensiData = data.referensi;
+            renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
+            document.getElementById('refresh-icon').classList.remove('animate-spin');
+        })
+        .catch(e => { 
+            alert("Gagal memuat data dari server!"); 
+            document.getElementById('refresh-icon').classList.remove('animate-spin'); 
+        });
 }
 
-function hitungPaguAnggaran() {
+function hitungAnggaran() {
     let totalPencairan = 0;
     spjData.forEach(item => { if(item.status === 'DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
-    document.getElementById('sisaTahunanVal').innerText = formatRupiah(PAGU_TAHUNAN - totalPencairan);
-    document.getElementById('sisaTriwulanVal').innerText = formatRupiah(PAGU_TRIWULAN - totalPencairan);
+    document.getElementById('sisaTahunanVal').innerText = formatRupiah(CONFIG.PAGU_TAHUNAN - totalPencairan);
+    document.getElementById('sisaTriwulanVal').innerText = formatRupiah(CONFIG.PAGU_TRIWULAN - totalPencairan);
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
-function populateProgramDropdown() {
-    const progSelect = document.getElementById('inputProgram'); progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
+// --- FUNGSI DROPDOWN DPA ---
+function isiDropdownProgram() {
+    const progSelect = document.getElementById('inputProgram'); 
+    progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
     for (let prog in referensiData) { progSelect.innerHTML += `<option value="${prog}">${prog}</option>`; }
 }
 function updateKegiatanDropdown() {
@@ -63,7 +69,8 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
-function submitNewSpjToSheets(e) {
+// --- FUNGSI KIRIM DATA SPJ BARU ---
+function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); 
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
@@ -71,7 +78,7 @@ function submitNewSpjToSheets(e) {
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
 
     const payload = {
-        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: currentNamaLengkap,
+        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -80,24 +87,31 @@ function submitNewSpjToSheets(e) {
         status: 'BELUM_DIPROSES'
     };
 
-    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(res => {
-        if(res.status === 'success') {
-            showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset(); fetchDataFromGoogleSheets();
-        } else { alert("💥 SISTEM GAGAL MENYIMPAN!\n" + res.message); }
-        btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false;
-    }).catch(err => { alert("💥 KONEKSI TERPUTUS!\nError: " + err.message); btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
+    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === 'success') {
+                showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); 
+                document.getElementById('formNewSpj').reset(); tarikDataDariServer();
+            } else { alert("SISTEM GAGAL MENYIMPAN!\n" + res.message); }
+        })
+        .catch(err => alert("KONEKSI TERPUTUS!\nError: " + err.message))
+        .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-function submitRevisiPptk() {
+// --- FUNGSI UPDATE STATUS & REVISI ---
+function kirimKonfirmasiRevisiPptk() {
     const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim...'; btn.disabled = true;
-    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: currentNamaLengkap }) }).then(res => res.json()).then(res => {
-        if(res.status === 'success') { showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); fetchDataFromGoogleSheets(); } 
-        else { alert("💥 GAGAL UPDATE REVISI:\n" + res.message); }
+    fetch(CONFIG.APPS_SCRIPT_URL, { 
+        method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: sesiAktif.namaLengkap }) 
+    }).then(res => res.json()).then(res => {
+        if(res.status === 'success') { showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); tarikDataDariServer(); } 
+        else { alert("GAGAL UPDATE REVISI:\n" + res.message); }
         btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; 
-    }).catch(err => { alert("💥 KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
+    }).catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
 }
 
-function actionSetujui() { pendingStatusChange = 'DISETUJUI'; submitStatusUpdate(); }
+function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
@@ -105,24 +119,29 @@ function toggleActionForm(type) {
     if(type === 'DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
 
-function submitStatusUpdate() {
-    let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: currentNamaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
+function prosesUpdateStatusAksi() {
+    let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
     if (pendingStatusChange === 'REVISI') {
         payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; }
     } else if (pendingStatusChange === 'DIPINDAHBUKUKAN') {
         payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
         if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
     }
+
     const btn = document.getElementById('btnConfirmAction'); btn.innerText = 'Memproses...'; btn.disabled = true;
-    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(res => {
-        if(res.status === 'success') { showToast(`Sukses memperbarui status SPJ.`); closeModal('modalVerify'); fetchDataFromGoogleSheets(); } 
-        else { alert("💥 GAGAL UPDATE STATUS:\n" + res.message); }
-        btn.innerText = 'Simpan Keputusan'; btn.disabled = false;
-    }).catch(err => { alert("💥 KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
+    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === 'success') { showToast(`Sukses memperbarui status.`); closeModal('modalVerify'); tarikDataDariServer(); } 
+            else { alert("GAGAL UPDATE STATUS:\n" + res.message); }
+        }).catch(err => alert("KONEKSI TERPUTUS:\n" + err.message))
+        .finally(() => { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
 }
 
+// --- FUNGSI TAMPILAN (UI) ---
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
-function renderApp() {
+
+function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
     spjData.forEach(item => {
         let badge = `<span class="px-2 py-1 rounded bg-slate-200 text-xs">${item.status}</span>`;
@@ -131,7 +150,9 @@ function renderApp() {
         if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">Revisi</span>`;
         if(item.status === 'DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200">PB: ${item.noPb}</span>`;
 
-        let actionBtnText = userRole === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; let actionBtnColor = userRole === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
+        let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
+        let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
+        
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 border-b whitespace-nowrap">
                 <td class="py-3 px-4 text-xs font-semibold">${String(item.npd || '-')}<br><span class="text-[10px] text-slate-500 font-normal">${String(item.createdAt || '-')}</span></td>
@@ -141,7 +162,7 @@ function renderApp() {
                 <td class="py-3 px-4 text-xs text-right font-bold">${formatRupiah(item.nominal)}</td>
                 <td class="py-3 px-4 text-center text-[11px]">${badge}</td>
                 <td class="py-3 px-4 text-xs text-slate-600">${String(item.noPb || '-')}</td>
-                <td class="py-3 px-4 text-center"><button onclick="openVerifyModal('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button></td>
+                <td class="py-3 px-4 text-center"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button></td>
             </tr>
         `;
     });
@@ -149,17 +170,18 @@ function renderApp() {
 
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
-function openVerifyModal(id) {
+function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
     document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
     document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
     
-    // Matikan Link
-    const linkElem = document.getElementById('detailLink');
-    linkElem.href = "#"; linkElem.innerText = "(Fitur Dokumen Dimatikan)"; linkElem.classList.add('pointer-events-none', 'text-slate-400');
+    document.getElementById('detailLink').href = "#"; 
+    document.getElementById('detailLink').innerText = "(Fitur Dokumen Dinonaktifkan)"; 
+    document.getElementById('detailLink').classList.add('pointer-events-none', 'text-slate-400');
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'DIPINDAHBUKUKAN' && item.buktiPb) {
@@ -176,12 +198,11 @@ function openVerifyModal(id) {
 
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.add('hidden'); document.getElementById('panelPptkRevisi').classList.add('hidden');
 
-    if (userRole === 'VERIFIKATOR') {
+    if (sesiAktif.role === 'VERIFIKATOR') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); document.getElementById('waContainer').classList.remove('hidden');
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
         if(item.status === 'REVISI') waText += `Catatan: ${item.catatanRevisi}\n`;
-        if(item.status === 'DIPINDAHBUKUKAN') waText += `No PB: ${item.noPb}\nBukti: ${item.buktiPb}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
@@ -189,5 +210,3 @@ function openVerifyModal(id) {
     }
     openModal('modalVerify');
 }
-
-function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
