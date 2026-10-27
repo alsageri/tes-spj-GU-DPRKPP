@@ -73,9 +73,12 @@ function kirimPengajuanSpjBaru(e) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
 
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
+    
+    // Kita buat ID-nya di sini agar bisa di-passing ke Google Form
+    const idBaru = 'SPJ-' + Date.now(); 
 
     const payload = {
-        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        action: 'create', id: idBaru, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -88,8 +91,24 @@ function kirimPengajuanSpjBaru(e) {
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); 
-                document.getElementById('formNewSpj').reset(); tarikDataDariServer();
+                // Sembunyikan form
+                document.getElementById('formNewSpj').classList.add('hidden');
+                
+                // BUAT LINK G-FORM AJAIB
+                // GANTI URL DI BAWAH dengan URL Pre-filled Anda, ubah KODERAHASIA menjadi ${idBaru}
+                const linkGForm = `https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?usp=pp_url&entry.123456789=${idBaru}`;
+                
+                // Tampilkan pesan sukses & Tombol Upload
+                const divSukses = document.createElement('div');
+                divSukses.className = "text-center py-6 space-y-4";
+                divSukses.innerHTML = `
+                    <div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800">Data Teks Berhasil Disimpan!</h3>
+                    <p class="text-sm text-slate-600 mb-4">Langkah terakhir: Silakan upload berkas fisik/kuitansi pengajuan Anda.</p>
+                    <a href="${linkGForm}" target="_blank" onclick="closeModal('modalNewSpj'); window.location.reload();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Berkas Sekarang</a>
+                `;
+                document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
+                
             } else { alert("SISTEM GAGAL MENYIMPAN!\n" + res.message); }
         })
         .catch(err => alert("KONEKSI TERPUTUS!\nError: " + err.message))
