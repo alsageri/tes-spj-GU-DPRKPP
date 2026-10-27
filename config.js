@@ -1,7 +1,10 @@
-// File: config.js (Pengaturan Utama Sistem)
+// ========================================================
+// FILE: config.js (Pengaturan Utama Sistem)
+// ========================================================
 
 const CONFIG = {
-    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyib2d6dREwYT26CLWfHSgRAhkq7I3_lXpbYyR4T5MudEC4ixmWNKHs3_NnVFNwmvwkcQ/exec",
+    // MASUKKAN URL DEPLOY APPS SCRIPT ANDA DI BAWAH INI
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzQdeNBiYPbf1fnITnj_2Tie1j6-5cKQdKwzNq0J_gJdQk4XXaamiASyRbLYkRrwt3dmQ/exec",
     PAGU_TAHUNAN: 1500000000,
     PAGU_TRIWULAN: 350000000
 };
