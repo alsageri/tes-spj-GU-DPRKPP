@@ -84,7 +84,7 @@ function kirimPengajuanSpjBaru(e) {
                 
                 // ⚠️ GANTI LINK DI BAWAH INI DENGAN LINK PRE-FILLED GOOGLE FORM ANDA
                 // Biarkan `${idBaru}` di bagian paling belakang.
-                const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=tes${idBaru}`; 
+                const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idBaru}`; 
                 
                 const divSukses = document.createElement('div');
                 divSukses.className = "text-center py-6 space-y-4";
@@ -206,7 +206,7 @@ function bukaModalVerifikasi(id) {
         if(item.status === 'REVISI') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
             // GANTI LINK DI BAWAH dengan Pre-filled G-Form Anda
-            document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=tes${item.id}`;
+            document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${item.id}`;
         }
     }
     openModal('modalVerify');
