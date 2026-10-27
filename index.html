@@ -55,7 +55,10 @@
                   </div>
               </div>
               <div class="flex items-center gap-2">
-                  <button id="btnAjukanBaru" onclick="openModal('modalNewSpj')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline">Ajukan SPJ Baru</span></button>
+                  <a href="https://forms.gle/oozwUHbAmNqidgyk6" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold shadow flex items-center gap-2 transition-colors">
+    <i class="fa-solid fa-up-right-from-square"></i>
+    <span class="hidden sm:inline">Ajukan SPJ (G-Form)</span>
+</a>
                   <button onclick="tarikDataDariServer()" class="bg-slate-700 text-slate-300 px-3 py-2 rounded-lg text-sm border border-slate-600"><i class="fa-solid fa-rotate" id="refresh-icon"></i></button>
               </div>
           </div>
@@ -107,62 +110,9 @@
       </main>
     </div>
 
-    <!-- MODAL SPJ BARU -->
+   <!-- MODAL SPJ BARU -->
     <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-8">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-file-circle-plus text-emerald-600 me-2"></i> Form Pengajuan SPJ GU Baru</h3>
-                <button onclick="closeModal('modalNewSpj')" class="text-xl font-bold text-slate-400 hover:text-slate-600">&times;</button>
-            </div>
-            <form id="formNewSpj" onsubmit="kirimPengajuanSpjBaru(event)" class="space-y-4">
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Tanggal Pengajuan *</label><input type="date" id="inputTanggal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                    </div>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                        <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label><input type="text" id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
-                            <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm">
-                                <option value="">-- Pilih Unit --</option><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option><option value="Bidang Pertanahan">Bidang Pertanahan</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Untuk Notif Email) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-1 gap-4 mb-3">
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Program *</label>
-                            <select id="inputProgram" onchange="updateKegiatanDropdown()" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Sedang Memuat Data --</option></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Kegiatan *</label>
-                            <select id="inputKegiatan" onchange="updateSubkegiatanDropdown()" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Pilih Program Dulu --</option></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold mb-1">Subkegiatan *</label>
-                            <select id="inputSubkegiatan" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Pilih Kegiatan Dulu --</option></select>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Nominal Rp (Tanpa Titik) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" rows="1" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end gap-2 border-t pt-3 mt-4">
-                    <button type="button" onclick="closeModal('modalNewSpj')" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-semibold transition-colors">Batal</button>
-                    <button type="submit" id="btnSubmitNew" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition-colors">Kirim Pengajuan</button>
-                </div>
-            </form>
+        <!-- ... (dan semua isi di dalamnya) ... -->
         </div>
     </div>
 
