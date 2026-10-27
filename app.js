@@ -1,10 +1,9 @@
-// File: app.js (Logika Aplikasi Bersih)
+// File: app.js (Logika Aplikasi & Tabel Bersih)
 
 let spjData = []; let referensiData = {}; 
 let activeSelectedId = null; let pendingStatusChange = null;
 let sesiAktif = { role: "", username: "", namaLengkap: "" };
 
-// --- FUNGSI AUTENTIKASI ---
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
     const pass = document.getElementById('password-input').value;
@@ -26,7 +25,6 @@ function masukSistem() {
     tarikDataDariServer();
 }
 
-// --- FUNGSI AMBIL DATA ---
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     fetch(CONFIG.APPS_SCRIPT_URL)
@@ -45,13 +43,13 @@ function tarikDataDariServer() {
 
 function hitungAnggaran() {
     let totalPencairan = 0;
-    spjData.forEach(item => { if(item.status === 'DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
+    // Diperbarui ke status yang baru
+    spjData.forEach(item => { if(item.status === 'SUDAH DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
     document.getElementById('sisaTahunanVal').innerText = formatRupiah(CONFIG.PAGU_TAHUNAN - totalPencairan);
     document.getElementById('sisaTriwulanVal').innerText = formatRupiah(CONFIG.PAGU_TRIWULAN - totalPencairan);
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
-// --- FUNGSI DROPDOWN DPA ---
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); 
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
@@ -69,7 +67,6 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
-// --- FUNGSI KIRIM DATA SPJ BARU ---
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); 
@@ -99,7 +96,6 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// --- FUNGSI UPDATE STATUS & REVISI ---
 function kirimKonfirmasiRevisiPptk() {
     const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim...'; btn.disabled = true;
     fetch(CONFIG.APPS_SCRIPT_URL, { 
@@ -114,17 +110,25 @@ function kirimKonfirmasiRevisiPptk() {
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
-    document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
-    if(type === 'REVISI') document.getElementById('revisiContainer').classList.remove('hidden');
-    if(type === 'DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
+    document.getElementById('revisiContainer').classList.add('hidden'); 
+    document.getElementById('pindahbukuContainer').classList.add('hidden'); 
+    document.getElementById('confirmActionContainer').classList.remove('hidden');
+    
+    // Buka input catatan untuk REVISI atau DITOLAK
+    if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
+    if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
 
 function prosesUpdateStatusAksi() {
     let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
-    if (pendingStatusChange === 'REVISI') {
-        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; }
-    } else if (pendingStatusChange === 'DIPINDAHBUKUKAN') {
-        payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
+    
+    if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') {
+        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; 
+        if(!payload.catatanRevisi) { alert('Catatan / Alasan wajib diisi!'); return; }
+    } else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') {
+        payload.noPb = document.getElementById('noPbInput').value; 
+        payload.tglPb = document.getElementById('tglPbInput').value; 
+        payload.buktiPb = document.getElementById('buktiPbInput').value;
         if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
     }
 
@@ -138,31 +142,40 @@ function prosesUpdateStatusAksi() {
         .finally(() => { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
 }
 
-// --- FUNGSI TAMPILAN (UI) ---
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
+// ===============================================
+// RENDER TABEL (NPD & TGL DIPISAH, PROGRAM DISUSUN)
+// ===============================================
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
     spjData.forEach(item => {
-        let badge = `<span class="px-2 py-1 rounded bg-slate-200 text-xs">${item.status}</span>`;
-        if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">Disetujui</span>`;
-        if(item.status === 'BELUM_DIPROSES') badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">Menunggu</span>`;
-        if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">Revisi</span>`;
-        if(item.status === 'DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200">PB: ${item.noPb}</span>`;
+        // Desain Badge 4 Status
+        let badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">MENUNGGU</span>`;
+        if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">DISETUJUI</span>`;
+        if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">REVISI</span>`;
+        if(item.status === 'DITOLAK') badge = `<span class="px-2 py-1 rounded bg-red-100 text-red-800 font-bold border border-red-200 shadow-sm">DITOLAK</span>`;
+        if(item.status === 'SUDAH DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200">PB: ${item.noPb}</span>`;
 
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
         
+        // HTML Baris Tabel (Perhatikan penggunaan align-top dan <br> di bagian Program)
         tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 border-b whitespace-nowrap">
-                <td class="py-3 px-4 text-xs font-semibold">${String(item.npd || '-')}<br><span class="text-[10px] text-slate-500 font-normal">${String(item.createdAt || '-')}</span></td>
-                <td class="py-3 px-4 text-xs">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-3 px-4 text-xs">${String(item.program || '-')}<br><span class="text-[10px] text-slate-500">${String(item.kegiatan || '-')}</span></td>
-                <td class="py-3 px-4 text-xs max-w-[200px] truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
-                <td class="py-3 px-4 text-xs text-right font-bold">${formatRupiah(item.nominal)}</td>
-                <td class="py-3 px-4 text-center text-[11px]">${badge}</td>
-                <td class="py-3 px-4 text-xs text-slate-600">${String(item.noPb || '-')}</td>
-                <td class="py-3 px-4 text-center"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button></td>
+            <tr class="hover:bg-slate-50 border-b">
+                <td class="py-3 px-4 text-xs align-top whitespace-nowrap text-slate-600">${String(item.createdAt || '-')}</td>
+                <td class="py-3 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
+                <td class="py-3 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
+                <td class="py-3 px-4 text-xs align-top leading-relaxed min-w-[250px]">
+                    <span class="font-bold text-slate-800">${String(item.program || '-')}</span><br>
+                    <span class="text-slate-600">${String(item.kegiatan || '-')}</span><br>
+                    <span class="text-[10px] text-slate-500">${String(item.subKegiatan || '-')}</span>
+                </td>
+                <td class="py-3 px-4 text-xs align-top max-w-[200px] truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
+                <td class="py-3 px-4 text-xs text-right font-bold align-top whitespace-nowrap">${formatRupiah(item.nominal)}</td>
+                <td class="py-3 px-4 text-center text-[11px] align-top whitespace-nowrap">${badge}</td>
+                <td class="py-3 px-4 text-xs text-slate-600 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
+                <td class="py-3 px-4 text-center align-top whitespace-nowrap"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button></td>
             </tr>
         `;
     });
@@ -184,7 +197,7 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailLink').classList.add('pointer-events-none', 'text-slate-400');
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
-    if (item.status === 'DIPINDAHBUKUKAN' && item.buktiPb) {
+    if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
         document.getElementById('detailBuktiPbTeks').innerText = `No PB: ${item.noPb} (${item.tglPb})`;
         let buktiLink = String(item.buktiPb || '');
         if(buktiLink.startsWith('http')) { document.getElementById('detailBuktiPbLink').innerHTML = `<a href="${buktiLink}" target="_blank" class="text-blue-600 underline font-bold">Buka Lampiran Bukti PB</a>`; } 
@@ -202,10 +215,11 @@ function bukaModalVerifikasi(id) {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); document.getElementById('waContainer').classList.remove('hidden');
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
-        if(item.status === 'REVISI') waText += `Catatan: ${item.catatanRevisi}\n`;
+        if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan: ${item.catatanRevisi}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
+        // Hanya munculkan tombol upload jika statusnya REVISI (Jika DITOLAK artinya NPD dibatalkan)
         if(item.status === 'REVISI') document.getElementById('panelPptkRevisi').classList.remove('hidden');
     }
     openModal('modalVerify');
