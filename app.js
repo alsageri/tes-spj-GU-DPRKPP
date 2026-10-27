@@ -1,12 +1,7 @@
-// ========================================================
-// FILE: app.js (Logika Aplikasi Bersih)
-// ========================================================
-
 let spjData = []; let referensiData = {}; 
 let activeSelectedId = null; let pendingStatusChange = null;
 let sesiAktif = { role: "", username: "", namaLengkap: "" };
 
-// --- 1. AUTENTIKASI LOGIN ---
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
     const pass = document.getElementById('password-input').value;
@@ -19,16 +14,12 @@ function checkLogin() {
         document.getElementById('pin-error').classList.remove('hidden'); 
     }
 }
-
 function masukSistem() {
-    document.getElementById('login-screen').style.display = 'none'; 
-    document.getElementById('main-app').style.display = 'flex';
-    document.getElementById('role-badge').innerText = sesiAktif.role; 
-    document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
+    document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('role-badge').innerText = sesiAktif.role; document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
     tarikDataDariServer();
 }
 
-// --- 2. TARIK DATA DARI SERVER ---
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     fetch(CONFIG.APPS_SCRIPT_URL)
@@ -39,11 +30,7 @@ function tarikDataDariServer() {
             renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
             document.getElementById('refresh-icon').classList.remove('animate-spin');
         })
-        .catch(e => { 
-            console.error("Error Fetch:", e);
-            alert("Gagal memuat data dari server! Cek koneksi atau URL Script."); 
-            document.getElementById('refresh-icon').classList.remove('animate-spin'); 
-        });
+        .catch(e => { alert("Gagal memuat data dari server! Cek koneksi."); document.getElementById('refresh-icon').classList.remove('animate-spin'); });
 }
 
 function hitungAnggaran() {
@@ -54,16 +41,13 @@ function hitungAnggaran() {
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
-// --- 3. LOGIKA DROPDOWN CASCADING ---
 function isiDropdownProgram() {
-    const progSelect = document.getElementById('inputProgram'); 
-    if(!progSelect) return; // Mencegah error jika elemen form belum dimuat
+    const progSelect = document.getElementById('inputProgram'); if(!progSelect) return;
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
     for (let prog in referensiData) { progSelect.innerHTML += `<option value="${prog}">${prog}</option>`; }
 }
 function updateKegiatanDropdown() {
-    const prog = document.getElementById('inputProgram').value;
-    const kegSelect = document.getElementById('inputKegiatan'); const subSelect = document.getElementById('inputSubkegiatan');
+    const prog = document.getElementById('inputProgram').value; const kegSelect = document.getElementById('inputKegiatan'); const subSelect = document.getElementById('inputSubkegiatan');
     kegSelect.innerHTML = '<option value="">-- Pilih Kegiatan --</option>'; subSelect.innerHTML = '<option value="">-- Pilih Subkegiatan --</option>';
     if(prog && referensiData[prog]) { for (let keg in referensiData[prog]) { kegSelect.innerHTML += `<option value="${keg}">${keg}</option>`; } }
 }
@@ -73,59 +57,54 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
-// --- 4. KIRIM PENGAJUAN BARU (LANGSUNG DARI DASBOR) ---
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); 
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
-
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
+    
+    // BUAT ID UNIK
+    const idBaru = 'SPJ-' + Date.now(); 
 
     const payload = {
-        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        action: 'create', id: idBaru, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
         subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
         uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
-        status: 'BELUM_DIPROSES',
-        link: document.getElementById('inputLinkDrive').value // Mengirim link Drive dari input form
+        status: 'BELUM_DIPROSES'
     };
 
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); 
-                document.getElementById('formNewSpj').reset(); tarikDataDariServer();
-            } else { alert("SISTEM GAGAL MENYIMPAN!\n" + res.message); }
+                document.getElementById('formNewSpj').classList.add('hidden'); // Sembunyikan form
+                
+                // ⚠️ GANTI LINK DI BAWAH INI DENGAN LINK PRE-FILLED GOOGLE FORM ANDA
+                // Biarkan `${idBaru}` di bagian paling belakang.
+                const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=tes${idBaru}`; 
+                
+                const divSukses = document.createElement('div');
+                divSukses.className = "text-center py-6 space-y-4";
+                divSukses.innerHTML = `
+                    <div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3>
+                    <p class="text-sm text-slate-600 mb-4 border border-amber-200 bg-amber-50 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan Anda belum selesai. Klik tombol di bawah ini untuk membuka Form Upload Berkas (Keuangan & SPJ GU).</p>
+                    <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); window.location.reload();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>
+                `;
+                document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
+            } else { alert("GAGAL MENYIMPAN!\n" + res.message); }
         })
         .catch(err => alert("KONEKSI TERPUTUS!\nError: " + err.message))
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
-}
-
-// --- 5. LOGIKA UPDATE STATUS (VERIFIKATOR & PPTK) ---
-function kirimKonfirmasiRevisiPptk() {
-    const linkBaru = document.getElementById('revisiLinkInput').value;
-    const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim...'; btn.disabled = true;
-    
-    fetch(CONFIG.APPS_SCRIPT_URL, { 
-        method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: sesiAktif.namaLengkap, newLink: linkBaru }) 
-    }).then(res => res.json()).then(res => {
-        if(res.status === 'success') { 
-            showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); 
-            document.getElementById('revisiLinkInput').value = ""; tarikDataDariServer(); 
-        } 
-        else { alert("GAGAL UPDATE REVISI:\n" + res.message); }
-    }).catch(err => alert("KONEKSI TERPUTUS:\n" + err.message))
-      .finally(() => { btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
 }
 
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
-    
     if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
@@ -149,7 +128,6 @@ function prosesUpdateStatusAksi() {
         .finally(() => { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
 }
 
-// --- 6. RENDER UI ---
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
 function renderTabelSpj() {
@@ -160,7 +138,6 @@ function renderTabelSpj() {
         if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">REVISI</span>`;
         if(item.status === 'DITOLAK') badge = `<span class="px-2 py-1 rounded bg-red-100 text-red-800 font-bold border border-red-200 shadow-sm">DITOLAK</span>`;
         if(item.status === 'SUDAH DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200">PB: ${item.noPb}</span>`;
-
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
         
@@ -169,11 +146,7 @@ function renderTabelSpj() {
                 <td class="py-3 px-4 text-xs align-top whitespace-nowrap text-slate-600">${String(item.createdAt || '-')}</td>
                 <td class="py-3 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
                 <td class="py-3 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-3 px-4 text-xs align-top leading-relaxed min-w-[250px]">
-                    <span class="font-bold text-slate-800">${String(item.program || '-')}</span><br>
-                    <span class="text-slate-600">${String(item.kegiatan || '-')}</span><br>
-                    <span class="text-[10px] text-slate-500">${String(item.subKegiatan || '-')}</span>
-                </td>
+                <td class="py-3 px-4 text-xs align-top leading-relaxed min-w-[250px]"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-600">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-500">${String(item.subKegiatan || '-')}</span></td>
                 <td class="py-3 px-4 text-xs align-top max-w-[200px] truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
                 <td class="py-3 px-4 text-xs text-right font-bold align-top whitespace-nowrap">${formatRupiah(item.nominal)}</td>
                 <td class="py-3 px-4 text-center text-[11px] align-top whitespace-nowrap">${badge}</td>
@@ -188,6 +161,13 @@ function openModal(id) { document.getElementById(id).classList.remove('hidden');
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
+// MENGUBAH URL TEKS MENJADI LINK KLIK
+function jadikanLink(textUrl) {
+    if (!textUrl || textUrl === "-") return '<span class="text-slate-400 italic">Belum dilampirkan</span>';
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
+}
+
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
@@ -195,19 +175,10 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
     document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
     
-    // Konfigurasi Buka Link Drive
-    let safeLink = String(item.link || ''); 
-    const linkElem = document.getElementById('detailLink');
-    if(safeLink && safeLink !== "-" && safeLink.trim() !== "") { 
-        if(!safeLink.startsWith('http')) safeLink = 'https://' + safeLink;
-        linkElem.href = safeLink; 
-        linkElem.innerText = "Buka Berkas Pengajuan"; 
-        linkElem.classList.remove('pointer-events-none', 'text-slate-400'); 
-    } else { 
-        linkElem.href = "#"; 
-        linkElem.innerText = "Link dokumen tidak dilampirkan"; 
-        linkElem.classList.add('pointer-events-none', 'text-slate-400'); 
-    }
+    // RENDER 3 KOTAK DOKUMEN 
+    document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan);
+    document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj);
+    document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi);
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
@@ -232,7 +203,11 @@ function bukaModalVerifikasi(id) {
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
-        if(item.status === 'REVISI') document.getElementById('panelPptkRevisi').classList.remove('hidden');
+        if(item.status === 'REVISI') {
+            document.getElementById('panelPptkRevisi').classList.remove('hidden');
+            // GANTI LINK DI BAWAH dengan Pre-filled G-Form Anda
+            document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=tes${item.id}`;
+        }
     }
     openModal('modalVerify');
 }
