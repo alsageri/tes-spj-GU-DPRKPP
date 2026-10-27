@@ -92,8 +92,8 @@ function kirimPengajuanSpjBaru(e) {
                     <div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div>
                     <h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3>
                     <p class="text-sm text-slate-600 mb-4 border border-amber-200 bg-amber-50 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan Anda belum selesai. Klik tombol di bawah ini untuk membuka Form Upload Berkas (Keuangan & SPJ GU).</p>
-                    <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); window.location.reload();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>
-                `;
+                    <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>                
+                    `;
                 document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
             } else { alert("GAGAL MENYIMPAN!\n" + res.message); }
         })
