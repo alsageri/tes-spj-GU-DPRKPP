@@ -1,7 +1,7 @@
 // ==========================================
 const PAGU_TAHUNAN = 1500000000;  
 const PAGU_TRIWULAN = 350000000; 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYd0f2UmTsafzk4eYqdjmhUX9Oq292W88-EcoeEC_avdK1sZofFgOREQqPHVxsunl8Bw/exec"; 
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQy0o4fPYrY2aOVBzgKE3Ef3MvpqzjizKddfgsldQLkyikRQ6x5LBHUi0OzbbTgiBv0Q/exec"; 
 
 const DATABASE_AKUN = [
     { username: "ahmad", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
@@ -12,8 +12,6 @@ const DATABASE_AKUN = [
 
 let spjData = []; let referensiData = {}; let activeSelectedId = null; let pendingStatusChange = null;
 let userRole = ""; let currentUsername = ""; let currentNamaLengkap = "";
-let uploadedFileBase64 = null; let uploadedFileName = null;
-let revisiFileBase64 = null; let revisiFileName = null;
 
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
@@ -37,8 +35,7 @@ function fetchDataFromGoogleSheets() {
         renderApp(); hitungPaguAnggaran(); populateProgramDropdown();
         document.getElementById('refresh-icon').classList.remove('animate-spin');
     }).catch(e => { 
-        alert("GAGAL MEMUAT DATA!\nPastikan URL Deploy di app.js sudah benar dan internet stabil.");
-        document.getElementById('refresh-icon').classList.remove('animate-spin'); 
+        alert("GAGAL MEMUAT DATA!"); document.getElementById('refresh-icon').classList.remove('animate-spin'); 
     });
 }
 
@@ -66,119 +63,40 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
-function handleFileUpload(event) {
-    const file = event.target.files[0]; if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("File terlalu besar! Maksimal 5 MB."); event.target.value = ""; return; }
-    const reader = new FileReader();
-    reader.onload = function(e) { uploadedFileBase64 = e.target.result; uploadedFileName = file.name; };
-    reader.readAsDataURL(file);
-}
-
-// ========================================================
-// SISTEM BARU: 2-TAHAP PEMISAHAN SKRIP (ASYNC / AWAIT)
-// ========================================================
-async function submitNewSpjToSheets(e) {
+function submitNewSpjToSheets(e) {
     e.preventDefault();
-    if(!uploadedFileBase64) { alert("Pilih file kuitansi (PDF/JPG) terlebih dahulu!"); return; }
-
     const btn = document.getElementById('btnSubmitNew'); 
-    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
 
-    try {
-        // TAHAP 1: KIRIM FILE KE DRIVE SAJA
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (1/2) Mengupload Dokumen...';
-        const payloadUpload = {
-            action: 'upload_file',
-            program: document.getElementById('inputProgram').value, 
-            kegiatan: document.getElementById('inputKegiatan').value, 
-            subKegiatan: document.getElementById('inputSubkegiatan').value, 
-            fileBase64: uploadedFileBase64, 
-            fileName: uploadedFileName
-        };
+    const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
 
-        const resUpload = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadUpload) }).then(r => r.json());
-        if(resUpload.status !== 'success') throw new Error(resUpload.message || "Gagal membuat folder/file di Drive");
-        
-        const linkDriveTerkini = resUpload.fileUrl; // Dapatkan Link Hasil Upload
+    const payload = {
+        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: currentNamaLengkap,
+        pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
+        unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
+        program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
+        subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
+        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
+        status: 'BELUM_DIPROSES'
+    };
 
-        // TAHAP 2: KIRIM DATA TEKS KE SPREADSHEET
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (2/2) Menyimpan Data SPJ...';
-        const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
-
-        const payloadData = {
-            action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: currentNamaLengkap,
-            pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
-            unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
-            program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
-            subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
-            uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
-            status: 'BELUM_DIPROSES', link: linkDriveTerkini
-        };
-
-        const resData = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadData) }).then(r => r.json());
-        if(resData.status !== 'success') throw new Error(resData.message || "Gagal menyimpan baris di Excel");
-
-        // BERHASIL KEDUANYA
-        showToast('Pengajuan & Dokumen Berhasil Disimpan!'); 
-        closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset(); 
-        uploadedFileBase64 = null; uploadedFileName = null;
-        fetchDataFromGoogleSheets();
-
-    } catch(error) {
-        alert("💥 SISTEM GAGAL!\nPesan Error: " + error.message);
-    } finally {
+    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(res => {
+        if(res.status === 'success') {
+            showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset(); fetchDataFromGoogleSheets();
+        } else { alert("💥 SISTEM GAGAL MENYIMPAN!\n" + res.message); }
         btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false;
-    }
+    }).catch(err => { alert("💥 KONEKSI TERPUTUS!\nError: " + err.message); btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// --------------------------------------------------------
-// PEMISAHAN LOGIKA UPLOAD REVISI PPTK (2 TAHAP JUGA)
-// --------------------------------------------------------
-function handleRevisiUpload(event) {
-    const file = event.target.files[0]; if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("File terlalu besar!"); event.target.value = ""; return; }
-    const reader = new FileReader(); reader.onload = function(e) { revisiFileBase64 = e.target.result; revisiFileName = file.name; }; reader.readAsDataURL(file);
+function submitRevisiPptk() {
+    const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim...'; btn.disabled = true;
+    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: currentNamaLengkap }) }).then(res => res.json()).then(res => {
+        if(res.status === 'success') { showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); fetchDataFromGoogleSheets(); } 
+        else { alert("💥 GAGAL UPDATE REVISI:\n" + res.message); }
+        btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; 
+    }).catch(err => { alert("💥 KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
 }
 
-async function submitRevisiPptk() {
-    if(!revisiFileBase64) { alert("Pilih file revisi terlebih dahulu!"); return; }
-    const btn = document.getElementById('btnSubmitRevisi'); btn.disabled = true;
-    
-    try {
-        // TAHAP 1: UPLOAD DOKUMEN REVISI
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (1/2) Mengupload Revisi...';
-        const payloadUpload = {
-            action: 'upload_file',
-            program: 'REVISI_DOKUMEN', // Masukkan ke folder master dgn nama "REVISI_DOKUMEN"
-            kegiatan: currentUsername, // Subfolder nama PPTK-nya
-            subKegiatan: 'File', 
-            fileBase64: revisiFileBase64, 
-            fileName: revisiFileName
-        };
-        const resUpload = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadUpload) }).then(r => r.json());
-        if(resUpload.status !== 'success') throw new Error(resUpload.message || "Gagal upload revisi ke Drive");
-
-        // TAHAP 2: UPDATE STATUS DATABASE
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (2/2) Update Status...';
-        const resUpdate = await fetch(APPS_SCRIPT_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: currentNamaLengkap, newLink: resUpload.fileUrl }) 
-        }).then(r => r.json());
-        
-        if(resUpdate.status !== 'success') throw new Error(resUpdate.message || "Gagal ubah status di Sheets");
-
-        showToast(`Berkas Revisi Berhasil Terkirim.`); 
-        closeModal('modalVerify'); fetchDataFromGoogleSheets(); 
-        revisiFileBase64 = null; revisiFileName = null;
-
-    } catch(error) {
-        alert("💥 GAGAL REVISI!\nPesan Error: " + error.message);
-    } finally {
-        btn.innerText = 'Kirim Berkas Perbaikan'; btn.disabled = false; 
-    }
-}
-
-// AKSI VERIFIKATOR 
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; submitStatusUpdate(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
@@ -195,7 +113,6 @@ function submitStatusUpdate() {
         payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
         if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
     }
-
     const btn = document.getElementById('btnConfirmAction'); btn.innerText = 'Memproses...'; btn.disabled = true;
     fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(res => {
         if(res.status === 'success') { showToast(`Sukses memperbarui status SPJ.`); closeModal('modalVerify'); fetchDataFromGoogleSheets(); } 
@@ -214,9 +131,7 @@ function renderApp() {
         if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">Revisi</span>`;
         if(item.status === 'DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200">PB: ${item.noPb}</span>`;
 
-        let actionBtnText = userRole === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail';
-        let actionBtnColor = userRole === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
-
+        let actionBtnText = userRole === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; let actionBtnColor = userRole === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 border-b whitespace-nowrap">
                 <td class="py-3 px-4 text-xs font-semibold">${String(item.npd || '-')}<br><span class="text-[10px] text-slate-500 font-normal">${String(item.createdAt || '-')}</span></td>
@@ -242,10 +157,9 @@ function openVerifyModal(id) {
     document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
     document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
     
-    let safeLink = String(item.link || ''); if(safeLink && !safeLink.startsWith('http')) safeLink = 'https://' + safeLink;
+    // Matikan Link
     const linkElem = document.getElementById('detailLink');
-    if(safeLink) { linkElem.href = safeLink; linkElem.innerText = "Buka Berkas Google Drive"; linkElem.classList.remove('pointer-events-none', 'text-slate-400'); } 
-    else { linkElem.href = "#"; linkElem.innerText = "Link tidak tersedia"; linkElem.classList.add('pointer-events-none', 'text-slate-400'); }
+    linkElem.href = "#"; linkElem.innerText = "(Fitur Dokumen Dimatikan)"; linkElem.classList.add('pointer-events-none', 'text-slate-400');
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'DIPINDAHBUKUKAN' && item.buktiPb) {
