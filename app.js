@@ -1,7 +1,7 @@
 // ==========================================
 const PAGU_TAHUNAN = 1500000000;  
 const PAGU_TRIWULAN = 350000000; 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1wVbgJOAIVDnCqzgwe-7fchNnMG3ToSERHdlcE8AV_S27MIKVxgoToDFg2LRrIiY0tA/exec"; 
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvbpoOes5foKIAX3LJuskOoOoIrbDxyPf9hON9s2NoxQIrDMOrkRH5ageh0M2A_Hvnxw/exec"; 
 
 const DATABASE_AKUN = [
     { username: "ahmad", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
@@ -74,38 +74,111 @@ function handleFileUpload(event) {
     reader.readAsDataURL(file);
 }
 
-function submitNewSpjToSheets(e) {
+// ========================================================
+// SISTEM BARU: 2-TAHAP PEMISAHAN SKRIP (ASYNC / AWAIT)
+// ========================================================
+async function submitNewSpjToSheets(e) {
     e.preventDefault();
     if(!uploadedFileBase64) { alert("Pilih file kuitansi (PDF/JPG) terlebih dahulu!"); return; }
 
     const btn = document.getElementById('btnSubmitNew'); 
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Sedang Mengupload (Mohon Tunggu)...'; btn.disabled = true;
+    btn.disabled = true;
 
-    const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
+    try {
+        // TAHAP 1: KIRIM FILE KE DRIVE SAJA
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (1/2) Mengupload Dokumen...';
+        const payloadUpload = {
+            action: 'upload_file',
+            program: document.getElementById('inputProgram').value, 
+            kegiatan: document.getElementById('inputKegiatan').value, 
+            subKegiatan: document.getElementById('inputSubkegiatan').value, 
+            fileBase64: uploadedFileBase64, 
+            fileName: uploadedFileName
+        };
 
-    const payload = {
-        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: currentNamaLengkap,
-        pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
-        unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
-        program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
-        subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
-        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
-        status: 'BELUM_DIPROSES', fileBase64: uploadedFileBase64, fileName: uploadedFileName
-    };
+        const resUpload = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadUpload) }).then(r => r.json());
+        if(resUpload.status !== 'success') throw new Error(resUpload.message || "Gagal membuat folder/file di Drive");
+        
+        const linkDriveTerkini = resUpload.fileUrl; // Dapatkan Link Hasil Upload
 
-    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-    .then(res => res.json())
-    .then(res => {
-        if(res.status === 'success') {
-            showToast('Pengajuan & Dokumen Berhasil Disimpan!'); closeModal('modalNewSpj'); 
-            document.getElementById('formNewSpj').reset(); uploadedFileBase64 = null; uploadedFileName = null;
-            fetchDataFromGoogleSheets();
-        } else { alert("💥 SISTEM GAGAL MENYIMPAN!\nPesan Error Server: " + res.message); }
+        // TAHAP 2: KIRIM DATA TEKS KE SPREADSHEET
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (2/2) Menyimpan Data SPJ...';
+        const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
+
+        const payloadData = {
+            action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: currentNamaLengkap,
+            pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
+            unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
+            program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
+            subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
+            uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
+            status: 'BELUM_DIPROSES', link: linkDriveTerkini
+        };
+
+        const resData = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadData) }).then(r => r.json());
+        if(resData.status !== 'success') throw new Error(resData.message || "Gagal menyimpan baris di Excel");
+
+        // BERHASIL KEDUANYA
+        showToast('Pengajuan & Dokumen Berhasil Disimpan!'); 
+        closeModal('modalNewSpj'); document.getElementById('formNewSpj').reset(); 
+        uploadedFileBase64 = null; uploadedFileName = null;
+        fetchDataFromGoogleSheets();
+
+    } catch(error) {
+        alert("💥 SISTEM GAGAL!\nPesan Error: " + error.message);
+    } finally {
         btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false;
-    })
-    .catch(err => { alert("💥 KONEKSI TERPUTUS!\nError: " + err.message); btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
+    }
 }
 
+// --------------------------------------------------------
+// PEMISAHAN LOGIKA UPLOAD REVISI PPTK (2 TAHAP JUGA)
+// --------------------------------------------------------
+function handleRevisiUpload(event) {
+    const file = event.target.files[0]; if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("File terlalu besar!"); event.target.value = ""; return; }
+    const reader = new FileReader(); reader.onload = function(e) { revisiFileBase64 = e.target.result; revisiFileName = file.name; }; reader.readAsDataURL(file);
+}
+
+async function submitRevisiPptk() {
+    if(!revisiFileBase64) { alert("Pilih file revisi terlebih dahulu!"); return; }
+    const btn = document.getElementById('btnSubmitRevisi'); btn.disabled = true;
+    
+    try {
+        // TAHAP 1: UPLOAD DOKUMEN REVISI
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (1/2) Mengupload Revisi...';
+        const payloadUpload = {
+            action: 'upload_file',
+            program: 'REVISI_DOKUMEN', // Masukkan ke folder master dgn nama "REVISI_DOKUMEN"
+            kegiatan: currentUsername, // Subfolder nama PPTK-nya
+            subKegiatan: 'File', 
+            fileBase64: revisiFileBase64, 
+            fileName: revisiFileName
+        };
+        const resUpload = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payloadUpload) }).then(r => r.json());
+        if(resUpload.status !== 'success') throw new Error(resUpload.message || "Gagal upload revisi ke Drive");
+
+        // TAHAP 2: UPDATE STATUS DATABASE
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> (2/2) Update Status...';
+        const resUpdate = await fetch(APPS_SCRIPT_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: currentNamaLengkap, newLink: resUpload.fileUrl }) 
+        }).then(r => r.json());
+        
+        if(resUpdate.status !== 'success') throw new Error(resUpdate.message || "Gagal ubah status di Sheets");
+
+        showToast(`Berkas Revisi Berhasil Terkirim.`); 
+        closeModal('modalVerify'); fetchDataFromGoogleSheets(); 
+        revisiFileBase64 = null; revisiFileName = null;
+
+    } catch(error) {
+        alert("💥 GAGAL REVISI!\nPesan Error: " + error.message);
+    } finally {
+        btn.innerText = 'Kirim Berkas Perbaikan'; btn.disabled = false; 
+    }
+}
+
+// AKSI VERIFIKATOR 
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; submitStatusUpdate(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
@@ -129,23 +202,6 @@ function submitStatusUpdate() {
         else { alert("💥 GAGAL UPDATE STATUS:\n" + res.message); }
         btn.innerText = 'Simpan Keputusan'; btn.disabled = false;
     }).catch(err => { alert("💥 KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
-}
-
-function handleRevisiUpload(event) {
-    const file = event.target.files[0]; if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("File terlalu besar!"); event.target.value = ""; return; }
-    const reader = new FileReader(); reader.onload = function(e) { revisiFileBase64 = e.target.result; revisiFileName = file.name; }; reader.readAsDataURL(file);
-}
-
-function submitRevisiPptk() {
-    if(!revisiFileBase64) { alert("Pilih file revisi terlebih dahulu!"); return; }
-    const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim File...'; btn.disabled = true;
-    
-    fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: currentNamaLengkap, fileBase64: revisiFileBase64, fileName: revisiFileName }) }).then(res => res.json()).then(res => {
-        if(res.status === 'success') { showToast(`Berkas Revisi Terkirim.`); closeModal('modalVerify'); fetchDataFromGoogleSheets(); revisiFileBase64 = null; revisiFileName = null; } 
-        else { alert("💥 GAGAL UPLOAD REVISI:\n" + res.message); }
-        btn.innerText = 'Kirim Berkas Perbaikan'; btn.disabled = false; 
-    }).catch(err => { alert("💥 KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Kirim Berkas Perbaikan'; btn.disabled = false; });
 }
 
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
