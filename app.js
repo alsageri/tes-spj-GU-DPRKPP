@@ -1,9 +1,12 @@
-// File: app.js (Logika Aplikasi & Tabel Bersih)
+// ========================================================
+// FILE: app.js (Logika Aplikasi Bersih)
+// ========================================================
 
 let spjData = []; let referensiData = {}; 
 let activeSelectedId = null; let pendingStatusChange = null;
 let sesiAktif = { role: "", username: "", namaLengkap: "" };
 
+// --- 1. AUTENTIKASI LOGIN ---
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
     const pass = document.getElementById('password-input').value;
@@ -25,6 +28,7 @@ function masukSistem() {
     tarikDataDariServer();
 }
 
+// --- 2. TARIK DATA DARI SERVER ---
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     fetch(CONFIG.APPS_SCRIPT_URL)
@@ -36,22 +40,24 @@ function tarikDataDariServer() {
             document.getElementById('refresh-icon').classList.remove('animate-spin');
         })
         .catch(e => { 
-            alert("Gagal memuat data dari server!"); 
+            console.error("Error Fetch:", e);
+            alert("Gagal memuat data dari server! Cek koneksi atau URL Script."); 
             document.getElementById('refresh-icon').classList.remove('animate-spin'); 
         });
 }
 
 function hitungAnggaran() {
     let totalPencairan = 0;
-    // Diperbarui ke status yang baru
     spjData.forEach(item => { if(item.status === 'SUDAH DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
     document.getElementById('sisaTahunanVal').innerText = formatRupiah(CONFIG.PAGU_TAHUNAN - totalPencairan);
     document.getElementById('sisaTriwulanVal').innerText = formatRupiah(CONFIG.PAGU_TRIWULAN - totalPencairan);
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
+// --- 3. LOGIKA DROPDOWN CASCADING ---
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); 
+    if(!progSelect) return; // Mencegah error jika elemen form belum dimuat
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
     for (let prog in referensiData) { progSelect.innerHTML += `<option value="${prog}">${prog}</option>`; }
 }
@@ -67,87 +73,69 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
+// --- 4. KIRIM PENGAJUAN BARU (LANGSUNG DARI DASBOR) ---
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); 
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
 
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
-    
-    // Kita buat ID-nya di sini agar bisa di-passing ke Google Form
-    const idBaru = 'SPJ-' + Date.now(); 
 
     const payload = {
-        action: 'create', id: idBaru, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        action: 'create', id: 'SPJ-' + Date.now(), createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
         subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
         uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
-        status: 'BELUM_DIPROSES'
+        status: 'BELUM_DIPROSES',
+        link: document.getElementById('inputLinkDrive').value // Mengirim link Drive dari input form
     };
 
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                // Sembunyikan form
-                document.getElementById('formNewSpj').classList.add('hidden');
-                
-                // BUAT LINK G-FORM AJAIB
-                // GANTI URL DI BAWAH dengan URL Pre-filled Anda, ubah KODERAHASIA menjadi ${idBaru}
-                const linkGForm = `https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?usp=pp_url&entry.123456789=${idBaru}`;
-                
-                // Tampilkan pesan sukses & Tombol Upload
-                const divSukses = document.createElement('div');
-                divSukses.className = "text-center py-6 space-y-4";
-                divSukses.innerHTML = `
-                    <div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800">Data Teks Berhasil Disimpan!</h3>
-                    <p class="text-sm text-slate-600 mb-4">Langkah terakhir: Silakan upload berkas fisik/kuitansi pengajuan Anda.</p>
-                    <a href="${linkGForm}" target="_blank" onclick="closeModal('modalNewSpj'); window.location.reload();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Berkas Sekarang</a>
-                `;
-                document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
-                
+                showToast('Pengajuan Berhasil Disimpan!'); closeModal('modalNewSpj'); 
+                document.getElementById('formNewSpj').reset(); tarikDataDariServer();
             } else { alert("SISTEM GAGAL MENYIMPAN!\n" + res.message); }
         })
         .catch(err => alert("KONEKSI TERPUTUS!\nError: " + err.message))
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
+// --- 5. LOGIKA UPDATE STATUS (VERIFIKATOR & PPTK) ---
 function kirimKonfirmasiRevisiPptk() {
+    const linkBaru = document.getElementById('revisiLinkInput').value;
     const btn = document.getElementById('btnSubmitRevisi'); btn.innerHTML = 'Mengirim...'; btn.disabled = true;
+    
     fetch(CONFIG.APPS_SCRIPT_URL, { 
-        method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: sesiAktif.namaLengkap }) 
+        method: 'POST', body: JSON.stringify({ action: 'update_revisi', id: activeSelectedId, username: sesiAktif.namaLengkap, newLink: linkBaru }) 
     }).then(res => res.json()).then(res => {
-        if(res.status === 'success') { showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); tarikDataDariServer(); } 
+        if(res.status === 'success') { 
+            showToast(`Pemberitahuan Revisi Terkirim.`); closeModal('modalVerify'); 
+            document.getElementById('revisiLinkInput').value = ""; tarikDataDariServer(); 
+        } 
         else { alert("GAGAL UPDATE REVISI:\n" + res.message); }
-        btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; 
-    }).catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
+    }).catch(err => alert("KONEKSI TERPUTUS:\n" + err.message))
+      .finally(() => { btn.innerText = 'Konfirmasi Sudah Diperbaiki'; btn.disabled = false; });
 }
 
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
-    document.getElementById('revisiContainer').classList.add('hidden'); 
-    document.getElementById('pindahbukuContainer').classList.add('hidden'); 
-    document.getElementById('confirmActionContainer').classList.remove('hidden');
+    document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
     
-    // Buka input catatan untuk REVISI atau DITOLAK
     if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
 
 function prosesUpdateStatusAksi() {
     let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
-    
     if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') {
-        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; 
-        if(!payload.catatanRevisi) { alert('Catatan / Alasan wajib diisi!'); return; }
+        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; }
     } else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') {
-        payload.noPb = document.getElementById('noPbInput').value; 
-        payload.tglPb = document.getElementById('tglPbInput').value; 
-        payload.buktiPb = document.getElementById('buktiPbInput').value;
+        payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
         if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
     }
 
@@ -161,15 +149,12 @@ function prosesUpdateStatusAksi() {
         .finally(() => { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
 }
 
+// --- 6. RENDER UI ---
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
-// ===============================================
-// RENDER TABEL (NPD & TGL DIPISAH, PROGRAM DISUSUN)
-// ===============================================
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
     spjData.forEach(item => {
-        // Desain Badge 4 Status
         let badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">MENUNGGU</span>`;
         if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">DISETUJUI</span>`;
         if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">REVISI</span>`;
@@ -179,7 +164,6 @@ function renderTabelSpj() {
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
         
-        // HTML Baris Tabel (Perhatikan penggunaan align-top dan <br> di bagian Program)
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 border-b">
                 <td class="py-3 px-4 text-xs align-top whitespace-nowrap text-slate-600">${String(item.createdAt || '-')}</td>
@@ -211,9 +195,19 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
     document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
     
-    document.getElementById('detailLink').href = "#"; 
-    document.getElementById('detailLink').innerText = "(Fitur Dokumen Dinonaktifkan)"; 
-    document.getElementById('detailLink').classList.add('pointer-events-none', 'text-slate-400');
+    // Konfigurasi Buka Link Drive
+    let safeLink = String(item.link || ''); 
+    const linkElem = document.getElementById('detailLink');
+    if(safeLink && safeLink !== "-" && safeLink.trim() !== "") { 
+        if(!safeLink.startsWith('http')) safeLink = 'https://' + safeLink;
+        linkElem.href = safeLink; 
+        linkElem.innerText = "Buka Berkas Pengajuan"; 
+        linkElem.classList.remove('pointer-events-none', 'text-slate-400'); 
+    } else { 
+        linkElem.href = "#"; 
+        linkElem.innerText = "Link dokumen tidak dilampirkan"; 
+        linkElem.classList.add('pointer-events-none', 'text-slate-400'); 
+    }
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
@@ -238,7 +232,6 @@ function bukaModalVerifikasi(id) {
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
-        // Hanya munculkan tombol upload jika statusnya REVISI (Jika DITOLAK artinya NPD dibatalkan)
         if(item.status === 'REVISI') document.getElementById('panelPptkRevisi').classList.remove('hidden');
     }
     openModal('modalVerify');
