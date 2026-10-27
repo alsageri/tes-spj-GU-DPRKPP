@@ -1,7 +1,7 @@
 // File: config.js (Pengaturan Utama Sistem)
 
 const CONFIG = {
-    APPS_SCRIPT_URL: "MASUKKAN_URL_DEPLOY_BARU_DISINI",
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyib2d6dREwYT26CLWfHSgRAhkq7I3_lXpbYyR4T5MudEC4ixmWNKHs3_NnVFNwmvwkcQ/exec",
     PAGU_TAHUNAN: 1500000000,
     PAGU_TRIWULAN: 350000000
 };
