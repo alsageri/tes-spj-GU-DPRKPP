@@ -1,6 +1,8 @@
 let spjData = []; let referensiData = {}; 
 let activeSelectedId = null; let pendingStatusChange = null;
 let sesiAktif = { role: "", username: "", namaLengkap: "" };
+let isEditMode = false;
+let editIdTarget = null;
 
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
@@ -63,11 +65,11 @@ function kirimPengajuanSpjBaru(e) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
-    // BUAT ID UNIK
-    const idBaru = 'SPJ-' + Date.now(); 
+    const idSistem = isEditMode ? editIdTarget : 'SPJ-' + Date.now(); 
+    const actionType = isEditMode ? 'update_data_teks' : 'create';
 
     const payload = {
-        action: 'create', id: idBaru, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -80,27 +82,27 @@ function kirimPengajuanSpjBaru(e) {
         .then(res => res.json())
         .then(res => {
             if(res.status === 'success') {
-                document.getElementById('formNewSpj').classList.add('hidden'); // Sembunyikan form
+                document.getElementById('formNewSpj').classList.add('hidden'); 
                 
-                // ⚠️ GANTI LINK DI BAWAH INI DENGAN LINK PRE-FILLED GOOGLE FORM ANDA
-                // Biarkan `${idBaru}` di bagian paling belakang.
-                const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idBaru}`; 
-                
-                const divSukses = document.createElement('div');
-                divSukses.className = "text-center py-6 space-y-4";
-                divSukses.innerHTML = `
-                    <div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3>
-                    <p class="text-sm text-slate-600 mb-4 border border-amber-200 bg-amber-50 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan Anda belum selesai. Klik tombol di bawah ini untuk membuka Form Upload Berkas (Keuangan & SPJ GU).</p>
-                    <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>                
-                    `;
-                document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
+                if (isEditMode) {
+                    // Jika Edit, langsung selesai
+                    const divSukses = document.createElement('div');
+                    divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
+                    divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Perbaikan Data Berhasil!</h3><button onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-bold">Tutup & Refresh</button>`;
+                    document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
+                } else {
+                    // Jika Baru, arahkan ke Form Upload
+                    const formPrefilledUrl = `TULIS_URL_PREFILLED_ANDA_DISINI_TANPA_KATA_TES${idSistem}`; 
+                    const divSukses = document.createElement('div');
+                    divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
+                    divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3><p class="text-sm text-slate-600 mb-4 bg-amber-50 p-3 rounded text-left">Lanjut klik tombol di bawah untuk Upload Berkas.</p><a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>`;
+                    document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
+                }
             } else { alert("GAGAL MENYIMPAN!\n" + res.message); }
         })
         .catch(err => alert("KONEKSI TERPUTUS!\nError: " + err.message))
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
-
 function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
 function toggleActionForm(type) {
     pendingStatusChange = type;
@@ -210,13 +212,17 @@ function jadikanLink(textUrl) {
     return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
 }
 
-function bukaModalVerifikasi(id) {
-    activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
-
-    document.getElementById('detailUraian').innerText = String(item.uraian || '-');
-    document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
-    document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
-    
+// Di dalam fungsi bukaModalVerifikasi, ubah bagian ELSE (khusus PPTK) menjadi ini:
+    } else {
+        document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
+        // Munculkan panel revisi JIKA statusnya REVISI atau BELUM_DIPROSES (agar bisa edit saat baru diajukan)
+        if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
+            document.getElementById('panelPptkRevisi').classList.remove('hidden');
+            if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data sebelum diverifikasi.";
+            if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerText = "Catatan: " + (item.catatanRevisi || "-");
+            document.getElementById('btnUploadRevisi').href = `TULIS_URL_PREFILLED_ANDA_DISINI_TANPA_KATA_TES${item.id}`;
+        }
+    }
     // RENDER 3 KOTAK DOKUMEN 
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan);
     document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj);
@@ -257,4 +263,41 @@ function bukaModalVerifikasi(id) {
         }
     }
     openModal('modalVerify');
+}
+
+function bukaFormEdit() {
+    const item = spjData.find(i => String(i.id) === String(activeSelectedId)); if(!item) return;
+    isEditMode = true; editIdTarget = item.id;
+    
+    // Kembalikan form jika sebelumnya hidden karena pesan sukses
+    const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
+    document.getElementById('formNewSpj').classList.remove('hidden');
+
+    // Pecah tanggal (Asumsi format dari G-Sheet DD/MM/YYYY diubah ke YYYY-MM-DD untuk input type=date)
+    try { const parts = String(item.createdAt).split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } catch(e){}
+    
+    document.getElementById('inputNpd').value = item.npd; document.getElementById('inputPptk').value = item.pptk;
+    document.getElementById('inputUnitKerja').value = item.unitKerja; document.getElementById('inputEmail').value = item.emailPptk;
+    document.getElementById('inputWa').value = item.wa;
+    
+    // Set Dropdown bertingkat
+    document.getElementById('inputProgram').value = item.program; updateKegiatanDropdown();
+    document.getElementById('inputKegiatan').value = item.kegiatan; updateSubkegiatanDropdown();
+    document.getElementById('inputSubkegiatan').value = item.subKegiatan;
+    
+    document.getElementById('inputNominal').value = item.nominal; document.getElementById('inputUraian').value = item.uraian;
+    
+    document.getElementById('btnSubmitNew').innerText = "Simpan Perubahan (Edit)";
+    closeModal('modalVerify'); openModal('modalNewSpj');
+}
+
+// Modifikasi sedikit fungsi openModal agar mereset isEditMode saat nambah SPJ Baru
+function openModal(id) { 
+    if(id === 'modalNewSpj' && !isEditMode) { 
+        document.getElementById('formNewSpj').reset(); 
+        const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
+        document.getElementById('formNewSpj').classList.remove('hidden');
+        document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
+    }
+    document.getElementById(id).classList.remove('hidden'); 
 }
