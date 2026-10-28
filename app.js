@@ -175,6 +175,17 @@ function openModal(id) {
     }
     document.getElementById(id).classList.remove('hidden'); 
 }
+
+function bukaFormSpjBaru() {
+    isEditMode = false;
+    editIdTarget = null;
+    document.getElementById('formNewSpj').reset(); 
+    const existingSukses = document.getElementById('pesanSuksesDiv'); 
+    if(existingSukses) existingSukses.remove();
+    document.getElementById('formNewSpj').classList.remove('hidden');
+    document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
+    openModal('modalNewSpj');
+}
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
