@@ -239,8 +239,13 @@ function bukaModalVerifikasi(id) {
 
     if (sesiAktif.role === 'VERIFIKATOR') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); document.getElementById('waContainer').classList.remove('hidden');
-        let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
-        let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
+        // Pembersihan & Standarisasi Nomor WA yang Kebal Error
+        let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); 
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.slice(1); // Ubah 0 jadi 62
+        } else if (cleanPhone.startsWith('8')) {
+            cleanPhone = '62' + cleanPhone; // Tambahkan 62 jika langsung mengetik angka 8
+        }        let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan: ${item.catatanRevisi}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
