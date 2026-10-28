@@ -10,7 +10,7 @@ const CONFIG = {
 };
 
 const DATABASE_AKUN = [
-    { username: "ahmad", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
+    { username: "Haliza", password: "123", role: "PPTK", namaLengkap: "Ir. Ahmad Fauzi (Perumahan)" },
     { username: "budi", password: "123", role: "PPTK", namaLengkap: "Budi Santoso, S.T. (Permukiman)" },
     { username: "admin", password: "admin123", role: "VERIFIKATOR", namaLengkap: "Admin Keuangan DPRKPP" }
 ];
