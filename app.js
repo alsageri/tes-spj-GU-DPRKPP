@@ -110,24 +110,66 @@ function toggleActionForm(type) {
 }
 
 function prosesUpdateStatusAksi() {
-    let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
+    let payload = { 
+        action: 'update_status', 
+        id: activeSelectedId, 
+        status: pendingStatusChange, 
+        username: sesiAktif.namaLengkap, 
+        noPb: '', 
+        tglPb: '', 
+        catatanRevisi: '', 
+        buktiPb: '' 
+    };
+
     if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') {
-        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; }
+        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; 
+        if(!payload.catatanRevisi) { 
+            alert('Catatan wajib diisi!'); 
+            return; 
+        }
     } else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') {
-        payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
-        if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
+        payload.noPb = document.getElementById('noPbInput').value; 
+        payload.tglPb = document.getElementById('tglPbInput').value; 
+        payload.buktiPb = document.getElementById('buktiPbInput').value;
+        if(!payload.noPb || !payload.tglPb) { 
+            alert('No PB & Tgl wajib diisi!'); 
+            return; 
+        }
     }
 
-    const btn = document.getElementById('btnConfirmAction'); btn.innerText = 'Memproses...'; btn.disabled = true;
-    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(res => res.json())
-        .then(res => {
-            if(res.status === 'success') { showToast(`Sukses memperbarui status.`); closeModal('modalVerify'); tarikDataDariServer(); } 
-            else { alert("GAGAL UPDATE STATUS:\n" + res.message); }
-        }).catch(err => alert("KONEKSI TERPUTUS:\n" + err.message))
-        .finally(() => { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; });
-}
+    const btn = document.getElementById('btnConfirmAction'); 
+    
+    // Pastikan tombol ditemukan sebelum mengubah tulisannya
+    if (btn) {
+        btn.innerText = 'MEMPROSES...'; 
+        btn.disabled = true;
+    }
 
+    fetch(CONFIG.APPS_SCRIPT_URL, { 
+        method: 'POST', 
+        body: JSON.stringify(payload) 
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.status === 'success') { 
+            showToast(`Sukses memperbarui status.`); 
+            closeModal('modalVerify'); 
+            tarikDataDariServer(); 
+        } else { 
+            alert("GAGAL UPDATE STATUS:\n" + res.message); 
+        }
+    })
+    .catch(err => {
+        alert("KONEKSI TERPUTUS:\n" + err.message);
+    })
+    .finally(() => { 
+        // Pastikan tombol ditemukan sebelum mereset tulisannya
+        if (btn) {
+            btn.innerText = 'Simpan Keputusan'; 
+            btn.disabled = false; 
+        }
+    });
+}
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
 function renderTabelSpj() {
