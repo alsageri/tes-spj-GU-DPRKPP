@@ -77,7 +77,7 @@
               </div>
           </section>
 
-          <!-- TABEL 9 KOLOM -->
+          <!-- TABEL -->
           <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
               <div class="overflow-x-auto table-scroll rounded-lg border border-slate-200 pb-2">
                   <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
@@ -103,11 +103,11 @@
       </main>
     </div>
 
-<!-- MODAL 1: FORM INPUT SPJ BARU -->
+    <!-- MODAL 1: FORM INPUT SPJ BARU -->
     <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-8">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-file-circle-plus text-emerald-600 me-2"></i> Form Pengajuan SPJ GU Baru</h3>
+                <h3 class="text-lg font-bold"><i class="fa-solid fa-file-circle-plus text-emerald-600 me-2"></i> Form Pengajuan SPJ GU</h3>
                 <button onclick="closeModal('modalNewSpj')" class="text-xl font-bold text-slate-400 hover:text-slate-600">&times;</button>
             </div>
             <form id="formNewSpj" onsubmit="kirimPengajuanSpjBaru(event)" class="space-y-4">
@@ -120,7 +120,6 @@
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                         <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label>
-                            <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label>
                             <select id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
                                 <option value="">-- Pilih PPTK --</option>
                                 <option value="PUTRA NURHIDAYAT, SE">1. PUTRA NURHIDAYAT, SE</option>
@@ -133,13 +132,17 @@
                             </select>
                         </div>
                         <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
-                            <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm">
-                                <option value="">-- Pilih Unit --</option><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option><option value="Bidang Pertanahan">Bidang Pertanahan</option>
+                            <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                                <option value="">-- Pilih Unit --</option>
+                                <option value="Sekretariat">Sekretariat</option>
+                                <option value="Bidang Perumahan">Bidang Perumahan</option>
+                                <option value="Bidang Permukiman">Bidang Permukiman</option>
+                                <option value="Bidang Pertanahan">Bidang Pertanahan</option>
                             </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Untuk Notif Email) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Notifikasi) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                         <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
                     </div>
                 </div>
@@ -197,7 +200,7 @@
                 <div id="detailBuktiPbLink" class="text-sm"></div>
             </div>
 
-        <!-- PANEL KONFIRMASI PPTK (TOMBOL MENUJU GFORM & EDIT) -->
+            <!-- PANEL KONFIRMASI PPTK (TOMBOL MENUJU GFORM & EDIT) -->
             <div id="panelPptkRevisi" class="bg-amber-50 border border-amber-300 p-4 rounded-xl hidden shadow-sm mt-3">
                 <h4 class="font-bold text-sm text-amber-900 mb-2"><i class="fa-solid fa-file-arrow-up"></i> Perbaiki Dokumen / Data</h4>
                 <p class="text-xs text-amber-800 mb-3" id="teksRevisiPptk">Catatan Verifikator: Silakan lengkapi kekurangan dokumen Anda.</p>
@@ -212,7 +215,7 @@
                 <div id="detailRiwayatBox" class="max-h-48 overflow-y-auto space-y-2 pr-2"></div>
             </div>
             
-            <!-- PANEL AKSI VERIFIKATOR (TIDAK BERUBAH) -->
+            <!-- PANEL AKSI VERIFIKATOR -->
             <div id="panelAksiVerifikator" class="bg-emerald-50 border border-emerald-300 p-5 rounded-xl hidden shadow-sm mt-3">
                 <h4 class="font-bold text-sm text-emerald-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-user-shield text-emerald-600"></i> Keputusan Verifikator</h4>
                 
@@ -249,27 +252,15 @@
             </div>
         </div>
     </div>
-           <div id="waContainer" class="hidden text-right pt-3 border-t border-slate-200 mt-2">
-                 <a id="btnSendWa" href="#" target="_blank" class="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-brands fa-whatsapp text-sm"></i> Beritahu PPTK via WA</a>
-            </div>
-        </div>
-    </div>
 
-    <!-- ========================================== -->
-    <!-- TAMBAHKAN KODE TOAST INI DI SINI -->
-    <!-- ========================================== -->
+    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-xl transform translate-y-20 opacity-0 transition-all z-50 flex items-center gap-3 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMessage" class="font-medium text-sm">Pesan</span>
     </div>
 
     <!-- UPDATE VERSI AGAR CACHE BROWSER HILANG -->
-    <script src="config.js?v=6"></script>
-    <script src="app.js?v=6"></script>
-</body>
-</html>
-    <!-- UPDATE VERSI AGAR CACHE BROWSER HILANG -->
-    <script src="config.js?v=4"></script>
-    <script src="app.js?v=4"></script>
+    <script src="config.js?v=8"></script>
+    <script src="app.js?v=8"></script>
 </body>
 </html>
