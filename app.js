@@ -209,9 +209,9 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
     
     // RENDER 3 KOTAK DOKUMEN 
-    document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan);
-    document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj);
-    document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi);
+    document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id);
+    document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id);
+    document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi, item.id);
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
