@@ -7,6 +7,8 @@ let activeSelectedId = null; let pendingStatusChange = null;
 let sesiAktif = { role: "", username: "", namaLengkap: "" };
 let isEditMode = false;
 let editIdTarget = null;
+let currentPage = 1;
+let rowsPerPage = 10;
 
 function checkLogin() {
     const uname = document.getElementById('username-input').value.trim().toLowerCase();
