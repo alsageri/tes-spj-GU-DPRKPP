@@ -141,14 +141,56 @@ function prosesUpdateStatusAksi() {
 
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
+function gantiPageSize() {
+    rowsPerPage = parseInt(document.getElementById('selectPageSize').value);
+    currentPage = 1; 
+    renderTabelSpj();
+}
+
+function gantiHalaman(arah) {
+    const totalPages = Math.ceil(spjData.length / rowsPerPage);
+    currentPage += arah;
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    renderTabelSpj();
+}
+
 function renderTabelSpj() {
-    const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
-    spjData.forEach(item => {
+    const tbody = document.getElementById('spjTableBody'); 
+    tbody.innerHTML = '';
+    
+    // Logika Pemotongan Data (Pagination)
+    const totalData = spjData.length;
+    const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalData);
+    
+    // Update teks info halaman & tombol prev/next
+    const infoEl = document.getElementById('infoHalaman');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+    
+    if (infoEl) infoEl.innerText = `Menampilkan ${totalData === 0 ? 0 : startIndex + 1}-${endIndex} dari ${totalData} (Hal ${currentPage}/${totalPages})`;
+    if (btnPrev) btnPrev.disabled = currentPage === 1;
+    if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
+
+    // Ambil data hanya untuk halaman aktif
+    const dataHalamanIni = spjData.slice(startIndex, endIndex);
+
+    // Tampilkan pesan jika data kosong
+    if (dataHalamanIni.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-500">Belum ada data SPJ untuk ditampilkan.</td></tr>';
+        return;
+    }
+
+    // Render baris ke tabel
+    dataHalamanIni.forEach(item => {
         let badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">MENUNGGU</span>`;
         if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">DISETUJUI</span>`;
         if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">REVISI</span>`;
         if(item.status === 'DITOLAK') badge = `<span class="px-2 py-1 rounded bg-red-100 text-red-800 font-bold border border-red-200 shadow-sm">DITOLAK</span>`;
         if(item.status === 'SUDAH DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200 shadow-sm text-[9px] tracking-wide">SUDAH DIPINDAHBUKUKAN</span>`;
+        
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
         
@@ -162,7 +204,7 @@ function renderTabelSpj() {
                 <td class="py-3 px-4 text-xs text-right font-bold align-top whitespace-nowrap">${formatRupiah(item.nominal)}</td>
                 <td class="py-3 px-4 text-center text-[11px] align-top whitespace-nowrap">${badge}</td>
                 <td class="py-3 px-4 text-xs text-slate-600 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
-                <td class="py-3 px-4 text-center align-top whitespace-nowrap"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold">${actionBtnText}</button></td>
+                <td class="py-3 px-4 text-center align-top whitespace-nowrap"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold shadow-sm">${actionBtnText}</button></td>
             </tr>
         `;
     });
