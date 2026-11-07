@@ -190,8 +190,12 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
 // MENGUBAH URL TEKS MENJADI LINK KLIK
-function jadikanLink(textUrl) {
-    if (!textUrl || textUrl === "-") return '<span class="text-slate-400 italic">Belum dilampirkan</span>';
+// Ganti fungsi jadikanLink menjadi seperti ini:
+function jadikanLink(textUrl, idItem) {
+    if (!textUrl || textUrl === "-") {
+        return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
+    }
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
 }
