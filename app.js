@@ -34,12 +34,23 @@ function tarikDataDariServer() {
     fetch(CONFIG.APPS_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
+            // Tangkap jika Apps Script mengirimkan pesan error kustom (dari Main.gs)
+            if (data.status === 'error') {
+                alert("Sistem Google Menolak: " + data.message);
+                document.getElementById('refresh-icon').classList.remove('animate-spin');
+                return;
+            }
+            
             if(data.spj) spjData = data.spj.reverse(); 
             if(data.referensi) referensiData = data.referensi;
             renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
             document.getElementById('refresh-icon').classList.remove('animate-spin');
         })
-        .catch(e => { alert("Gagal memuat data dari server! Cek koneksi."); document.getElementById('refresh-icon').classList.remove('animate-spin'); });
+        .catch(e => { 
+            // Tampilkan pesan error sesungguhnya dari browser
+            alert("Gagal memuat data! Detail Error: " + e.message); 
+            document.getElementById('refresh-icon').classList.remove('animate-spin'); 
+        });
 }
 
 function hitungAnggaran() {
