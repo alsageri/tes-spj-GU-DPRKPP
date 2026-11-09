@@ -141,6 +141,9 @@ function prosesUpdateStatusAksi() {
 
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
+// ==========================================
+// PAGINATION LOGIC
+// ==========================================
 function gantiPageSize() {
     rowsPerPage = parseInt(document.getElementById('selectPageSize').value);
     currentPage = 1; 
@@ -158,16 +161,14 @@ function gantiHalaman(arah) {
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); 
     
-    // KOSONGKAN TABEL DENGAN BERSIH (Menghapus animasi loading dan sisa baris lama)
+    // KOSONGKAN TABEL DENGAN BERSIH
     tbody.innerHTML = '';
     
-    // Logika Pemotongan Data (Pagination)
     const totalData = spjData.length;
     const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalData);
     
-    // Update teks info halaman & tombol prev/next
     const infoEl = document.getElementById('infoHalaman');
     const btnPrev = document.getElementById('btnPrevPage');
     const btnNext = document.getElementById('btnNextPage');
@@ -176,16 +177,13 @@ function renderTabelSpj() {
     if (btnPrev) btnPrev.disabled = currentPage === 1;
     if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
 
-    // Ambil data hanya untuk halaman aktif
     const dataHalamanIni = spjData.slice(startIndex, endIndex);
 
-    // Tampilkan pesan jika data KOSONG (bukan proses loading, tapi memang datanya nol di Excel)
     if (dataHalamanIni.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>';
         return;
     }
 
-    // Render baris ke tabel
     dataHalamanIni.forEach(item => {
         let badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">MENUNGGU</span>`;
         if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">DISETUJUI</span>`;
@@ -211,6 +209,7 @@ function renderTabelSpj() {
         `;
     });
 }
+
 function openModal(id) { 
     if(id === 'modalNewSpj' && !isEditMode) { 
         document.getElementById('formNewSpj').reset(); 
@@ -235,7 +234,6 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
 // MENGUBAH URL TEKS MENJADI LINK KLIK
-// Ganti fungsi jadikanLink menjadi seperti ini:
 function jadikanLink(textUrl, idItem) {
     if (!textUrl || textUrl === "-") {
         return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
@@ -251,7 +249,7 @@ function bukaModalVerifikasi(id) {
 
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
     document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
-    document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-");
+    document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-") + " / " + String(item.subKegiatan || "-");
     
     // RENDER 3 KOTAK DOKUMEN 
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id);
