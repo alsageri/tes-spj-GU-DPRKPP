@@ -157,6 +157,8 @@ function gantiHalaman(arah) {
 
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); 
+    
+    // KOSONGKAN TABEL DENGAN BERSIH (Menghapus animasi loading dan sisa baris lama)
     tbody.innerHTML = '';
     
     // Logika Pemotongan Data (Pagination)
@@ -177,9 +179,9 @@ function renderTabelSpj() {
     // Ambil data hanya untuk halaman aktif
     const dataHalamanIni = spjData.slice(startIndex, endIndex);
 
-    // Tampilkan pesan jika data kosong
+    // Tampilkan pesan jika data KOSONG (bukan proses loading, tapi memang datanya nol di Excel)
     if (dataHalamanIni.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-500">Belum ada data SPJ untuk ditampilkan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>';
         return;
     }
 
@@ -204,12 +206,11 @@ function renderTabelSpj() {
                 <td class="py-3 px-4 text-xs text-right font-bold align-top whitespace-nowrap">${formatRupiah(item.nominal)}</td>
                 <td class="py-3 px-4 text-center text-[11px] align-top whitespace-nowrap">${badge}</td>
                 <td class="py-3 px-4 text-xs text-slate-600 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
-                <td class="py-3 px-4 text-center align-top whitespace-nowrap"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold shadow-sm">${actionBtnText}</button></td>
+                <td class="py-3 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold shadow-sm">${actionBtnText}</button></td>
             </tr>
         `;
     });
 }
-
 function openModal(id) { 
     if(id === 'modalNewSpj' && !isEditMode) { 
         document.getElementById('formNewSpj').reset(); 
