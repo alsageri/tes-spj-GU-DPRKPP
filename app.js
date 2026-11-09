@@ -233,15 +233,22 @@ function renderTabelSpj() {
         
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
-                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-')}</td>
-                <td class="py-4 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td> 
+                <!-- Penambahan .split('T')[0] untuk membuang teks jam 17:00:00.000Z -->
+
+                <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] wrap-text">${String(item.npd || '-')}</td>
+                <!-- Hapus whitespace-nowrap dan ganti wrap-text agar Nomor NPD panjang turun ke bawah -->
+
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
                 <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px]"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
-                <td class="py-4 px-4 text-xs align-top max-w-[200px] text-slate-600 truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
+                
+                <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] wrap-text" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
+                <!-- Ganti truncate menjadi wrap-text agar tulisan uraian turun ke bawah, tidak hilang dipotong titik-titik -->
+
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
-                <td class="py-4 px-4 text-xs text-slate-500 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
+                <td class="py-4 px-4 text-xs text-slate-500 align-top max-w-[100px] wrap-text">${String(item.noPb || '-')}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]">
                     <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer relative z-50">${actionBtnText}</button>
                 </td>
