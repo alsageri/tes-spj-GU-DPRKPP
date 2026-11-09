@@ -77,7 +77,7 @@ function kirimPengajuanSpjBaru(e) {
 
     const payload = {
         action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
-        jenisSurat: document.getElementById('inputJenisSurat').value, // <-- INI BARU
+        jenisSurat: document.getElementById('inputJenisSurat').value, // Menangkap Jenis Surat
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -184,7 +184,7 @@ function renderTabelSpj() {
     }
 
     dataHalamanIni.forEach(item => {
-        // Desain Badge Status yang lebih modern (Soft UI)
+        // Desain Badge Status Modern (Soft UI)
         let badge = `<span class="px-2.5 py-1 rounded-full border border-slate-200 font-bold text-slate-600 bg-slate-100 text-[10px] tracking-wide">MENUNGGU</span>`;
         if(item.status === 'DISETUJUI') badge = `<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-[10px] tracking-wide">DISETUJUI</span>`;
         if(item.status === 'REVISI') badge = `<span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-bold border border-amber-200 text-[10px] tracking-wide">REVISI</span>`;
@@ -199,7 +199,7 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         
         tbody.innerHTML += `
-            <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
+            <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-')}</td>
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>
@@ -209,7 +209,9 @@ function renderTabelSpj() {
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
                 <td class="py-4 px-4 text-xs text-slate-500 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
-                <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all">${actionBtnText}</button></td>
+                <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]">
+                    <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer relative z-50">${actionBtnText}</button>
+                </td>
             </tr>
         `;
     });
@@ -270,13 +272,12 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-// UBAH TAMPILAN RIWAYAT MENJADI TIMELINE VERTIKAL MODERN
+    // UBAH TAMPILAN RIWAYAT MENJADI TIMELINE VERTIKAL MODERN
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 space-y-5 mt-2 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
         safeRiwayat.split('\n').forEach((line, index) => { 
             if(line.trim() !== "") {
-                // Beri warna dot berbeda untuk item terakhir (terbaru)
                 let dotColor = index === 0 ? 'bg-emerald-500 ring-emerald-100' : 'bg-slate-300 ring-slate-100';
                 logHtml += `
                 <div class="relative pl-5">
@@ -290,6 +291,7 @@ function bukaModalVerifikasi(id) {
     }
     logHtml += '</div>';
     document.getElementById('detailRiwayatBox').innerHTML = logHtml;
+    
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.add('hidden'); document.getElementById('panelPptkRevisi').classList.add('hidden');
 
     if (sesiAktif.role === 'VERIFIKATOR') {
