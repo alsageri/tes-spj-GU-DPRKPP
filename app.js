@@ -77,6 +77,7 @@ function kirimPengajuanSpjBaru(e) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
+    // PEMBUATAN ID BARU FORMAT (SPJ-YYYYMMDD-HHMMSS)
     let generatedId = "";
     if (!isEditMode) {
         const now = new Date();
@@ -86,7 +87,7 @@ function kirimPengajuanSpjBaru(e) {
         const hh = String(now.getHours()).padStart(2, '0');
         const mnt = String(now.getMinutes()).padStart(2, '0');
         const sec = String(now.getSeconds()).padStart(2, '0');
-        generatedId = `SPJ-${yy}${mm}${dd}-${hh}${mnt}${sec}`; // Format: SPJ-20261109-143005
+        generatedId = `SPJ-${yy}${mm}${dd}-${hh}${mnt}${sec}`; 
     }
 
     const idSistem = isEditMode ? editIdTarget : generatedId; 
@@ -153,33 +154,31 @@ function prosesUpdateStatusAksi() {
         if(res.status === 'success') { 
             showToast(`Sukses memperbarui status.`); 
             
-            // 1. Update data lokal sementara agar UI langsung berubah
             const item = spjData.find(i => String(i.id) === String(activeSelectedId));
             if(item) {
                 item.status = pendingStatusChange;
                 if(pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') item.catatanRevisi = payload.catatanRevisi;
                 if(pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') { item.noPb = payload.noPb; item.tglPb = payload.tglPb; item.buktiPb = payload.buktiPb; }
                 
-                // Tambah log lokal sementara
                 let timeNow = new Date().toLocaleString("en-GB", {timeZone: "Asia/Jakarta"}).replace(',', '');
                 let parts = timeNow.split(' ');
                 let cleanTime = `[${parts[0]} ${parts[1].substring(0,5)}]`;
-                item.riwayatLog = `${cleanTime} ${pendingStatusChange} oleh ${sesiAktif.namaLengkap}` + (payload.catatanRevisi ? ` - Catatan: ${payload.catatanRevisi}` : '') + `\n` + (item.riwayatLog || "");
+                
+                // MENGGANTI ENTER MENJADI <br> UNTUK PENYIMPANAN SEMENTARA AGAR LANGSUNG JADI SATU KOTAK
+                let catatanClean = (payload.catatanRevisi || "").replace(/\n/g, "<br>");
+                
+                item.riwayatLog = `${cleanTime} ${pendingStatusChange} oleh ${sesiAktif.namaLengkap}` + (catatanClean ? ` - Catatan: ${catatanClean}` : '') + `\n` + (item.riwayatLog || "");
             }
 
-            // 2. Tarik data asli di background agar tetap sinkron
             tarikDataDariServer(); 
             
-            // 3. Sembunyikan form input keputusan
             document.getElementById('confirmActionContainer').classList.add('hidden');
             document.getElementById('revisiContainer').classList.add('hidden');
             document.getElementById('pindahbukuContainer').classList.add('hidden');
-            document.getElementById('catatanRevisiInput').value = ""; // Kosongkan input
+            document.getElementById('catatanRevisiInput').value = ""; 
             pendingStatusChange = null;
             
-            // 4. Render ulang modal (MODAL TIDAK DITUTUP, sehingga tombol WA/Email bisa langsung ditekan)
             bukaModalVerifikasi(activeSelectedId); 
-
         } 
         else { alert("GAGAL UPDATE STATUS:\n" + res.message); }
     })
@@ -243,24 +242,18 @@ function renderTabelSpj() {
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         
+        // PENGATURAN CSS WHITESPACE-NORMAL BREAK-WORDS DI TERAPKAN DI KOLOM NPD & URAIAN
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
-                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td> 
-                <!-- Penambahan .split('T')[0] untuk membuang teks jam 17:00:00.000Z -->
-
-                <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] wrap-text">${String(item.npd || '-')}</td>
-                <!-- Hapus whitespace-nowrap dan ganti wrap-text agar Nomor NPD panjang turun ke bawah -->
-
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
+                <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px]"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
-                
-                <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] wrap-text" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
-                <!-- Ganti truncate menjadi wrap-text agar tulisan uraian turun ke bawah, tidak hilang dipotong titik-titik -->
-
+                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px] whitespace-normal break-words"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
+                <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
-                <td class="py-4 px-4 text-xs text-slate-500 align-top max-w-[100px] wrap-text">${String(item.noPb || '-')}</td>
+                <td class="py-4 px-4 text-xs text-slate-500 align-top max-w-[100px] whitespace-normal break-words">${String(item.noPb || '-')}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]">
                     <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer relative z-50">${actionBtnText}</button>
                 </td>
@@ -321,9 +314,10 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER RIWAYAT DENGAN KOTAK CATATAN
+    // RENDER RIWAYAT (Hanya split berdasarkan \n, <br> dari database tetap aman)
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
+    
     if (safeRiwayat.trim() !== "") { 
         safeRiwayat.split('\n').forEach((line, index) => { 
             if(line.trim() !== "") {
@@ -337,10 +331,11 @@ function bukaModalVerifikasi(id) {
                     
                     if (isiHtml.includes('- Catatan:')) {
                         let parts = isiHtml.split('- Catatan:');
-                        // Render catatan agar poin-poin Enter terpisah barisnya dengan <br>
+                        // Tampilkan kotak kuning untuk multi-baris
                         isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
-                                   <div class="mt-1.5 p-2 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-[11px] leading-relaxed shadow-sm">
-                                     <i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b><br>${parts[1].trim().replace(/\n/g, '<br>')}
+                                   <div class="mt-1.5 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11.5px] leading-relaxed shadow-sm block w-full">
+                                     <div class="flex items-center mb-1"><i class="fa-solid fa-circle-exclamation me-1.5 text-amber-600"></i> <b class="text-amber-900">Catatan:</b></div>
+                                     <div class="pl-4">${parts[1].trim()}</div>
                                    </div>`;
                         dotColor = 'bg-amber-500 ring-amber-100';
                     } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
@@ -382,18 +377,18 @@ function bukaModalVerifikasi(id) {
         if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
         
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
-        if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan: ${item.catatanRevisi}\n`;
+        // Buang tag <br> saat dikirim via WA
+        if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
         
-        // --- LOGIC EMAIL DENGAN INTERAKSI TOMBOL ---
+        // --- LOGIC EMAIL ---
         let emailText = `Yth. PPTK,\n\nBerikut adalah update status dokumen SPJ Anda (NPD: ${item.npd}).\nStatus Saat Ini: ${item.status}\n`;
-        if(item.status === 'REVISI' || item.status === 'DITOLAK') emailText += `\nCatatan Verifikator:\n${item.catatanRevisi}\n\nMohon segera diperbaiki.`;
+        if(item.status === 'REVISI' || item.status === 'DITOLAK') emailText += `\nCatatan Verifikator:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n\nMohon segera diperbaiki.`;
         let mailtoLink = `mailto:${item.emailPptk}?subject=Update Status SPJ GU - ${item.npd}&body=${encodeURIComponent(emailText)}`;
         
         let btnEmail = document.getElementById('btnSendEmail');
         if (btnEmail) {
             btnEmail.href = mailtoLink;
-            // Animasi transisi sukses
             btnEmail.onclick = function() {
                 let originalHtml = this.innerHTML;
                 this.innerHTML = '<i class="fa-solid fa-check text-sm"></i> Draft Terbuka!';
@@ -416,7 +411,7 @@ function bukaModalVerifikasi(id) {
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
             if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks sebelum diverifikasi.";
-            if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerText = "Catatan Verifikator: " + (item.catatanRevisi || "-");
+            if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
             document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${item.id}`;
         }
     }
