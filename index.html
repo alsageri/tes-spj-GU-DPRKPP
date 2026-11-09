@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem ERP & Verifikasi SPJ GU - DPRKPP</title>
-    <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +13,7 @@
     <style>
       #login-screen { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
       #main-app { display: none; }
-      .table-scroll::-webkit-scrollbar { height: 8px; }
+      .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
       .table-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
@@ -28,14 +27,8 @@
         <p class="text-xs text-slate-500 mb-5">Sistem Verifikasi & Tracking SPJ GU</p>
         
         <div class="space-y-4 mb-5 text-left">
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Username</label>
-                <input type="text" id="username-input" placeholder="Masukkan Username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
-                <input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" onkeypress="if(event.key==='Enter') checkLogin()">
-            </div>
+            <div><label class="block text-xs font-bold text-slate-600 mb-1">Username</label><input type="text" id="username-input" placeholder="Masukkan Username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+            <div><label class="block text-xs font-bold text-slate-600 mb-1">Password</label><input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" onkeypress="if(event.key==='Enter') checkLogin()"></div>
         </div>
         
         <button onclick="checkLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk Sistem</button>
@@ -77,27 +70,7 @@
               </div>
           </section>
 
-          <!--  -->
-          <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div class="overflow-x-auto table-scroll rounded-lg border border-slate-200 pb-2">
-                  <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
-                      <thead>
-                          <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold uppercase tracking-wide text-[11px] align-top">
-                              <th class="py-3 px-4 align-top">Tanggal</th>
-                              <th class="py-3 px-4 align-top">No. NPD</th>
-                              <th class="py-3 px-4 align-top">PPTK & Unit Kerja</th>
-                              <th class="py-3 px-4 align-top leading-relaxed">Program<br>Kegiatan<br>Sub Kegiatan</th>
-                              <th class="py-3 px-4 align-top">Uraian SPJ GU</th>
-                              <th class="py-3 px-4 text-right align-top">Nominal (Rp)</th>
-                              <th class="py-3 px-4 text-center align-top">Status</th>
-                              <th class="py-3 px-4 text-center align-top">No. PB</th>
-                              <th class="py-3 px-4 text-center sticky right-0 bg-slate-100 shadow-[-5px_0_10px_rgba(0,0,0,0.05)] align-top">Aksi</th>
-                          </tr>
-                      </thead>
-                      <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
-                          <tr><td colspan="9" class="text-center py-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
-                      </tbody>
-<!-- TABEL & PAGINATION -->
+          <!-- TABEL & PAGINATION -->
           <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
               <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded-lg border border-slate-200 pb-2">
                   <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
@@ -111,11 +84,11 @@
                               <th class="py-3 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
                               <th class="py-3 px-4 border-b border-slate-200 text-center">Status</th>
                               <th class="py-3 px-4 border-b border-slate-200 text-center">No. PB</th>
-                              <th class="py-3 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-100">Aksi</th>
+                              <th class="py-3 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-100 shadow-[-5px_0_10px_rgba(0,0,0,0.05)]">Aksi</th>
                           </tr>
                       </thead>
                       <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
-                          <tr id="rowLoading"><td colspan="9" class="text-center py-10 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
+                          <tr id="rowLoading"><td colspan="9" class="text-center py-10 text-slate-500 font-medium"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
                       </tbody>
                   </table>
               </div>
@@ -302,7 +275,7 @@
     </div>
 
 <!-- UPDATE VERSI AGAR CACHE BROWSER HILANG -->
-    <script src="config.js?v=12"></script>
-    <script src="app.js?v=12"></script>
+    <script src="config.js?v=14"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
