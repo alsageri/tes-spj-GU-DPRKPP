@@ -6,154 +6,384 @@
     <title>Sistem ERP & Verifikasi SPJ GU - DPRKPP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { dprkpp: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' } } } } }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { sipd: { blue: '#1e40af', light: '#f4f7fb', dark: '#0f172a' } } } } }
     </script>
     <style>
-      #login-screen { position: fixed; inset: 0; background: #0f172a; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      #login-screen { position: fixed; inset: 0; z-index: 100; display: flex; }
       #main-app { display: none; }
       .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
       .table-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
       .wrap-text { white-space: normal !important; word-break: break-word; overflow-wrap: break-word; }
+      
+      /* Background pattern ala SIPD Login Kiri */
+      .bg-sipd-pattern {
+          background-color: #0b1120;
+          background-image: radial-gradient(circle at 20% 30%, rgba(30, 64, 175, 0.4) 0%, transparent 40%),
+                            radial-gradient(circle at 80% 70%, rgba(30, 64, 175, 0.3) 0%, transparent 40%);
+      }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
+<body class="bg-sipd-light font-sans text-slate-800 h-screen overflow-hidden flex flex-col">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen">
-      <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-users"></i></div>
-        <h2 class="text-xl font-bold text-slate-800 mb-1">DPRKPP ERP Login</h2>
-        <p class="text-xs text-slate-500 mb-5">Sistem Verifikasi & Tracking SPJ GU</p>
-        
-        <div class="space-y-4 mb-5 text-left">
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Username</label>
-                <input type="text" id="username-input" placeholder="Masukkan Username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
-                <div class="relative flex items-center">
-                    <input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none pr-12" onkeypress="if(event.key==='Enter') checkLogin()">
-                    <button type="button" onclick="togglePassword()" class="absolute right-0 px-4 h-full flex items-center text-slate-400 hover:text-emerald-600 cursor-pointer z-10 outline-none" title="Lihat Password">
-                        <i id="eye-icon" class="fa-solid fa-eye text-lg"></i>
-                    </button>
+    <!-- LOGIN SCREEN ALA SIPD (SPLIT SCREEN) -->
+    <div id="login-screen" class="w-full h-screen bg-white">
+        <!-- Panel Kiri (Ilustrasi / Grafis) -->
+        <div class="hidden lg:flex flex-1 flex-col justify-center items-center relative overflow-hidden bg-sipd-pattern text-white px-10 border-r border-slate-800 shadow-[inset_-10px_0_20px_rgba(0,0,0,0.2)]">
+            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            
+            <div class="relative z-10 w-full max-w-2xl text-center space-y-8">
+                <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">INFORMASI PEMBANGUNAN<br>DAERAH (SPJ GU)</h1>
+                
+                <!-- Ilustrasi Node ala SIPD (Sederhana) -->
+                <div class="relative w-full h-80 mt-10">
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                        <!-- Logo Pusat -->
+                        <div class="w-24 h-24 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-xl shadow-[0_0_40px_rgba(59,130,246,0.6)] flex items-center justify-center transform rotate-45 border-4 border-white/10">
+                            <i class="fa-solid fa-file-invoice-dollar text-4xl text-white -rotate-45"></i>
+                        </div>
+                        <!-- Node Sekitar -->
+                        <div class="absolute -top-24 -left-32 w-20 h-20 rounded-full border border-blue-400/50 flex flex-col items-center justify-center text-[10px] font-bold shadow-[0_0_15px_rgba(59,130,246,0.3)] bg-[#0b1120] hover:scale-110 transition-transform cursor-pointer"><span>SPJ GU</span></div>
+                        <div class="absolute -top-20 right-32 w-20 h-20 rounded-full border border-amber-400/50 flex flex-col items-center justify-center text-[10px] font-bold shadow-[0_0_15px_rgba(251,191,36,0.3)] bg-[#0b1120] hover:scale-110 transition-transform cursor-pointer"><span>Verifikasi</span></div>
+                        <div class="absolute bottom-24 -left-40 w-20 h-20 rounded-full border border-emerald-400/50 flex flex-col items-center justify-center text-[10px] font-bold shadow-[0_0_15px_rgba(52,211,153,0.3)] bg-[#0b1120] hover:scale-110 transition-transform cursor-pointer"><span>Pencairan</span></div>
+                        
+                        <!-- Garis Penghubung -->
+                        <svg class="absolute inset-0 w-full h-full -z-10 opacity-30 pointer-events-none" style="width: 500px; height: 500px; left: -100px; top: -100px;">
+                            <line x1="250" y1="250" x2="110" y2="120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4" />
+                            <line x1="250" y1="250" x2="390" y2="120" stroke="#fcd34d" stroke-width="2" stroke-dasharray="4" />
+                            <line x1="250" y1="250" x2="100" y2="380" stroke="#34d399" stroke-width="2" stroke-dasharray="4" />
+                        </svg>
+                    </div>
                 </div>
             </div>
+            
+            <div class="absolute bottom-6 text-xs text-slate-400">
+                Copyright © 2026 SIPD - Sistem Informasi Pemerintahan Daerah
+            </div>
         </div>
+
+        <!-- Panel Kanan (Form Login) -->
+        <div class="w-full lg:w-[450px] bg-white flex flex-col justify-center px-10 py-12 h-full shadow-2xl relative z-20">
+            <!-- Header Login -->
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 rounded shadow flex items-center justify-center bg-gradient-to-br from-blue-600 to-sky-500 text-white">
+                    <i class="fa-solid fa-layer-group text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight leading-none">SIPD ERP</h2>
+                    <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Sistem SPJ GU Pemerintahan</p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">Selamat pagi 👋</h2>
+                <p class="text-xs text-slate-500 mt-1">Silakan masuk untuk melanjutkan ke SIPD</p>
+            </div>
+            
+            <div class="space-y-5">
+                <!-- Dropdown Tahun -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tahun</label>
+                    <div class="relative">
+                        <select class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded text-sm outline-none appearance-none font-semibold text-slate-700 cursor-pointer">
+                            <option>Tahun Anggaran 2026</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Input Username -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Username / Nomor Induk Pegawai</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-regular fa-user absolute left-4 text-slate-400"></i>
+                        <input type="text" id="username-input" class="w-full pl-10 pr-4 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-sm transition-all text-slate-700" placeholder="19780714...">
+                    </div>
+                </div>
+
+                <!-- Input Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Kata Sandi</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-lock absolute left-4 text-slate-400"></i>
+                        <input type="password" id="password-input" class="w-full pl-10 pr-12 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-sm transition-all font-mono" placeholder="••••••••" onkeypress="if(event.key==='Enter') checkLogin()">
+                        <button type="button" onclick="togglePassword()" class="absolute right-0 px-4 h-full flex items-center text-slate-400 hover:text-blue-600 cursor-pointer outline-none" title="Lihat Password">
+                            <i id="eye-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="text-right mt-1.5"><a href="#" class="text-[10px] text-blue-600 hover:underline">Lupa Kata Sandi?</a></div>
+                </div>
+
+                <button onclick="checkLogin()" class="w-full py-3 bg-sipd-blue hover:bg-blue-900 text-white font-bold rounded shadow-md transition-all flex justify-center items-center gap-2 mt-4 text-sm">Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
+                <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium text-center bg-red-50 p-2 rounded border border-red-200"></p>
+            </div>
+            
+            <div class="mt-auto pt-8 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                <i class="fa-brands fa-chrome text-emerald-500"></i> Disarankan menggunakan Google Chrome
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP ALA SIPD (SIDEBAR + HEADER) -->
+    <div id="main-app" class="flex w-full h-full bg-sipd-light hidden">
         
-        <button onclick="checkLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors">Masuk Sistem</button>
-        <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium">Error Message</p>
-      </div>
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex-col hidden md:flex h-full shadow-[2px_0_15px_rgba(0,0,0,0.02)] z-20">
+            <!-- Logo Sidebar -->
+            <div class="h-16 flex items-center px-5 border-b border-slate-100 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded flex items-center justify-center bg-gradient-to-br from-blue-600 to-sky-500 text-white shadow-sm">
+                        <i class="fa-solid fa-layer-group text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-black text-slate-800 tracking-tight leading-tight">SIPD SPJ GU</h1>
+                        <p class="text-[9px] text-slate-400 font-bold tracking-wider">KABUPATEN BLITAR</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Menu Sidebar -->
+            <div class="overflow-y-auto flex-1 py-5 px-3 custom-scrollbar">
+                
+                <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Menu Utama</div>
+                <ul class="space-y-1 mb-6">
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 bg-sipd-blue text-white rounded-lg text-sm font-medium shadow-sm transition-colors">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard</div>
+                            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-building-columns w-5 text-center text-slate-400"></i> Rekening Bank
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-sitemap w-5 text-center text-slate-400"></i> Pelimpahan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-sm font-medium transition-colors">
+                            <div class="flex items-center gap-3"><i class="fa-regular fa-file-lines w-5 text-center text-slate-400"></i> Penugasan PPTK</div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Penatausahaan</div>
+                <ul class="space-y-1 mb-6">
+                    <li>
+                        <a href="#" onclick="bukaFormSpjBaru()" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-blue-100">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus w-5 text-center text-emerald-500"></i> Buat SPJ Baru</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-lg text-sm font-medium transition-colors">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i> Pengeluaran</div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Tombol Keluar -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 mt-auto flex-shrink-0">
+                <button onclick="location.reload()" class="flex items-center gap-2 w-full px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- KONTEN KANAN -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+            
+            <!-- HEADER (Top Nav) -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <button class="text-slate-500 hover:text-slate-800 md:hidden p-1">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <!-- Identitas ala SIPD -->
+                    <div class="hidden sm:block">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            Selamat Pagi, <span id="user-display" class="uppercase"></span>
+                            <span id="role-badge" class="ml-2 text-[9px] px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-black tracking-wider"></span>
+                        </h2>
+                        <div class="text-[10px] text-slate-500 font-medium flex items-center mt-0.5">
+                            <span class="text-slate-400 border-r border-slate-300 pr-2 mr-2">PA (12)</span>
+                            Dinas Perumahan Rakyat, Kawasan Permukiman, Dan Pertanahan (0052) &bull; Kab. Blitar (00) &bull; Tahun 2026
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="tarikDataDariServer()" class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-slate-100 hover:text-blue-600 transition-colors" title="Refresh Data">
+                        <i class="fa-solid fa-rotate" id="refresh-icon"></i>
+                    </button>
+                    <div class="w-8 h-8 rounded-full border border-slate-300 p-0.5 flex items-center justify-center text-slate-400 overflow-hidden cursor-pointer">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- BREADCRUMB -->
+            <div class="px-6 pt-4 pb-1">
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 font-semibold">
+                    <i class="fa-solid fa-house"></i>
+                    <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                    <span class="text-blue-600">Dashboard</span>
+                </div>
+            </div>
+
+            <!-- AREA KONTEN SCROLLABLE -->
+            <main class="flex-1 overflow-y-auto px-4 sm:px-6 pb-8 pt-2">
+                
+                <!-- Judul Halaman -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800 mb-1 tracking-tight">Dashboard</h1>
+                        <p class="text-xs text-slate-500">Ringkasan APBD/SPJ Dinas Perumahan Rakyat, Kawasan Pemukiman, Dan Pertanahan</p>
+                    </div>
+                    
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <div class="px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-600 flex items-center gap-2 shadow-sm flex-1 sm:flex-none justify-center">
+                            <i class="fa-regular fa-calendar"></i> Selasa, 10 November 2026
+                        </div>
+                        <button onclick="bukaFormSpjBaru()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 border border-slate-800 rounded text-xs font-bold text-white shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-plus"></i> Buat SPJ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kartu Statistik Ala SIPD (Card Putih, Border, Ikon Kiri Atas) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                    <!-- Kartu 1: Pagu Tahunan -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden flex flex-col hover:border-blue-300 transition-colors">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-vault"></i></div>
+                            <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded">100%</span>
+                        </div>
+                        <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Sisa Pagu Tahunan</h3>
+                        <div class="text-2xl font-black text-slate-800 tracking-tight" id="sisaTahunanVal">Rp 0</div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
+                            <span>Realisasi Riil</span>
+                            <span class="text-slate-300">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Kartu 2: Pagu Triwulan -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden flex flex-col hover:border-blue-300 transition-colors">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
+                            <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded">Triwulan IV</span>
+                        </div>
+                        <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Sisa Pagu Triwulan</h3>
+                        <div class="text-2xl font-black text-slate-800 tracking-tight" id="sisaTriwulanVal">Rp 0</div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
+                            <span>Realisasi Riil</span>
+                            <span class="text-slate-300">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Kartu 3: Total Realisasi -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden flex flex-col hover:border-amber-300 transition-colors">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-1 rounded animate-pulse">Update</span>
+                        </div>
+                        <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Total Cair (Realisasi)</h3>
+                        <div class="text-2xl font-black text-slate-800 tracking-tight" id="totalCairVal">Rp 0</div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
+                            <span>Total yang dipindahbukukan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABEL DATA -->
+                <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                    <div class="flex justify-between items-center mb-4 px-1">
+                        <h2 class="text-sm font-bold text-slate-800"><i class="fa-solid fa-list-check text-blue-600 me-2"></i> Daftar Pengajuan SPJ GU</h2>
+                    </div>
+
+                    <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded-lg border border-slate-200 pb-2">
+                        <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] sticky top-0 z-10 shadow-sm border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3.5 px-4 border-b border-slate-200">Tanggal</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200">No. NPD</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center">Jenis</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200">PPTK & Unit Kerja</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 leading-relaxed">Program / Kegiatan / Sub Kegiatan</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200">Uraian SPJ GU</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center">Status</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center">No. PB</th>
+                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-50 shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="spjTableBody" class="divide-y divide-slate-100 bg-white text-slate-600">
+                                <tr id="rowLoading"><td colspan="10" class="text-center py-12 text-slate-400 font-medium"><i class="fa-solid fa-spinner fa-spin me-2 text-blue-600"></i> Memuat data dari server...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination bawah tabel -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 pt-3 border-t border-slate-100 text-xs">
+                        <div class="flex items-center gap-2 mb-3 sm:mb-0 text-slate-500">
+                            <span>Tampilkan:</span>
+                            <select id="selectPageSize" onchange="gantiPageSize()" class="border border-slate-200 rounded px-2 py-1.5 outline-none bg-slate-50 cursor-pointer focus:border-blue-500">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="15">15</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                            <span>baris</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span id="infoHalaman" class="text-slate-500 font-medium">Halaman 1 dari 1</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="gantiHalaman(-1)" id="btnPrevPage" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded shadow-sm text-slate-600 font-bold disabled:opacity-40 transition-colors"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button onclick="gantiHalaman(1)" id="btnNextPage" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded shadow-sm text-slate-600 font-bold disabled:opacity-40 transition-colors"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="main-app" class="flex flex-col min-h-screen">
-      <header class="bg-white/80 backdrop-blur-lg border-b border-slate-200 text-slate-800 sticky top-0 z-30 transition-all">
-          <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div class="flex items-center space-x-3 text-center sm:text-left">
-                  <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100 shadow-sm"><i class="fa-solid me-0 fa-building-columns text-lg"></i></div>
-                  <div>
-                      <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900">Sistem SPJ GU <span id="role-badge" class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md align-middle ml-1"></span></h1>
-                      <p class="text-[11px] text-slate-500 font-medium">Pengguna: <span id="user-display" class="font-bold text-slate-700"></span></p>
-                  </div>
-              </div>
-              <div class="flex items-center gap-2">
-                  <button onclick="bukaFormSpjBaru()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-slate-900/10 flex items-center gap-2 transition-all"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline">Ajukan SPJ Baru</span></button>
-                  <button onclick="tarikDataDariServer()" class="bg-white hover:bg-slate-50 text-slate-600 px-3 py-2 rounded-xl text-sm border border-slate-200 shadow-sm transition-all"><i class="fa-solid fa-rotate" id="refresh-icon"></i></button>
-              </div>
-          </div>
-      </header>
 
-      <main class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-5">
-          <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
-                  <div class="flex justify-between items-center text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"><span>Sisa Pagu Tahunan</span><i class="fa-solid fa-vault text-emerald-400"></i></div>
-                  <div class="text-xl font-black text-slate-800" id="sisaTahunanVal">Rp 0</div>
-              </div>
-              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
-                  <div class="flex justify-between items-center text-slate-500 text-xs font-bold uppercase tracking-wider mb-1"><span>Sisa Pagu Triwulan</span><i class="fa-solid fa-wallet text-blue-400"></i></div>
-                  <div class="text-xl font-black text-slate-800" id="sisaTriwulanVal">Rp 0</div>
-              </div>
-              <div class="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700">
-                  <div class="flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-wider mb-1"><span>Total Realisasi (Cair)</span><i class="fa-solid fa-money-bill-trend-up text-amber-400"></i></div>
-                  <div class="text-xl font-black text-amber-400" id="totalCairVal">Rp 0</div>
-              </div>
-          </section>
-
-          <!-- TABEL & PAGINATION -->
-          <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded-lg border border-slate-200 pb-2">
-                  <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
-                      <thead class="bg-slate-50/80 backdrop-blur-sm text-slate-600 font-semibold uppercase tracking-wider text-[10px] sticky top-0 z-20 shadow-sm">
-                          <tr>
-                              <th class="py-4 px-4 border-b border-slate-200">Tanggal</th>
-                              <th class="py-4 px-4 border-b border-slate-200">No. NPD</th>
-                              <th class="py-4 px-4 border-b border-slate-200">Jenis Surat</th>
-                              <th class="py-4 px-4 border-b border-slate-200">PPTK & Unit Kerja</th>
-                              <th class="py-4 px-4 border-b border-slate-200 leading-relaxed">Program<br>Kegiatan<br>Sub Kegiatan</th>
-                              <th class="py-4 px-4 border-b border-slate-200">Uraian SPJ GU</th>
-                              <th class="py-4 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
-                              <th class="py-4 px-4 border-b border-slate-200 text-center">Status</th>
-                              <th class="py-4 px-4 border-b border-slate-200 text-center">No. PB</th>
-                              <th class="py-4 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-50/90 backdrop-blur-sm shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">Aksi</th>
-                          </tr>
-                      </thead>
-                      <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
-                          <tr id="rowLoading"><td colspan="10" class="text-center py-10 text-slate-500 font-medium"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
-                      </tbody>
-                  </table>
-              </div>
-              
-              <div class="flex flex-col sm:flex-row justify-between items-center mt-4 border-t border-slate-200 pt-4 text-xs">
-                  <div class="flex items-center gap-2 mb-3 sm:mb-0 text-slate-600">
-                      <span>Tampilkan:</span>
-                      <select id="selectPageSize" onchange="gantiPageSize()" class="border border-slate-300 rounded px-2 py-1 outline-none bg-white cursor-pointer hover:border-emerald-500">
-                          <option value="5">5</option>
-                          <option value="10" selected>10</option>
-                          <option value="15">15</option>
-                          <option value="25">25</option>
-                          <option value="50">50</option>
-                      </select>
-                      <span>baris</span>
-                  </div>
-                  <div class="flex items-center gap-4">
-                      <span id="infoHalaman" class="text-slate-600 font-medium">Halaman 1 dari 1</span>
-                      <div class="flex gap-1">
-                          <button onclick="gantiHalaman(-1)" id="btnPrevPage" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold disabled:opacity-40 transition-colors"><i class="fa-solid fa-chevron-left"></i></button>
-                          <button onclick="gantiHalaman(1)" id="btnNextPage" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold disabled:opacity-40 transition-colors"><i class="fa-solid fa-chevron-right"></i></button>
-                      </div>
-                  </div>
-              </div>
-          </section>
-      </main>
-    </div>
+    <!-- ============================================== -->
+    <!-- MODAL-MODAL TETAP SAMA (HANYA Z-INDEX DINAIKAN)-->
+    <!-- ============================================== -->
 
     <!-- MODAL 1: FORM INPUT SPJ BARU -->
-    <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-center hidden p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-12">
+    <div id="modalNewSpj" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-start justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 space-y-4 my-12">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-file-circle-plus text-emerald-600 me-2"></i> Form Pengajuan SPJ GU</h3>
+                <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-file-circle-plus text-blue-600 me-2"></i> Form Pengajuan SPJ GU</h3>
                 <button onclick="closeModal('modalNewSpj')" class="text-xl font-bold text-slate-400 hover:text-slate-600">&times;</button>
             </div>
             <form id="formNewSpj" onsubmit="kirimPengajuanSpjBaru(event)" class="space-y-4">
-                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1.5 text-slate-700">Tanggal Pengajuan *</label><input type="date" id="inputTanggal" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"></div>
-                        <div><label class="block text-xs font-semibold mb-1.5 text-slate-700">Jenis Surat *</label>
-                            <select id="inputJenisSurat" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all">
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Tanggal Pengajuan *</label><input type="date" id="inputTanggal" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Jenis Surat *</label>
+                            <select id="inputJenisSurat" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm outline-none focus:border-blue-500 transition-all">
                                 <option value="GU">GU (Ganti Uang)</option>
                                 <option value="LS">LS (Langsung)</option>
                             </select>
                         </div>
-                        <div><label class="block text-xs font-semibold mb-1.5 text-slate-700">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500 transition-all"></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Nomor NPD *</label><input type="text" id="inputNpd" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm outline-none focus:border-blue-500 transition-all"></div>
                     </div>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                        <div><label class="block text-xs font-semibold mb-1">Nama PPTK *</label>
-                            <select id="inputPptk" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Nama PPTK *</label>
+                            <select id="inputPptk" required class="w-full px-3 py-2 border rounded text-sm bg-white focus:border-blue-500 outline-none">
                                 <option value="">-- Pilih PPTK --</option>
                                 <option value="PUTRA NURHIDAYAT, SE">1. PUTRA NURHIDAYAT, SE</option>
                                 <option value="KHOLISHUL FIKRI, SH">2. KHOLISHUL FIKRI, SH</option>
@@ -164,8 +394,8 @@
                                 <option value="MAY HUDHA NUGROHO, SE, MM">7. MAY HUDHA NUGROHO, SE, MM</option>
                             </select>
                         </div>
-                        <div><label class="block text-xs font-semibold mb-1">Bidang / Unit Kerja *</label>
-                            <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Bidang / Unit Kerja *</label>
+                            <select id="inputUnitKerja" required class="w-full px-3 py-2 border rounded text-sm bg-white focus:border-blue-500 outline-none">
                                 <option value="">-- Pilih Unit --</option>
                                 <option value="Sekretariat">Sekretariat</option>
                                 <option value="Bidang Perumahan">Bidang Perumahan</option>
@@ -175,43 +405,43 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Email PPTK (Notifikasi) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Email PPTK (Notifikasi) *</label><input type="email" id="inputEmail" required class="w-full px-3 py-2 border rounded text-sm focus:border-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">No. WhatsApp *</label><input type="tel" id="inputWa" required class="w-full px-3 py-2 border rounded text-sm focus:border-blue-500 outline-none"></div>
                     </div>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <div class="grid grid-cols-1 gap-4 mb-3">
-                        <div><label class="block text-xs font-semibold mb-1">Program *</label><select id="inputProgram" onchange="updateKegiatanDropdown()" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Sedang Memuat Data --</option></select></div>
-                        <div><label class="block text-xs font-semibold mb-1">Kegiatan *</label><select id="inputKegiatan" onchange="updateSubkegiatanDropdown()" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Pilih Program Dulu --</option></select></div>
-                        <div><label class="block text-xs font-semibold mb-1">Subkegiatan *</label><select id="inputSubkegiatan" required class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="">-- Pilih Kegiatan Dulu --</option></select></div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Program *</label><select id="inputProgram" onchange="updateKegiatanDropdown()" required class="w-full px-3 py-2 border rounded text-sm bg-white outline-none focus:border-blue-500"><option value="">-- Sedang Memuat Data --</option></select></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Kegiatan *</label><select id="inputKegiatan" onchange="updateSubkegiatanDropdown()" required class="w-full px-3 py-2 border rounded text-sm bg-white outline-none focus:border-blue-500"><option value="">-- Pilih Program Dulu --</option></select></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Subkegiatan *</label><select id="inputSubkegiatan" required class="w-full px-3 py-2 border rounded text-sm bg-white outline-none focus:border-blue-500"><option value="">-- Pilih Kegiatan Dulu --</option></select></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-semibold mb-1">Nominal Rp (Tanpa Titik) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded-lg text-sm"></div>
-                        <div><label class="block text-xs font-semibold mb-1">Uraian SPJ GU *</label><textarea id="inputUraian" rows="1" required class="w-full px-3 py-2 border rounded-lg text-sm"></textarea></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Nominal Rp (Tanpa Titik) *</label><input type="number" id="inputNominal" required class="w-full px-3 py-2 border rounded text-sm outline-none focus:border-blue-500"></div>
+                        <div><label class="block text-xs font-bold mb-1.5 text-slate-600">Uraian SPJ GU *</label><textarea id="inputUraian" rows="1" required class="w-full px-3 py-2 border rounded text-sm outline-none focus:border-blue-500"></textarea></div>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 border-t pt-3 mt-4">
-                    <button type="button" onclick="closeModal('modalNewSpj')" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-semibold transition-colors">Batal</button>
-                    <button type="submit" id="btnSubmitNew" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md transition-colors">Lanjut ke Form Upload</button>
+                <div class="flex justify-end gap-2 border-t border-slate-200 pt-4 mt-4">
+                    <button type="button" onclick="closeModal('modalNewSpj')" class="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 rounded text-sm font-bold transition-colors shadow-sm">Batal</button>
+                    <button type="submit" id="btnSubmitNew" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold shadow-md transition-colors flex items-center gap-2">Lanjut Form Upload <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL 2: DETAIL & VERIFIKASI -->
-    <div id="modalVerify" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-center hidden p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full p-6 space-y-4 my-12">
+    <div id="modalVerify" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-start justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 space-y-4 my-12">
             
-            <div class="flex justify-between items-start border-b border-slate-200 pb-3">
+            <div class="flex justify-between items-start border-b border-slate-200 pb-4">
                 <div class="pr-6">
                     <h3 class="text-xl font-black text-slate-800 leading-tight mb-3 wrap-text" id="detailUraian">Uraian</h3>
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
-                        <span class="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                            <i class="fa-solid fa-user-tie"></i> <span id="detailPptkNama"></span>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-slate-600">
+                        <span class="flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                            <i class="fa-solid fa-user-tie"></i> <span id="detailPptkNama" class="font-bold"></span>
                         </span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-building text-slate-400"></i> <span id="detailUnitKerja"></span></span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-envelope text-slate-400"></i> <span id="detailEmailPptk"></span></span>
-                        <span class="flex items-center gap-1.5 font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                        <span class="flex items-center gap-1.5 font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded border border-slate-200">
                             <i class="fa-solid fa-rupiah-sign text-emerald-600"></i> <span id="detailNominal"></span>
                         </span>
                     </div>
@@ -220,89 +450,89 @@
             </div>
 
             <!-- TAMPILAN 3 DOKUMEN -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
-                <div class="border border-slate-200 p-3 rounded bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <h5 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Dokumen Keuangan</h5>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 shadow-sm hover:shadow-md transition-shadow">
+                    <h5 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2"><i class="fa-solid fa-file-invoice-dollar me-1 text-slate-400"></i> Dokumen Keuangan</h5>
                     <div id="linkDokKeuangan" class="text-sm"></div>
                 </div>
-                <div class="border border-slate-200 p-3 rounded bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <h5 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2"><i class="fa-solid fa-file-pdf me-1"></i> Dokumen SPJ GU</h5>
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 shadow-sm hover:shadow-md transition-shadow">
+                    <h5 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2"><i class="fa-solid fa-file-pdf me-1 text-slate-400"></i> Dokumen SPJ GU</h5>
                     <div id="linkDokSpj" class="text-sm"></div>
                 </div>
-                <div class="border border-amber-200 p-3 rounded bg-amber-50 shadow-sm max-h-32 overflow-y-auto">
+                <div class="border border-amber-200 p-4 rounded-lg bg-amber-50 shadow-sm max-h-32 overflow-y-auto">
                     <h5 class="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-2"><i class="fa-solid fa-rotate-left me-1"></i> Dokumen Revisi</h5>
                     <div id="linkDokRevisi" class="text-sm space-y-1"></div>
                 </div>
             </div>
 
-            <div id="detailBuktiPbBox" class="bg-blue-50 border border-blue-200 p-4 rounded-xl hidden shadow-sm mt-3">
-                <h4 class="font-bold text-sm text-blue-900 mb-1"><i class="fa-solid fa-money-bill-transfer"></i> Bukti Pencairan / Pindahbuku</h4>
-                <p id="detailBuktiPbTeks" class="text-xs text-blue-800 mb-2 font-semibold"></p>
+            <div id="detailBuktiPbBox" class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg hidden shadow-sm mt-3">
+                <h4 class="font-bold text-sm text-emerald-900 mb-1"><i class="fa-solid fa-money-bill-transfer"></i> Bukti Pencairan / Pindahbuku</h4>
+                <p id="detailBuktiPbTeks" class="text-xs text-emerald-800 mb-2 font-semibold"></p>
                 <div id="detailBuktiPbLink" class="text-sm"></div>
             </div>
 
             <!-- PANEL KONFIRMASI PPTK -->
-            <div id="panelPptkRevisi" class="bg-amber-50 border border-amber-300 p-4 rounded-xl hidden shadow-sm mt-3">
+            <div id="panelPptkRevisi" class="bg-amber-50 border border-amber-300 p-4 rounded-lg hidden shadow-sm mt-3">
                 <h4 class="font-bold text-sm text-amber-900 mb-2"><i class="fa-solid fa-file-arrow-up"></i> Perbaiki Dokumen / Data</h4>
                 <p class="text-xs text-amber-800 mb-3" id="teksRevisiPptk">Catatan Verifikator: Silakan lengkapi kekurangan dokumen Anda.</p>
                 <div class="flex flex-wrap gap-2">
-                    <a id="btnUploadRevisi" href="#" target="_blank" onclick="closeModal('modalVerify')" class="inline-block px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow"><i class="fa-solid fa-upload me-1"></i> Buka Form Upload Revisi</a>
-                    <button id="btnEditDataTeks" onclick="bukaFormEdit()" class="inline-block px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Data</button>
+                    <a id="btnUploadRevisi" href="#" target="_blank" onclick="closeModal('modalVerify')" class="inline-block px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold shadow-sm"><i class="fa-solid fa-upload me-1"></i> Form Upload Revisi</a>
+                    <button id="btnEditDataTeks" onclick="bukaFormEdit()" class="inline-block px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded text-xs font-bold shadow-sm"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Data Teks</button>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-3">
-                <h4 class="font-bold text-xs text-slate-700 mb-3 uppercase tracking-wider border-b pb-2"><i class="fa-solid fa-clock-rotate-left me-1 text-dprkpp-600"></i> Riwayat & Status Dokumen</h4>
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm mt-3">
+                <h4 class="font-bold text-xs text-slate-700 mb-3 uppercase tracking-wider border-b pb-2"><i class="fa-solid fa-clock-rotate-left me-1 text-blue-600"></i> Riwayat & Status Dokumen</h4>
                 <div id="detailRiwayatBox" class="max-h-48 overflow-y-auto space-y-2 pr-2"></div>
             </div>
             
             <!-- PANEL AKSI VERIFIKATOR -->
-            <div id="panelAksiVerifikator" class="bg-emerald-50 border border-emerald-300 p-5 rounded-xl hidden shadow-sm mt-3">
-                <h4 class="font-bold text-sm text-emerald-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-user-shield text-emerald-600"></i> Keputusan Verifikator</h4>
+            <div id="panelAksiVerifikator" class="bg-slate-50 border border-slate-200 p-5 rounded-lg hidden shadow-sm mt-3">
+                <h4 class="font-bold text-sm text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-user-shield text-blue-600"></i> Keputusan Verifikator</h4>
                 
-                <div id="revisiContainer" class="hidden mb-4 bg-white p-3 rounded-lg border border-amber-200">
-                    <label class="block text-xs font-bold text-amber-800 mb-2">Catatan Revisi / Alasan Penolakan *</label>
-                    <textarea id="catatanRevisiInput" rows="3" placeholder="Tuliskan alasan / bagian yang kurang di sini..." class="w-full p-2.5 border border-amber-300 rounded text-sm outline-none"></textarea>
+                <div id="revisiContainer" class="hidden mb-4 bg-white p-4 rounded border border-amber-300 shadow-sm">
+                    <label class="block text-xs font-bold text-amber-900 mb-2">Catatan Revisi / Alasan Penolakan *</label>
+                    <textarea id="catatanRevisiInput" rows="3" placeholder="Tuliskan alasan / bagian yang kurang di sini..." class="w-full p-2.5 border border-amber-200 rounded text-sm outline-none focus:border-amber-400 bg-amber-50/30"></textarea>
                 </div>
                 
-                <div id="pindahbukuContainer" class="hidden bg-white p-3 rounded-lg border border-blue-200 mb-4 space-y-3">
+                <div id="pindahbukuContainer" class="hidden bg-white p-4 rounded border border-emerald-300 mb-4 space-y-3 shadow-sm">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-bold text-blue-800 mb-1">Nomor PB *</label><input type="text" id="noPbInput" placeholder="PB/001/2026" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none"></div>
-                        <div><label class="block text-xs font-bold text-blue-800 mb-1">Tanggal PB *</label><input type="date" id="tglPbInput" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none"></div>
+                        <div><label class="block text-xs font-bold text-emerald-900 mb-1.5">Nomor PB *</label><input type="text" id="noPbInput" placeholder="PB/001/2026" class="w-full p-2.5 border border-emerald-200 rounded text-sm outline-none focus:border-emerald-400"></div>
+                        <div><label class="block text-xs font-bold text-emerald-900 mb-1.5">Tanggal PB *</label><input type="date" id="tglPbInput" class="w-full p-2.5 border border-emerald-200 rounded text-sm outline-none focus:border-emerald-400"></div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-blue-800 mb-1">Link Drive / Kata Kunci Bukti PB *</label>
-                        <input type="text" id="buktiPbInput" placeholder="Masukkan Link Folder Drive atau Nama File PDF" class="w-full p-2.5 border border-blue-300 rounded text-sm outline-none">
+                        <label class="block text-xs font-bold text-emerald-900 mb-1.5">Link Drive / Kata Kunci Bukti PB *</label>
+                        <input type="text" id="buktiPbInput" placeholder="Masukkan Link Folder Drive atau Nama File PDF" class="w-full p-2.5 border border-emerald-200 rounded text-sm outline-none focus:border-emerald-400">
                     </div>
                 </div>
 
                 <div class="flex flex-wrap gap-2 mb-2">
-                    <button onclick="actionSetujui()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-check me-1"></i> Setujui</button>
-                    <button onclick="toggleActionForm('REVISI')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
-                    <button onclick="toggleActionForm('DITOLAK')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-xmark me-1"></i> Tolak</button>
-                    <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-money-bill-transfer me-1"></i> Pindahbuku</button>
+                    <button onclick="actionSetujui()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-check me-1"></i> Setujui</button>
+                    <button onclick="toggleActionForm('REVISI')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
+                    <button onclick="toggleActionForm('DITOLAK')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-xmark me-1"></i> Tolak</button>
+                    <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-money-bill-transfer me-1"></i> Pindahbuku</button>
                 </div>
                 
-                <div id="confirmActionContainer" class="hidden border-t border-emerald-200 pt-3 mt-3">
-                    <button id="btnConfirmAction" onclick="prosesUpdateStatusAksi()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold w-full shadow-md transition-all uppercase tracking-wider"><i class="fa-solid fa-paper-plane me-1"></i> Simpan Keputusan</button>
+                <div id="confirmActionContainer" class="hidden border-t border-slate-200 pt-4 mt-3">
+                    <button id="btnConfirmAction" onclick="prosesUpdateStatusAksi()" class="px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-bold w-full shadow-md transition-all uppercase tracking-wider flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i> Simpan Keputusan</button>
                 </div>
             </div>
             
             <div id="waContainer" class="hidden pt-4 border-t border-slate-200 mt-4 flex flex-wrap justify-end gap-2">
-                 <a id="btnSendWa" href="#" target="_blank" class="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-brands fa-whatsapp text-sm"></i> Beritahu PPTK via WA</a>
-                 <a id="btnSendEmail" href="#" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-solid fa-envelope text-sm"></i> Beritahu via Email</a>
+                 <a id="btnSendWa" href="#" target="_blank" class="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-brands fa-whatsapp text-sm"></i> Notifikasi via WA</a>
+                 <a id="btnSendEmail" href="#" target="_blank" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-regular fa-envelope text-sm"></i> Notifikasi Email</a>
             </div>
         </div>
     </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-xl transform translate-y-20 opacity-0 transition-all z-50 flex items-center gap-3 pointer-events-none">
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-5 py-3 rounded shadow-2xl transform translate-y-20 opacity-0 transition-all z-[300] flex items-center gap-3 pointer-events-none">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
         <span id="toastMessage" class="font-medium text-sm">Pesan</span>
     </div>
 
-    <!-- UPDATE VERSI AGAR CACHE BROWSER DIBUANG -->
-    <script src="config.js?v=26"></script>
-    <script src="app.js?v=26"></script>
+    <!-- UPDATE VERSI -->
+    <script src="config.js?v=27"></script>
+    <script src="app.js?v=27"></script>
 </body>
 </html>
