@@ -20,7 +20,7 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
-    <!-- LOGIN SCREEN DENGAN FITUR LIHAT PASSWORD -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen">
       <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-users"></i></div>
@@ -34,10 +34,10 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
-                <div class="relative">
-                    <input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none pr-10" onkeypress="if(event.key==='Enter') checkLogin()">
-                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-emerald-600">
-                        <i id="eye-icon" class="fa-regular fa-eye"></i>
+                <div class="relative flex items-center">
+                    <input type="password" id="password-input" placeholder="••••••••" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none pr-12" onkeypress="if(event.key==='Enter') checkLogin()">
+                    <button type="button" onclick="togglePassword()" class="absolute right-0 px-4 h-full flex items-center text-slate-400 hover:text-emerald-600 cursor-pointer z-10 outline-none" title="Lihat Password">
+                        <i id="eye-icon" class="fa-solid fa-eye text-lg"></i>
                     </button>
                 </div>
             </div>
@@ -204,7 +204,7 @@
             
             <div class="flex justify-between items-start border-b border-slate-200 pb-3">
                 <div class="pr-6">
-                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-2 wrap-text" id="detailUraian">Uraian</h3>
+                    <h3 class="text-xl font-black text-slate-800 leading-tight mb-3 wrap-text" id="detailUraian">Uraian</h3>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-600">
                         <span class="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                             <i class="fa-solid fa-user-tie"></i> <span id="detailPptkNama"></span>
@@ -220,7 +220,7 @@
             </div>
 
             <!-- TAMPILAN 3 DOKUMEN -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
                 <div class="border border-slate-200 p-3 rounded bg-white shadow-sm hover:shadow-md transition-shadow">
                     <h5 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Dokumen Keuangan</h5>
                     <div id="linkDokKeuangan" class="text-sm"></div>
@@ -277,3 +277,32 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2 mb-2">
+                    <button onclick="actionSetujui()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-check me-1"></i> Setujui</button>
+                    <button onclick="toggleActionForm('REVISI')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-pen-to-square me-1"></i> Revisi</button>
+                    <button onclick="toggleActionForm('DITOLAK')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-xmark me-1"></i> Tolak</button>
+                    <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"><i class="fa-solid fa-money-bill-transfer me-1"></i> Pindahbuku</button>
+                </div>
+                
+                <div id="confirmActionContainer" class="hidden border-t border-emerald-200 pt-3 mt-3">
+                    <button id="btnConfirmAction" onclick="prosesUpdateStatusAksi()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold w-full shadow-md transition-all uppercase tracking-wider"><i class="fa-solid fa-paper-plane me-1"></i> Simpan Keputusan</button>
+                </div>
+            </div>
+            
+            <div id="waContainer" class="hidden pt-4 border-t border-slate-200 mt-4 flex flex-wrap justify-end gap-2">
+                 <a id="btnSendWa" href="#" target="_blank" class="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-brands fa-whatsapp text-sm"></i> Beritahu PPTK via WA</a>
+                 <a id="btnSendEmail" href="#" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all"><i class="fa-solid fa-envelope text-sm"></i> Beritahu via Email</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-xl transform translate-y-20 opacity-0 transition-all z-50 flex items-center gap-3 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="font-medium text-sm">Pesan</span>
+    </div>
+
+    <!-- UPDATE VERSI AGAR CACHE BROWSER DIBUANG -->
+    <script src="config.js?v=26"></script>
+    <script src="app.js?v=26"></script>
+</body>
+</html>
