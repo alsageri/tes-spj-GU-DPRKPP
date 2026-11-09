@@ -99,24 +99,23 @@
                       </tbody>
 <!-- TABEL & PAGINATION -->
           <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded-lg border border-slate-200 pb-2">
+              <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded-lg border border-slate-200 pb-2">
                   <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
-                      <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold uppercase tracking-wide text-[11px] align-top sticky top-0 z-10">
+                      <thead class="bg-slate-100 text-slate-700 font-semibold uppercase tracking-wide text-[11px] sticky top-0 z-20 shadow-sm">
                           <tr>
-                              <th class="py-3 px-4">Tanggal</th>
-                              <th class="py-3 px-4">No. NPD</th>
-                              <th class="py-3 px-4">PPTK & Unit Kerja</th>
-                              <th class="py-3 px-4 leading-relaxed">Program<br>Kegiatan<br>Sub Kegiatan</th>
-                              <th class="py-3 px-4">Uraian SPJ GU</th>
-                              <th class="py-3 px-4 text-right">Nominal (Rp)</th>
-                              <th class="py-3 px-4 text-center">Status</th>
-                              <th class="py-3 px-4 text-center">No. PB</th>
-                              <th class="py-3 px-4 text-center sticky right-0 bg-slate-100 shadow-[-5px_0_10px_rgba(0,0,0,0.05)]">Aksi</th>
+                              <th class="py-3 px-4 border-b border-slate-200">Tanggal</th>
+                              <th class="py-3 px-4 border-b border-slate-200">No. NPD</th>
+                              <th class="py-3 px-4 border-b border-slate-200">PPTK & Unit Kerja</th>
+                              <th class="py-3 px-4 border-b border-slate-200 leading-relaxed">Program<br>Kegiatan<br>Sub Kegiatan</th>
+                              <th class="py-3 px-4 border-b border-slate-200">Uraian SPJ GU</th>
+                              <th class="py-3 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
+                              <th class="py-3 px-4 border-b border-slate-200 text-center">Status</th>
+                              <th class="py-3 px-4 border-b border-slate-200 text-center">No. PB</th>
+                              <th class="py-3 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-100">Aksi</th>
                           </tr>
                       </thead>
                       <tbody id="spjTableBody" class="divide-y divide-slate-200 bg-white">
-                          <!-- Baris awal sebelum data dimuat -->
-                          <tr><td colspan="9" class="text-center py-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
+                          <tr id="rowLoading"><td colspan="9" class="text-center py-10 text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...</td></tr>
                       </tbody>
                   </table>
               </div>
