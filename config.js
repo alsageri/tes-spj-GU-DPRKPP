@@ -4,7 +4,7 @@
 
 const CONFIG = {
     // ⚠️ GANTI URL DI BAWAH INI DENGAN URL DEPLOY APPS SCRIPT ANDA (Berakhiran /exec)
-    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyC3t-n3a5LeAcR87gpPWsjnD-iS2kAPmiymEp5d3oYOlI9w6k50qKvIN2AmF3uIV-pNg/exec",
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycby6M8HSneSstjsLulRVxiUUVxs2JmbCvV2xF-7FUNSPwAEttEnhQDtJg7N9MQSdztrGzA/exec",
     
     // Pagu Anggaran (Bisa diubah sesuai kebutuhan)
     PAGU_TAHUNAN: 1500000000, 
