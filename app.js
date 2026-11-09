@@ -312,17 +312,49 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // UBAH TAMPILAN RIWAYAT MENJADI TIMELINE VERTIKAL MODERN
-    let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 space-y-5 mt-2 pb-2">'; 
+    // UBAH TAMPILAN RIWAYAT MENJADI TIMELINE VERTIKAL MODERN (DENGAN KOTAK CATATAN)
+    let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
         safeRiwayat.split('\n').forEach((line, index) => { 
             if(line.trim() !== "") {
-                let dotColor = index === 0 ? 'bg-emerald-500 ring-emerald-100' : 'bg-slate-300 ring-slate-100';
+                let dotColor = 'bg-slate-300 ring-slate-100';
+                let innerHtml = line;
+
+                // Pisahkan tanggal dan isi menggunakan Regex
+                let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
+                if (match) {
+                    let tanggal = match[1];
+                    let isiHtml = match[2];
+                    
+                    if (isiHtml.includes('- Catatan:')) {
+                        let parts = isiHtml.split('- Catatan:');
+                        // Desain Kotak Khusus untuk Catatan
+                        isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
+                                   <div class="mt-1.5 p-2 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-[11px] leading-relaxed shadow-sm">
+                                     <i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b> ${parts[1].trim()}
+                                   </div>`;
+                        dotColor = 'bg-amber-500 ring-amber-100';
+                    } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
+                        dotColor = 'bg-amber-500 ring-amber-100';
+                        isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
+                    } else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) {
+                        dotColor = 'bg-emerald-500 ring-emerald-100';
+                        isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
+                    } else {
+                        isiHtml = `<span class="text-slate-600">${isiHtml}</span>`;
+                    }
+                    innerHtml = `<span class="text-[10px] font-bold text-slate-400 block mb-0.5">${tanggal}</span>${isiHtml}`;
+                } else {
+                    // Baris tanpa tanggal (misal spasi turun dari teks area PPTK)
+                    innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`;
+                    dotColor = 'bg-transparent ring-transparent'; 
+                }
+
                 logHtml += `
-                <div class="relative pl-5">
-                    <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ring-4"></div>
-                    <p class="text-[11px] text-slate-600 leading-relaxed">${line}</p>
+                <div class="relative pl-5 mb-4">
+                    <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
+                    <div class="text-[11px] leading-relaxed">${innerHtml}</div>
                 </div>`; 
             } 
         }); 
@@ -336,16 +368,27 @@ function bukaModalVerifikasi(id) {
 
     if (sesiAktif.role === 'VERIFIKATOR') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); document.getElementById('waContainer').classList.remove('hidden');
+        document.getElementById('waContainer').classList.add('flex'); // Pastikan flexbox aktif
         
+        // --- LOGIC WHATSAPP ---
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); 
         if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
         
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan: ${item.catatanRevisi}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+        
+        // --- LOGIC EMAIL ---
+        let emailText = `Yth. PPTK,\n\nBerikut adalah update status dokumen SPJ Anda (NPD: ${item.npd}).\nStatus Saat Ini: ${item.status}\n`;
+        if(item.status === 'REVISI' || item.status === 'DITOLAK') emailText += `\nCatatan Verifikator:\n${item.catatanRevisi}\n\nMohon segera diperbaiki.`;
+        let mailtoLink = `mailto:${item.emailPptk}?subject=Update Status SPJ GU - ${item.npd}&body=${encodeURIComponent(emailText)}`;
+        
+        let btnEmail = document.getElementById('btnSendEmail');
+        if (btnEmail) btnEmail.href = mailtoLink;
     
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden');
+        document.getElementById('waContainer').classList.remove('flex');
         
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
