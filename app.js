@@ -160,8 +160,6 @@ function gantiHalaman(arah) {
 
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); 
-    
-    // KOSONGKAN TABEL DENGAN BERSIH
     tbody.innerHTML = '';
     
     const totalData = spjData.length;
@@ -180,31 +178,37 @@ function renderTabelSpj() {
     const dataHalamanIni = spjData.slice(startIndex, endIndex);
 
     if (dataHalamanIni.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>';
         return;
     }
 
     dataHalamanIni.forEach(item => {
-        let badge = `<span class="px-2 py-1 rounded border border-slate-300 font-bold text-slate-600 bg-slate-50">MENUNGGU</span>`;
-        if(item.status === 'DISETUJUI') badge = `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">DISETUJUI</span>`;
-        if(item.status === 'REVISI') badge = `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200 shadow-sm">REVISI</span>`;
-        if(item.status === 'DITOLAK') badge = `<span class="px-2 py-1 rounded bg-red-100 text-red-800 font-bold border border-red-200 shadow-sm">DITOLAK</span>`;
-        if(item.status === 'SUDAH DIPINDAHBUKUKAN') badge = `<span class="px-2 py-1 rounded bg-blue-100 text-blue-800 font-bold border border-blue-200 shadow-sm text-[9px] tracking-wide">SUDAH DIPINDAHBUKUKAN</span>`;
+        // Desain Badge Status yang lebih modern (Soft UI)
+        let badge = `<span class="px-2.5 py-1 rounded-full border border-slate-200 font-bold text-slate-600 bg-slate-100 text-[10px] tracking-wide">MENUNGGU</span>`;
+        if(item.status === 'DISETUJUI') badge = `<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-[10px] tracking-wide">DISETUJUI</span>`;
+        if(item.status === 'REVISI') badge = `<span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-bold border border-amber-200 text-[10px] tracking-wide">REVISI</span>`;
+        if(item.status === 'DITOLAK') badge = `<span class="px-2.5 py-1 rounded-full bg-red-50 text-red-700 font-bold border border-red-200 text-[10px] tracking-wide">DITOLAK</span>`;
+        if(item.status === 'SUDAH DIPINDAHBUKUKAN') badge = `<span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200 text-[10px] tracking-wide">SELESAI PB</span>`;
+        
+        // Desain Badge Jenis Surat (LS / GU)
+        let jenisSurat = String(item.jenisSurat || 'GU');
+        let jenisBadge = jenisSurat === 'LS' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
         
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
-        let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600' : 'bg-slate-600';
+        let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         
         tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 border-b">
-                <td class="py-3 px-4 text-xs align-top whitespace-nowrap text-slate-600">${String(item.createdAt || '-')}</td>
-                <td class="py-3 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
-                <td class="py-3 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-3 px-4 text-xs align-top leading-relaxed min-w-[250px]"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-600">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-500">${String(item.subKegiatan || '-')}</span></td>
-                <td class="py-3 px-4 text-xs align-top max-w-[200px] truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
-                <td class="py-3 px-4 text-xs text-right font-bold align-top whitespace-nowrap">${formatRupiah(item.nominal)}</td>
-                <td class="py-3 px-4 text-center text-[11px] align-top whitespace-nowrap">${badge}</td>
-                <td class="py-3 px-4 text-xs text-slate-600 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
-                <td class="py-3 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-3 py-1.5 ${actionBtnColor} text-white rounded text-xs font-bold shadow-sm">${actionBtnText}</button></td>
+            <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-')}</td>
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap font-bold text-slate-800">${String(item.npd || '-')}</td>
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
+                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px]"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
+                <td class="py-4 px-4 text-xs align-top max-w-[200px] text-slate-600 truncate" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
+                <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
+                <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
+                <td class="py-4 px-4 text-xs text-slate-500 align-top whitespace-nowrap">${String(item.noPb || '-')}</td>
+                <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]"><button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all">${actionBtnText}</button></td>
             </tr>
         `;
     });
@@ -265,10 +269,26 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    let logHtml = ""; const safeRiwayat = String(item.riwayatLog || '');
-    if (safeRiwayat.trim() !== "") { safeRiwayat.split('\n').forEach(line => { if(line.trim() !== "") logHtml += `<div class="bg-white p-2.5 rounded text-[11px] text-slate-700 shadow-sm border border-slate-200 mb-1.5"><i class="fa-solid fa-clock-rotate-left me-1 text-slate-400"></i> ${line}</div>`; }); }
-    document.getElementById('detailRiwayatBox').innerHTML = logHtml || '<p class="text-xs text-slate-400 italic">Belum ada aktivitas.</p>';
-
+// UBAH TAMPILAN RIWAYAT MENJADI TIMELINE VERTIKAL MODERN
+    let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 space-y-5 mt-2 pb-2">'; 
+    const safeRiwayat = String(item.riwayatLog || '');
+    if (safeRiwayat.trim() !== "") { 
+        safeRiwayat.split('\n').forEach((line, index) => { 
+            if(line.trim() !== "") {
+                // Beri warna dot berbeda untuk item terakhir (terbaru)
+                let dotColor = index === 0 ? 'bg-emerald-500 ring-emerald-100' : 'bg-slate-300 ring-slate-100';
+                logHtml += `
+                <div class="relative pl-5">
+                    <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ring-4"></div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed">${line}</p>
+                </div>`; 
+            } 
+        }); 
+    } else {
+        logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`;
+    }
+    logHtml += '</div>';
+    document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.add('hidden'); document.getElementById('panelPptkRevisi').classList.add('hidden');
 
     if (sesiAktif.role === 'VERIFIKATOR') {
