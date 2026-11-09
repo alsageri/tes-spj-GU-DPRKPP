@@ -50,7 +50,13 @@ function togglePassword() {
 
 function masukSistem() {
     document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
-    document.getElementById('role-badge').innerText = sesiAktif.role; document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
+    document.getElementById('role-badge').innerText = sesiAktif.role; 
+    document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
+    
+    // --> TAMBAHKAN BARIS INI UNTUK UPDATE JABATAN DI HEADER <--
+    const jabatanHeader = document.getElementById('jabatan-header-text');
+    if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
+    
     tarikDataDariServer();
 }
 
