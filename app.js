@@ -77,7 +77,19 @@ function kirimPengajuanSpjBaru(e) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
-    const idSistem = isEditMode ? editIdTarget : 'SPJ-' + Date.now(); 
+    let generatedId = "";
+    if (!isEditMode) {
+        const now = new Date();
+        const yy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mnt = String(now.getMinutes()).padStart(2, '0');
+        const sec = String(now.getSeconds()).padStart(2, '0');
+        generatedId = `SPJ-${yy}${mm}${dd}-${hh}${mnt}${sec}`; // Format: SPJ-20261109-143005
+    }
+
+    const idSistem = isEditMode ? editIdTarget : generatedId; 
     const actionType = isEditMode ? 'update_data_teks' : 'create';
 
     const payload = {
