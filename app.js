@@ -144,7 +144,36 @@ function prosesUpdateStatusAksi() {
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
     .then(res => res.json())
     .then(res => {
-        if(res.status === 'success') { showToast(`Sukses memperbarui status.`); closeModal('modalVerify'); tarikDataDariServer(); } 
+        if(res.status === 'success') { 
+            showToast(`Sukses memperbarui status.`); 
+            
+            // 1. Update data lokal sementara agar UI langsung berubah tanpa jeda loading
+            const item = spjData.find(i => String(i.id) === String(activeSelectedId));
+            if(item) {
+                item.status = pendingStatusChange;
+                if(pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') item.catatanRevisi = payload.catatanRevisi;
+                if(pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') { item.noPb = payload.noPb; item.tglPb = payload.tglPb; item.buktiPb = payload.buktiPb; }
+                
+                // Tambah log lokal sementara dengan format jam yang benar
+                let timeNow = new Date().toLocaleString("en-GB", {timeZone: "Asia/Jakarta"}).replace(',', '');
+                let parts = timeNow.split(' ');
+                let cleanTime = `[${parts[0]} ${parts[1].substring(0,5)}]`;
+                item.riwayatLog = `${cleanTime} ${pendingStatusChange} oleh ${sesiAktif.namaLengkap}` + (payload.catatanRevisi ? ` - Catatan: ${payload.catatanRevisi}` : '') + `\n` + (item.riwayatLog || "");
+            }
+
+            // 2. Tarik data asli di background agar tetap sinkron
+            tarikDataDariServer(); 
+            
+            // 3. Sembunyikan form input keputusan
+            document.getElementById('confirmActionContainer').classList.add('hidden');
+            document.getElementById('revisiContainer').classList.add('hidden');
+            document.getElementById('pindahbukuContainer').classList.add('hidden');
+            pendingStatusChange = null;
+            
+            // 4. Render ulang modal (MODAL TIDAK DITUTUP, sehingga tombol WA/Email bisa langsung ditekan)
+            bukaModalVerifikasi(activeSelectedId); 
+
+        } 
         else { alert("GAGAL UPDATE STATUS:\n" + res.message); }
     })
     .catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); })
