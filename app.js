@@ -77,6 +77,7 @@ function kirimPengajuanSpjBaru(e) {
 
     const payload = {
         action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        jenisSurat: document.getElementById('inputJenisSurat').value, // <-- INI BARU
         pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -324,6 +325,7 @@ function bukaFormEdit() {
     try { const parts = String(item.createdAt).split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } catch(e){}
     
     document.getElementById('inputNpd').value = item.npd; document.getElementById('inputPptk').value = item.pptk;
+    document.getElementById('inputJenisSurat').value = item.jenisSurat || 'GU';
     document.getElementById('inputUnitKerja').value = item.unitKerja; document.getElementById('inputEmail').value = item.emailPptk;
     document.getElementById('inputWa').value = item.wa;
     
