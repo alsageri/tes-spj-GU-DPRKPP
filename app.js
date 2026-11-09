@@ -11,15 +11,40 @@ let currentPage = 1;
 let rowsPerPage = 10;
 
 function checkLogin() {
-    const uname = document.getElementById('username-input').value.trim().toLowerCase();
-    const pass = document.getElementById('password-input').value;
-    const userFound = DATABASE_AKUN.find(u => u.username === uname && u.password === pass);
-    if(userFound) { 
-        sesiAktif = { role: userFound.role, username: userFound.username, namaLengkap: userFound.namaLengkap };
-        masukSistem(); 
-    } else { 
-        document.getElementById('pin-error').innerText = "Username atau Password salah!";
-        document.getElementById('pin-error').classList.remove('hidden'); 
+    try {
+        if (typeof DATABASE_AKUN === 'undefined') {
+            alert("Sistem belum siap atau file konfigurasi (config.js) gagal dimuat. Harap tekan Ctrl + F5 untuk memuat ulang halaman.");
+            return;
+        }
+        
+        const uname = document.getElementById('username-input').value.trim().toLowerCase();
+        const pass = document.getElementById('password-input').value;
+        const userFound = DATABASE_AKUN.find(u => u.username === uname && u.password === pass);
+        
+        if (userFound) { 
+            sesiAktif = { role: userFound.role, username: userFound.username, namaLengkap: userFound.namaLengkap };
+            masukSistem(); 
+        } else { 
+            document.getElementById('pin-error').innerText = "Username atau Password salah!";
+            document.getElementById('pin-error').classList.remove('hidden'); 
+        }
+    } catch (error) {
+        alert("Error Login: " + error.message);
+    }
+}
+
+// FUNGSI UNTUK IKON MATA PASSWORD
+function togglePassword() {
+    const passwordInput = document.getElementById('password-input');
+    const eyeIcon = document.getElementById('eye-icon');
+    if (!passwordInput || !eyeIcon) return;
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
     }
 }
 
@@ -294,14 +319,12 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    // ISI HEADER MODAL YANG BARU
+    // ISI HEADER MODAL
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
     document.getElementById('detailEmailPptk').innerText = String(item.emailPptk || "-");
     document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
-    
-    // (Kode DPA telah dihapus dari HTML sehingga tidak perlu di-set di JS)
     
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id);
     document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id);
@@ -316,50 +339,63 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER RIWAYAT
+    // RENDER RIWAYAT 
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     
     if (safeRiwayat.trim() !== "") { 
-        safeRiwayat.split('\n').forEach((line, index) => { 
-            if(line.trim() !== "") {
-                let dotColor = 'bg-slate-300 ring-slate-100';
-                let innerHtml = line;
-
-                let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
-                if (match) {
-                    let tanggal = match[1];
-                    let isiHtml = match[2];
-                    
-                    if (isiHtml.includes('- Catatan:')) {
-                        let parts = isiHtml.split('- Catatan:');
-                        isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
-                                   <div class="mt-1.5 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11.5px] leading-relaxed shadow-sm block w-full">
-                                     <div class="flex items-center mb-1"><i class="fa-solid fa-circle-exclamation me-1.5 text-amber-600"></i> <b class="text-amber-900">Catatan:</b></div>
-                                     <div class="pl-4">${parts[1].trim()}</div>
-                                   </div>`;
-                        dotColor = 'bg-amber-500 ring-amber-100';
-                    } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
-                        dotColor = 'bg-amber-500 ring-amber-100';
-                        isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
-                    } else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) {
-                        dotColor = 'bg-emerald-500 ring-emerald-100';
-                        isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
-                    } else {
-                        isiHtml = `<span class="text-slate-600">${isiHtml}</span>`;
-                    }
-                    innerHtml = `<span class="text-[10px] font-bold text-slate-400 block mb-0.5">${tanggal}</span>${isiHtml}`;
+        let logEntries = [];
+        safeRiwayat.split('\n').forEach(line => {
+            let trimmed = line.trim();
+            if (!trimmed) return;
+            if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) {
+                logEntries.push(trimmed);
+            } else {
+                if (logEntries.length > 0) {
+                    logEntries[logEntries.length - 1] += '<br>' + trimmed;
                 } else {
-                    innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`;
-                    dotColor = 'bg-transparent ring-transparent'; 
+                    logEntries.push(trimmed);
                 }
+            }
+        });
 
-                logHtml += `
-                <div class="relative pl-5 mb-4">
-                    <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
-                    <div class="text-[11px] leading-relaxed">${innerHtml}</div>
-                </div>`; 
-            } 
+        logEntries.forEach((line) => { 
+            let dotColor = 'bg-slate-300 ring-slate-100';
+            let innerHtml = line;
+
+            let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
+            if (match) {
+                let tanggal = match[1];
+                let isiHtml = match[2];
+                
+                if (isiHtml.includes('- Catatan:')) {
+                    let parts = isiHtml.split('- Catatan:');
+                    let isiCatatan = parts[1].trim();
+                    isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
+                               <div class="mt-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] leading-relaxed shadow-sm">
+                                 <i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b><br>${isiCatatan}
+                               </div>`;
+                    dotColor = 'bg-amber-500 ring-amber-100';
+                } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
+                    dotColor = 'bg-amber-500 ring-amber-100';
+                    isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
+                } else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) {
+                    dotColor = 'bg-emerald-500 ring-emerald-100';
+                    isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
+                } else {
+                    isiHtml = `<span class="text-slate-600">${isiHtml}</span>`;
+                }
+                innerHtml = `<span class="text-[10px] font-bold text-slate-400 block mb-0.5">${tanggal}</span>${isiHtml}`;
+            } else {
+                innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`;
+                dotColor = 'bg-transparent ring-transparent'; 
+            }
+
+            logHtml += `
+            <div class="relative pl-5 mb-4">
+                <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
+                <div class="text-[11px] leading-relaxed">${innerHtml}</div>
+            </div>`; 
         }); 
     } else {
         logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`;
@@ -381,7 +417,6 @@ function bukaModalVerifikasi(id) {
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
         
-        // --- LOGIC EMAIL ---
         let emailText = `Yth. PPTK,\n\nBerikut adalah update status dokumen SPJ Anda (NPD: ${item.npd}).\nStatus Saat Ini: ${item.status}\n`;
         if(item.status === 'REVISI' || item.status === 'DITOLAK') emailText += `\nCatatan Verifikator:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n\nMohon segera diperbaiki.`;
         let mailtoLink = `mailto:${item.emailPptk}?subject=Update Status SPJ GU - ${item.npd}&body=${encodeURIComponent(emailText)}`;
