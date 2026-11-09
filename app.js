@@ -77,7 +77,6 @@ function kirimPengajuanSpjBaru(e) {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
-    // PEMBUATAN ID BARU FORMAT (SPJ-YYYYMMDD-HHMMSS)
     let generatedId = "";
     if (!isEditMode) {
         const now = new Date();
@@ -164,7 +163,6 @@ function prosesUpdateStatusAksi() {
                 let parts = timeNow.split(' ');
                 let cleanTime = `[${parts[0]} ${parts[1].substring(0,5)}]`;
                 
-                // MENGGANTI ENTER MENJADI <br> UNTUK PENYIMPANAN SEMENTARA AGAR LANGSUNG JADI SATU KOTAK
                 let catatanClean = (payload.catatanRevisi || "").replace(/\n/g, "<br>");
                 
                 item.riwayatLog = `${cleanTime} ${pendingStatusChange} oleh ${sesiAktif.namaLengkap}` + (catatanClean ? ` - Catatan: ${catatanClean}` : '') + `\n` + (item.riwayatLog || "");
@@ -242,7 +240,6 @@ function renderTabelSpj() {
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         
-        // PENGATURAN CSS WHITESPACE-NORMAL BREAK-WORDS DI TERAPKAN DI KOLOM NPD & URAIAN
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
@@ -297,9 +294,14 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
+    // ISI HEADER MODAL YANG BARU
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
-    document.getElementById('detailPptk').innerText = String(item.pptk || "-") + " (" + String(item.emailPptk || "-") + ")";
-    document.getElementById('detailProgKeg').innerText = String(item.program || "-") + " / " + String(item.kegiatan || "-") + " / " + String(item.subKegiatan || "-");
+    document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
+    document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
+    document.getElementById('detailEmailPptk').innerText = String(item.emailPptk || "-");
+    document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
+    
+    // (Kode DPA telah dihapus dari HTML sehingga tidak perlu di-set di JS)
     
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id);
     document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id);
@@ -314,7 +316,7 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER RIWAYAT (Hanya split berdasarkan \n, <br> dari database tetap aman)
+    // RENDER RIWAYAT
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     
@@ -331,7 +333,6 @@ function bukaModalVerifikasi(id) {
                     
                     if (isiHtml.includes('- Catatan:')) {
                         let parts = isiHtml.split('- Catatan:');
-                        // Tampilkan kotak kuning untuk multi-baris
                         isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
                                    <div class="mt-1.5 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11.5px] leading-relaxed shadow-sm block w-full">
                                      <div class="flex items-center mb-1"><i class="fa-solid fa-circle-exclamation me-1.5 text-amber-600"></i> <b class="text-amber-900">Catatan:</b></div>
@@ -377,7 +378,6 @@ function bukaModalVerifikasi(id) {
         if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
         
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
-        // Buang tag <br> saat dikirim via WA
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
         
