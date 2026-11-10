@@ -20,29 +20,28 @@ function inisialisasiServer() {
     fetch(CONFIG.APPS_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'success') {
-                // Simpan data dari Gsheets ke variabel global
+            if (data.status !== 'error') {
                 window.DATABASE_AKUN = data.akun || [];
                 if(data.pagu) {
-                    window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan;
-                    window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan;
+                    window.CONFIG = window.CONFIG || {};
+                    window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan || 0;
+                    window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan || 0;
                 }
                 if(data.spj) spjData = data.spj.reverse(); 
                 if(data.referensi) referensiData = data.referensi;
                 
                 if(btnLogin) { btnLogin.innerHTML = 'Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i>'; btnLogin.disabled = false; }
-            }
+            } else { alert("Error dari Server: " + data.message); }
         })
         .catch(e => {
-            if(btnLogin) { btnLogin.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Gagal Koneksi ke Spreadsheet. Refresh (F5)'; }
+            if(btnLogin) { btnLogin.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Gagal Koneksi ke Database. Refresh (F5)'; }
         });
 }
-// Jalankan otomatis
 inisialisasiServer();
 
 function checkLogin() {
     try {
-        if (!window.DATABASE_AKUN || window.DATABASE_AKUN.length === 0) { alert("Data akun kosong di server. Super Admin perlu mendaftarkan akun di Spreadsheet terlebih dahulu."); return; }
+        if (!window.DATABASE_AKUN || window.DATABASE_AKUN.length === 0) { alert("Data akun masih kosong atau sedang dimuat dari server."); return; }
         
         const uname = document.getElementById('username-input').value.trim().toLowerCase();
         const pass = document.getElementById('password-input').value;
@@ -105,29 +104,19 @@ function isiDropdownPptkUtama() {
     }
 }
 
-// Fungsi Tarik Manual pasca Login
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     fetch(CONFIG.APPS_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'error') { alert("Sistem Google Menolak: " + data.message); return; }
-            
+            if (data.status === 'error') { alert("Gagal mengambil data dari Google Sheets."); return; }
             if(data.akun) window.DATABASE_AKUN = data.akun;
-            if(data.pagu) {
-                window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan;
-                window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan;
-            }
+            if(data.pagu) { window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan; window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan; }
             if(data.spj) spjData = data.spj.reverse(); 
             if(data.referensi) referensiData = data.referensi;
-            
             renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
-            
-            // Refresh tabel admin jika sedang dibuka
-            const tbAkun = document.getElementById('tabelAkunBody');
-            if(tbAkun && tbAkun.innerHTML !== '') { renderTabelAkunAdmin(); }
+            const tbAkun = document.getElementById('tabelAkunBody'); if(tbAkun && tbAkun.innerHTML !== '') renderTabelAkunAdmin();
         })
-        .catch(e => { alert("Gagal memuat data! Detail Error: " + e.message); })
         .finally(() => { document.getElementById('refresh-icon').classList.remove('animate-spin'); });
 }
 
@@ -136,59 +125,42 @@ function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: '
 function hitungAnggaran() {
     let totalPencairan = 0;
     spjData.forEach(item => { if(item.status === 'SUDAH DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
-    document.getElementById('sisaTahunanVal').innerText = formatRupiah(CONFIG.PAGU_TAHUNAN - totalPencairan);
-    document.getElementById('sisaTriwulanVal').innerText = formatRupiah(CONFIG.PAGU_TRIWULAN - totalPencairan);
+    document.getElementById('sisaTahunanVal').innerText = formatRupiah((CONFIG.PAGU_TAHUNAN || 0) - totalPencairan);
+    document.getElementById('sisaTriwulanVal').innerText = formatRupiah((CONFIG.PAGU_TRIWULAN || 0) - totalPencairan);
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
-// LOGIKA PUSH PAGU KE GOOGLE SHEETS
 function bukaModalEditPagu(jenis) {
-    paguEditType = jenis;
-    document.getElementById('titleEditPagu').innerText = `Edit Pagu ${jenis === 'TAHUNAN' ? 'Tahunan' : 'Triwulan'}`;
-    const currentValue = jenis === 'TAHUNAN' ? CONFIG.PAGU_TAHUNAN : CONFIG.PAGU_TRIWULAN;
-    document.getElementById('inputEditPagu').value = currentValue;
+    paguEditType = jenis; document.getElementById('titleEditPagu').innerText = `Edit Pagu ${jenis === 'TAHUNAN' ? 'Tahunan' : 'Triwulan'}`;
+    document.getElementById('inputEditPagu').value = jenis === 'TAHUNAN' ? CONFIG.PAGU_TAHUNAN : CONFIG.PAGU_TRIWULAN;
     openModal('modalEditPagu');
 }
+
 function simpanPaguBaru() {
     const val = Number(document.getElementById('inputEditPagu').value);
     if(val < 0) { alert('Nominal tidak boleh minus!'); return; }
-    
-    if (paguEditType === 'TAHUNAN') { CONFIG.PAGU_TAHUNAN = val; } 
-    else { CONFIG.PAGU_TRIWULAN = val; }
-    
-    // Push ke Server (Google Sheets)
-    fetch(CONFIG.APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'sync_pagu',
-            paguTahunan: CONFIG.PAGU_TAHUNAN,
-            paguTriwulan: CONFIG.PAGU_TRIWULAN
-        })
-    }).catch(e => console.error(e));
-    
+    if (paguEditType === 'TAHUNAN') CONFIG.PAGU_TAHUNAN = val; else CONFIG.PAGU_TRIWULAN = val;
+    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'sync_pagu', paguTahunan: CONFIG.PAGU_TAHUNAN, paguTriwulan: CONFIG.PAGU_TRIWULAN }) }).catch(e => console.error(e));
     hitungAnggaran(); closeModal('modalEditPagu'); showToast('Pagu tersinkronisasi ke server.');
 }
 
-function bukaFormSpjBaru() {
-    isEditMode = false; editIdTarget = null; openModal('modalNewSpj');
-}
+function bukaFormSpjBaru() { isEditMode = false; editIdTarget = null; openModal('modalNewSpj'); }
 
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); if(!progSelect) return;
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
-    for (let prog in referensiData) { progSelect.innerHTML += `<option value="${prog}">${prog}</option>`; }
+    for (let prog in referensiData) progSelect.innerHTML += `<option value="${prog}">${prog}</option>`;
 }
 function updateKegiatanDropdown() {
     const prog = document.getElementById('inputProgram').value; const kegSelect = document.getElementById('inputKegiatan'); const subSelect = document.getElementById('inputSubkegiatan');
     kegSelect.innerHTML = '<option value="">-- Pilih Kegiatan --</option>'; subSelect.innerHTML = '<option value="">-- Pilih Subkegiatan --</option>';
-    if(prog && referensiData[prog]) { for (let keg in referensiData[prog]) { kegSelect.innerHTML += `<option value="${keg}">${keg}</option>`; } }
+    if(prog && referensiData[prog]) for (let keg in referensiData[prog]) kegSelect.innerHTML += `<option value="${keg}">${keg}</option>`;
 }
 function updateSubkegiatanDropdown() {
     const prog = document.getElementById('inputProgram').value; const keg = document.getElementById('inputKegiatan').value; const subSelect = document.getElementById('inputSubkegiatan');
     subSelect.innerHTML = '<option value="">-- Pilih Subkegiatan --</option>';
-    if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
+    if(prog && keg && referensiData[prog][keg]) referensiData[prog][keg].forEach(sub => subSelect.innerHTML += `<option value="${sub}">${sub}</option>`);
 }
-
 
 function setJenisTampilan(jenis) {
     filterJenis = jenis; currentPage = 1;
@@ -198,7 +170,6 @@ function setJenisTampilan(jenis) {
         const icon = el.querySelector('.menu-icon'); if(icon) icon.classList.replace('text-emerald-500', 'text-slate-400');
         const dot = el.querySelector('.indicator-dot'); if(dot) dot.remove();
     });
-
     const activeEl = document.getElementById('menu-' + jenis.toLowerCase());
     if (activeEl) {
         activeEl.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-emerald-600', 'font-medium', 'border-transparent');
@@ -206,30 +177,22 @@ function setJenisTampilan(jenis) {
         const icon = activeEl.querySelector('.menu-icon'); if(icon) icon.classList.replace('text-slate-400', 'text-emerald-500');
         if (!activeEl.querySelector('.indicator-dot')) { const dot = document.createElement('div'); dot.className = 'w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot'; activeEl.appendChild(dot); }
     }
-
     const title = document.getElementById('page-title'); const breadcrumb = document.getElementById('breadcrumb-text'); const tbTitle = document.getElementById('tabel-judul-jenis');
     if(jenis === 'ALL') { title.innerText = 'Dashboard Utama'; breadcrumb.innerText = 'Dashboard Semua'; tbTitle.innerText = 'GU & LS'; }
     else if(jenis === 'GU') { title.innerText = 'Data SPJ Ganti Uang (GU)'; breadcrumb.innerText = 'Data SPJ GU'; tbTitle.innerText = 'Ganti Uang (GU)'; }
     else if(jenis === 'LS') { title.innerText = 'Data SPJ Langsung (LS)'; breadcrumb.innerText = 'Data SPJ LS'; tbTitle.innerText = 'Langsung (LS)'; }
-
-    const thJenis = document.getElementById('th-jenis');
-    if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } else { if(thJenis) thJenis.style.display = 'none'; }
+    const thJenis = document.getElementById('th-jenis'); if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } else { if(thJenis) thJenis.style.display = 'none'; }
     renderTabelSpj();
 }
 
 function ubahLabelNpdKontrak() {
-    const jenis = document.getElementById('inputJenisSurat').value;
-    const label = document.getElementById('label-npd-kontrak');
-    const input = document.getElementById('inputNpd');
-    
-    if (jenis === 'LS') { label.innerText = 'Nomor Kontrak / SPK'; input.placeholder = 'Cth: 027/01/SPK/2026'; } 
-    else { label.innerText = 'Nomor NPD'; input.placeholder = 'Cth: 001/NPD/2026'; }
+    const jenis = document.getElementById('inputJenisSurat').value; const label = document.getElementById('label-npd-kontrak'); const input = document.getElementById('inputNpd');
+    if (jenis === 'LS') { label.innerText = 'Nomor Kontrak / SPK'; input.placeholder = 'Cth: 027/01/SPK/2026'; } else { label.innerText = 'Nomor NPD'; input.placeholder = 'Cth: 001/NPD/2026'; }
 }
 
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
-    const btn = document.getElementById('btnSubmitNew'); 
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
+    const btn = document.getElementById('btnSubmitNew'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
     const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
     let generatedId = "";
@@ -237,19 +200,16 @@ function kirimPengajuanSpjBaru(e) {
         const now = new Date();
         generatedId = `SPJ-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`; 
     }
-
     const idSistem = isEditMode ? editIdTarget : generatedId; 
     const actionType = isEditMode ? 'update_data_teks' : 'create';
 
     const payload = {
         action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
-        jenisSurat: document.getElementById('inputJenisSurat').value,
-        pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
+        jenisSurat: document.getElementById('inputJenisSurat').value, pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
         subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
-        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, 
-        status: 'BELUM_DIPROSES'
+        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, status: 'BELUM_DIPROSES'
     };
 
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
@@ -257,7 +217,6 @@ function kirimPengajuanSpjBaru(e) {
         .then(res => {
             if(res.status === 'success') {
                 document.getElementById('formNewSpj').classList.add('hidden'); 
-                
                 if (isEditMode) {
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
                     divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Perbaikan Data Berhasil!</h3><button onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Tutup & Refresh</button>`;
@@ -265,7 +224,6 @@ function kirimPengajuanSpjBaru(e) {
                 } else {
                     const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`; 
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
-                    
                     if (payload.jenisSurat === 'LS') {
                         const timeCode = idSistem.split('-')[1]; const noUrut = 'LS-' + timeCode.substring(timeCode.length - 4);
                         divSukses.innerHTML = `
@@ -295,14 +253,12 @@ function cetakNomorUrut(noUrut, npd, nominal, pptk) {
     printWindow.document.close();
 }
 
-
 function gantiPageSize() { rowsPerPage = parseInt(document.getElementById('selectPageSize').value); currentPage = 1; renderTabelSpj(); }
 function gantiHalaman(arah) { const tData = spjData.filter(i => filterJenis === 'ALL' || String(i.jenisSurat || 'GU') === filterJenis); const totalPages = Math.ceil(tData.length / rowsPerPage); currentPage += arah; if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages; renderTabelSpj(); }
 
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
-    let filteredData = spjData;
-    if (filterJenis !== 'ALL') { filteredData = spjData.filter(item => String(item.jenisSurat || 'GU') === filterJenis); }
+    let filteredData = filterJenis !== 'ALL' ? spjData.filter(item => String(item.jenisSurat || 'GU') === filterJenis) : spjData;
     const totalData = filteredData.length; const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
     const startIndex = (currentPage - 1) * rowsPerPage; const endIndex = Math.min(startIndex + rowsPerPage, totalData);
     const infoEl = document.getElementById('infoHalaman'); const btnPrev = document.getElementById('btnPrevPage'); const btnNext = document.getElementById('btnNextPage');
@@ -352,29 +308,9 @@ function openModal(id) {
     document.getElementById(id).classList.remove('hidden'); 
 }
 
-
-// ==========================================
-// LOGIKA CRUD PUSH KE GOOGLE SHEETS
-// ==========================================
-function saveDatabaseToLocal() {
-    // Fungsi ini diganti untuk mengirim data Akun ke Google Sheets
-    fetch(CONFIG.APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'sync_akun',
-            listAkun: window.DATABASE_AKUN
-        })
-    }).then(res => res.json()).then(res => {
-        if(res.status !== 'success') alert('Gagal sinkronisasi data akun ke Database Sheet!');
-    }).catch(e => console.log(e));
-}
-
 function switchTabAdmin(tabName) {
     document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.admin-tab-btn').forEach(el => {
-        el.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30');
-        el.classList.add('hover:bg-slate-700/50', 'hover:text-white');
-    });
+    document.querySelectorAll('.admin-tab-btn').forEach(el => { el.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30'); el.classList.add('hover:bg-slate-700/50', 'hover:text-white'); });
     const activeTab = document.getElementById(`tab-content-${tabName}`); const activeBtn = document.getElementById(`tab-btn-${tabName}`);
     if(activeTab) { activeTab.classList.remove('hidden'); activeTab.classList.add('flex'); }
     if(activeBtn) { activeBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30'); activeBtn.classList.remove('hover:bg-slate-700/50', 'hover:text-white'); }
@@ -383,7 +319,6 @@ function switchTabAdmin(tabName) {
 function renderTabelAkunAdmin() {
     const tbody = document.getElementById('tabelAkunBody'); const tbPptk = document.getElementById('tabelPptkBody');
     if (!tbody || !tbPptk) return; tbody.innerHTML = ''; tbPptk.innerHTML = '';
-
     window.DATABASE_AKUN.forEach((akun, index) => {
         if(akun.role === 'PPTK') {
             tbPptk.innerHTML += `
@@ -396,14 +331,11 @@ function renderTabelAkunAdmin() {
                 </td>
             </tr>`;
         }
-        
         let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200">${akun.role}</span>`;
         if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200">SUPER_ADMIN</span>`;
         if (akun.role === 'PPTK') roleBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">PPTK</span>`;
         if (akun.role === 'VERIFIKATOR') roleBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200">VERIFIKATOR</span>`;
-
         let identitasLogin = akun.username ? `<span class="text-blue-600 font-bold">${akun.username}</span> <br><span class="text-[9px] text-slate-400">Pass: ${akun.password}</span>` : `<span class="text-red-500 italic text-[10px]">Belum Punya Akun</span>`;
-
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
                 <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
@@ -418,18 +350,17 @@ function renderTabelAkunAdmin() {
     isiDropdownPptkUtama(); 
 }
 
+function saveDatabaseToServer() {
+    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'sync_akun', listAkun: window.DATABASE_AKUN }) })
+    .then(res => res.json()).then(res => { if(res.status !== 'success') alert('Gagal sinkronisasi data akun!'); }).catch(e => console.log(e));
+}
+
 function simpanDataPptk() {
     const nama = document.getElementById('pptkNama').value; const nip = document.getElementById('pptkNip').value; 
     if(!nama) { alert('Nama Lengkap wajib diisi!'); return; }
-    
-    if (editIndexPptk > -1) {
-        window.DATABASE_AKUN[editIndexPptk].namaLengkap = nama; window.DATABASE_AKUN[editIndexPptk].nip = nip;
-    } else {
-        window.DATABASE_AKUN.push({ username: "", password: "", role: "PPTK", namaLengkap: nama, nip: nip });
-    }
-    
-    saveDatabaseToLocal(); // Ini sekarang Push ke Server Google Sheets
-    resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan ke Database Server.');
+    if (editIndexPptk > -1) { window.DATABASE_AKUN[editIndexPptk].namaLengkap = nama; window.DATABASE_AKUN[editIndexPptk].nip = nip; } 
+    else { window.DATABASE_AKUN.push({ username: "", password: "", role: "PPTK", namaLengkap: nama, nip: nip }); }
+    saveDatabaseToServer(); resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan ke Database Server.');
 }
 
 function editDataPptk(index) {
@@ -445,15 +376,10 @@ function resetFormPptk() {
 function simpanDataAkun() {
     const nama = document.getElementById('akunNama').value; const user = document.getElementById('akunUsername').value;
     const pass = document.getElementById('akunPassword').value; const role = document.getElementById('akunRole').value;
-    if(!nama || !user || !pass) { alert('Harap isi semua kolom nama, username, dan password!'); return; }
-    
-    if (editIndexAkun > -1) {
-        window.DATABASE_AKUN[editIndexAkun].namaLengkap = nama; window.DATABASE_AKUN[editIndexAkun].username = user;
-        window.DATABASE_AKUN[editIndexAkun].password = pass; window.DATABASE_AKUN[editIndexAkun].role = role;
-    } else { window.DATABASE_AKUN.push({ username: user, password: pass, role: role, namaLengkap: nama }); }
-    
-    saveDatabaseToLocal(); // Ini sekarang Push ke Server Google Sheets
-    resetFormAkun(); renderTabelAkunAdmin(); showToast('Akun Tersimpan ke Database Server.');
+    if(!nama || !user || !pass) { alert('Harap isi semua kolom!'); return; }
+    if (editIndexAkun > -1) { window.DATABASE_AKUN[editIndexAkun].namaLengkap = nama; window.DATABASE_AKUN[editIndexAkun].username = user; window.DATABASE_AKUN[editIndexAkun].password = pass; window.DATABASE_AKUN[editIndexAkun].role = role; } 
+    else { window.DATABASE_AKUN.push({ username: user, password: pass, role: role, namaLengkap: nama }); }
+    saveDatabaseToServer(); resetFormAkun(); renderTabelAkunAdmin(); showToast('Akun Tersimpan ke Database Server.');
 }
 
 function editDataAkun(index) {
@@ -470,22 +396,11 @@ function resetFormAkun() {
 }
 
 function hapusDataAkun(index) {
-    if(confirm('Anda yakin ingin menghapus data ini? Aksi ini akan mempengaruhi semua user.')) { 
-        window.DATABASE_AKUN.splice(index, 1); 
-        saveDatabaseToLocal(); // Push ke Gsheets
-        renderTabelAkunAdmin(); showToast('Berhasil dihapus dari server.'); 
-    }
+    if(confirm('Anda yakin ingin menghapus data ini?')) { window.DATABASE_AKUN.splice(index, 1); saveDatabaseToServer(); renderTabelAkunAdmin(); showToast('Berhasil dihapus dari server.'); }
 }
 
+function bukaModalSuperAdmin() { const profileDd = document.getElementById('profileDropdown'); if(profileDd) profileDd.classList.add('hidden'); renderTabelAkunAdmin(); switchTabAdmin('pptk'); openModal('modalSuperAdmin'); }
 
-function bukaModalSuperAdmin() {
-    const profileDd = document.getElementById('profileDropdown'); if(profileDd) profileDd.classList.add('hidden'); 
-    renderTabelAkunAdmin(); switchTabAdmin('pptk'); openModal('modalSuperAdmin');
-}
-
-// ==========================================
-// FUNGSI UMUM LAINNYA
-// ==========================================
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
 
@@ -494,8 +409,7 @@ function jadikanLink(textUrl, idItem) {
         return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
     }
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
+    const urlRegex = /(https?:\/\/[^\s]+)/g; return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
 }
 
 function bukaModalVerifikasi(id) {
