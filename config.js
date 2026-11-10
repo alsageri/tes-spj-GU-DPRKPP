@@ -22,6 +22,6 @@ const DATABASE_AKUN = [
     { username: "endang", password: "123", role: "PPTK", namaLengkap: "ENDANG PUJI HAPSARI, SE, M.Si" },
     { username: "gunadi", password: "123", role: "PPTK", namaLengkap: "GUNADI, SKM, M.Si" },
     { username: "nurhidayat", password: "123", role: "PPTK", namaLengkap: "MOHAMAD NURHIDAYAT, ST, MM" },
-    { username: "may", password: "123", role: "PPTK", namaLengkap: "MAY HUDHA NUGROHO, SE, MM" }
+    { username: "may", password: "123", role: "PPTK", namaLengkap: "MAY HUDHA NUGROHO, SE, MM" },
     { username: "superadmin", password: "123", role: "SUPER_ADMIN", namaLengkap: "GERI MANAJEMEN" }
 ];
