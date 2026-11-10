@@ -148,34 +148,80 @@
     <!-- MAIN APP -->
     <div id="main-app" class="flex w-full h-full bg-sipd-light hidden">
         
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex-col hidden md:flex h-full shadow-[2px_0_15px_rgba(0,0,0,0.02)] z-20">
-            <div class="h-16 flex items-center px-5 border-b border-slate-100 flex-shrink-0">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded flex items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-500 text-white shadow-sm">
+    <!-- SIDEBAR (DIOPTIMALKAN) -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex-col hidden md:flex h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
+            <div class="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0 bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-500 text-white shadow-sm">
                         <i class="fa-solid fa-layer-group text-sm"></i>
                     </div>
                     <div>
-                        <h1 class="text-sm font-black text-slate-800 tracking-tight leading-tight">ERP SPJ GU & LS</h1>
-                        <p class="text-[9px] text-slate-400 font-bold tracking-wider">KABUPATEN BLITAR</p>
+                        <h1 class="text-sm font-black text-slate-800 tracking-tight leading-tight">ERP SPJ GU</h1>
+                        <p class="text-[9px] text-slate-400 font-bold tracking-wider">KAB. BLITAR</p>
                     </div>
                 </div>
             </div>
             
-            <div class="overflow-y-auto flex-1 py-5 px-3 custom-scrollbar">
-                <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Menu Utama</div>
-                <ul class="space-y-1 mb-6">
-                    <li><a href="#" class="flex items-center justify-between px-3 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"><div class="flex items-center gap-3"><i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard</div><div class="w-1.5 h-1.5 bg-white rounded-full"></div></a></li>
-                    <li><a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-building-columns w-5 text-center text-slate-400"></i> Rekening Bank</a></li>
-                    <li><a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-sitemap w-5 text-center text-slate-400"></i> Pelimpahan</a></li>
-                    <li><a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><div class="flex items-center gap-3"><i class="fa-regular fa-file-lines w-5 text-center text-slate-400"></i> Penugasan PPTK</div><i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i></a></li>
+            <div class="overflow-y-auto flex-1 py-6 px-4 custom-scrollbar">
+                
+                <div class="px-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Utama</div>
+                <ul class="space-y-1 mb-8">
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold shadow-sm transition-colors border border-emerald-100">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard</div>
+                            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-building-columns w-5 text-center text-slate-400"></i> Rekening Bank
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-sitemap w-5 text-center text-slate-400"></i> Pelimpahan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
+                            <div class="flex items-center gap-3"><i class="fa-regular fa-file-lines w-5 text-center text-slate-400"></i> Penugasan PPTK</div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </a>
+                    </li>
                 </ul>
 
-                <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Penatausahaan</div>
-                <ul class="space-y-1 mb-6">
-                    <li><a href="#" onclick="bukaFormSpjBaru()" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-emerald-100"><div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus w-5 text-center text-emerald-500"></i> Buat SPJ Baru</div></a></li>
-                    <li><a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><div class="flex items-center gap-3"><i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i> Pengeluaran</div><i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i></a></li>
+                <div class="px-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penatausahaan</div>
+                <ul class="space-y-1 mb-8">
+                    <li>
+                        <a href="#" onclick="bukaFormSpjBaru()" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-800 hover:text-white rounded-lg text-sm font-medium transition-colors shadow-sm border border-transparent">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus w-5 text-center text-emerald-400"></i> Buat SPJ Baru</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i> Pengeluaran</div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </a>
+                    </li>
                 </ul>
+
+                <!-- MENU MASTER DATA (HANYA UNTUK SUPER ADMIN) -->
+                <div id="sidebarSuperAdmin" class="hidden flex-col">
+                    <div class="px-2 mb-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest border-t border-slate-100 pt-6">Master Data</div>
+                    <ul class="space-y-1">
+                        <li>
+                            <a href="#" onclick="bukaModalSuperAdmin()" class="flex items-center justify-between px-3 py-2.5 text-slate-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 rounded-lg text-sm font-bold transition-colors border border-amber-200/50 shadow-sm">
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-gears w-5 text-center text-amber-500"></i> Pengaturan Master</div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-slate-100 bg-slate-50 mt-auto flex-shrink-0">
+                <button onclick="location.reload()" class="flex items-center gap-3 w-full px-4 py-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold transition-colors">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar (Logout)
+                </button>
             </div>
         </aside>
 
@@ -410,7 +456,9 @@
                                 <th class="p-3 border border-slate-200 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="text-slate-600">
+                        <tbody id="tabelAkunBody" class="text-slate-600 divide-y divide-slate-100">
+    <!-- Data akan di-generate otomatis oleh JavaScript -->
+</tbody>
                             <tr>
                                 <td class="p-3 border border-slate-200 font-bold">Geri (Admin Utama)</td>
                                 <td class="p-3 border border-slate-200">superadmin</td>
