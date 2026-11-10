@@ -75,7 +75,6 @@ function masukSistem() {
     // Set Header Kiri Atas
     document.getElementById('role-badge').innerText = sesiAktif.role; 
     document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
-    
     const jabatanHeader = document.getElementById('jabatan-header-text');
     if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
 
@@ -85,17 +84,17 @@ function masukSistem() {
     const ddRole = document.getElementById('dd-role');
     if(ddRole) ddRole.innerText = sesiAktif.role;
 
-    // LOGIKA TAMPILKAN MENU SUPER ADMIN
-    const menuSuper = document.getElementById('menuSuperAdmin');
+    // TAMPILKAN MENU SUPER ADMIN DI SIDEBAR KIRI JIKA ROLE = SUPER_ADMIN
+    const sidebarSuperAdmin = document.getElementById('sidebarSuperAdmin');
     if (sesiAktif.role === 'SUPER_ADMIN') {
-        if(menuSuper) {
-            menuSuper.classList.remove('hidden');
-            menuSuper.classList.add('flex');
+        if(sidebarSuperAdmin) {
+            sidebarSuperAdmin.classList.remove('hidden');
+            sidebarSuperAdmin.classList.add('flex');
         }
     } else {
-        if(menuSuper) {
-            menuSuper.classList.add('hidden');
-            menuSuper.classList.remove('flex');
+        if(sidebarSuperAdmin) {
+            sidebarSuperAdmin.classList.add('hidden');
+            sidebarSuperAdmin.classList.remove('flex');
         }
     }
     
@@ -339,9 +338,44 @@ function openModal(id) {
     document.getElementById(id).classList.remove('hidden'); 
 }
 
-// BUKA MODAL SUPER ADMIN
+// Men-generate tabel dari config.js
+function renderTabelAkunAdmin() {
+    const tbody = document.getElementById('tabelAkunBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (typeof DATABASE_AKUN === 'undefined') {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500 font-bold bg-red-50">Data config.js tidak ditemukan!</td></tr>';
+        return;
+    }
+
+    // Melakukan perulangan dari config.js
+    DATABASE_AKUN.forEach(akun => {
+        let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200 tracking-wide">${akun.role}</span>`;
+        if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200 tracking-wide">SUPER_ADMIN</span>`;
+        if (akun.role === 'PPTK') roleBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200 tracking-wide">PPTK</span>`;
+        if (akun.role === 'VERIFIKATOR') roleBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200 tracking-wide">VERIFIKATOR</span>`;
+
+        tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-slate-500 font-mono text-[11px]">${akun.username}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-xs">${roleBadge}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-center">
+                    <button class="px-3 py-1.5 bg-white hover:bg-slate-100 rounded text-[10px] font-bold border border-slate-300 shadow-sm text-slate-600 transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
 function bukaModalSuperAdmin() {
-    document.getElementById('profileDropdown').classList.add('hidden'); // Tutup pop-up
+    const profileDd = document.getElementById('profileDropdown');
+    if(profileDd) profileDd.classList.add('hidden'); 
+    
+    // Panggil fungsi render sebelum membuka modal
+    renderTabelAkunAdmin(); 
+    
     openModal('modalSuperAdmin');
 }
 
