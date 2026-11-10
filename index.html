@@ -342,15 +342,24 @@
                         </div>
                     </div>
                     
-                    <div id="panelAksiVerifikator" class="mt-6 pt-4 border-t border-slate-200 space-y-3 hidden">
-                        <div class="flex gap-2">
-                            <button onclick="actionSetujui()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-check me-1"></i> SETUJUI</button>
-                            <button onclick="toggleActionForm('REVISI')" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-rotate-left me-1"></i> REVISI</button>
-                            <button onclick="toggleActionForm('DITOLAK')" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-xmark me-1"></i> TOLAK</button>
-                        </div>
-                        <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-money-bill-transfer me-1"></i> SELESAI (INPUT PB)</button>
-                        <button onclick="bukaFormEdit()" class="w-full py-2 bg-slate-700 hover:bg-slate-800 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-pen-to-square me-1"></i> EDIT DATA TEKS</button>
-                        <div id="waContainer" class="hidden gap-2 mt-2 pt-2 border-t border-slate-100"><a id="btnSendWa" target="_blank" class="flex-1 py-2 bg-green-500 text-white rounded font-bold text-[11px] shadow-sm text-center block"><i class="fa-brands fa-whatsapp"></i> Chat WA</a></div>
+                    <div id="panelAksiVerifikator" class="hidden mt-4 pt-4 border-t border-slate-100">
+    <!-- 1. BARIS ATAS: 4 Tombol Status (Setujui, Revisi, Tolak, PB) -->
+    <div class="grid grid-cols-4 gap-2 mb-2">
+        <button onclick="actionSetujui()" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> SETUJUI</button>
+        <button onclick="toggleActionForm('REVISI')" class="py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-rotate-left"></i> REVISI</button>
+        <button onclick="toggleActionForm('DITOLAK')" class="py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-xmark"></i> TOLAK</button>
+        <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-money-bill-transfer"></i> SELESAI PB</button>
+    </div>
+    
+    <!-- 2. BARIS KEDUA: Edit Data -->
+    <button onclick="bukaFormEdit()" class="w-full py-2 mb-2 bg-slate-700 hover:bg-slate-800 text-white rounded font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> EDIT DATA TEKS</button>
+    
+    <!-- 3. BARIS KETIGA: Email -->
+    <button id="btnSendEmailManual" onclick="kirimEmailManual()" class="w-full py-2 mb-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"><i class="fa-solid fa-envelope"></i> KIRIM NOTIFIKASI EMAIL KE PPTK</button>
+
+    <!-- 4. BARIS KEEMPAT: WA -->
+    <a id="btnSendWa" href="#" target="_blank" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors"><i class="fa-brands fa-whatsapp text-sm"></i> CHAT WA</a>
+</div>
                     </div>
                 </div>
             </div>
