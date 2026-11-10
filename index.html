@@ -75,7 +75,7 @@
             </div>
 
             <div class="mb-8">
-                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">Selamat Datang 👋</h2>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2" id="sapaan-login">Selamat pagi 👋</h2>
                 <p class="text-xs text-slate-500 mt-1">Silakan masuk untuk melanjutkan ke Sistem</p>
             </div>
             
@@ -151,7 +151,7 @@
             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30 flex-shrink-0 relative">
                 <div class="flex items-center gap-4">
                     <div class="hidden sm:block">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">Selamat Datang, <span id="user-display" class="uppercase"></span><span id="role-badge" class="ml-2 text-[9px] px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-black tracking-wider"></span></h2>
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><span id="sapaan-header">Selamat Pagi</span>, <span id="user-display" class="uppercase"></span><span id="role-badge" class="ml-2 text-[9px] px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-black tracking-wider"></span></h2>
                         <div class="text-[10px] text-slate-500 font-medium flex items-center mt-0.5"><span id="jabatan-header-text" class="text-slate-400 font-bold border-r border-slate-300 pr-2 mr-2 uppercase"></span>Dinas Perumahan Rakyat, Kawasan Permukiman, Dan Pertanahan</div>
                     </div>
                 </div>
@@ -269,28 +269,47 @@
                     <select id="inputJenisSurat" onchange="ubahLabelNpdKontrak()" required class="flex-1 px-4 py-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white font-bold text-blue-900"><option value="GU">Ganti Uang (GU)</option><option value="LS">Langsung (LS)</option></select>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Pengajuan <span class="text-red-500">*</span></label><input type="date" id="inputTanggal" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700"></div>
+                    <!-- FORMAT TANGGAL DIUBAH -->
+                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Pengajuan (hari/bulan/tahun) <span class="text-red-500">*</span></label><input type="date" id="inputTanggal" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700"></div>
                     <div><label class="block text-xs font-bold text-slate-700 mb-1"><span id="label-npd-kontrak">Nomor NPD</span> <span class="text-red-500">*</span></label><input type="text" id="inputNpd" required placeholder="Cth: 001/NPD/2026" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700"></div>
-                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Nama PPTK <span class="text-red-500">*</span></label><select id="inputPptk" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
-                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Unit Kerja <span class="text-red-500">*</span></label><select id="inputUnitKerja" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"><option value="Sekretariat">Sekretariat</option><option value="Bidang Perumahan">Bidang Perumahan</option><option value="Bidang Permukiman">Bidang Permukiman</option><option value="Bidang PSU">Bidang PSU</option><option value="Bidang Pertanahan">Bidang Pertanahan</option></select></div>
-                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Program <span class="text-red-500">*</span></label><select id="inputProgram" required onchange="updateKegiatanDropdown()" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
-                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Kegiatan <span class="text-red-500">*</span></label><select id="inputKegiatan" required onchange="updateSubkegiatanDropdown()" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
-                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Sub Kegiatan <span class="text-red-500">*</span></label><select id="inputSubkegiatan" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
                     
-                    <!-- FIELD TAMBAHAN KHUSUS LS -->
-                    <div id="box-cv" class="md:col-span-2 hidden">
+                    <div><label class="block text-xs font-bold text-slate-700 mb-1">Nama PPTK <span class="text-red-500">*</span></label><select id="inputPptk" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
+                    
+                    <!-- NAMA CV DIPINDAH DI BAWAH NAMA PPTK -->
+                    <div id="box-cv" class="hidden">
                         <label class="block text-xs font-bold text-slate-700 mb-1">Nama CV / Penyedia <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputCv" placeholder="NAMA SESUAI DENGAN REKENING KORAN" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700">
+                        <input type="text" id="inputCv" placeholder="Cth: CV MAJU JAYA" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700">
+                        <p class="text-[9px] text-red-500 font-bold mt-1 leading-tight tracking-tight">* Pastikan penulisan nama CV sesuai persis dengan nama pada rekening bank (termasuk koma, titik, dan spasi).</p>
                     </div>
-                    <div id="box-tahap" class="md:col-span-2 hidden">
+
+                    <!-- BIDANG PSU DITAMBAHKAN, DEFAULT VALUE DISET -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Unit Kerja <span class="text-red-500">*</span></label>
+                        <select id="inputUnitKerja" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700">
+                            <option value="" disabled selected>-- Pilih Unit Kerja --</option>
+                            <option value="Sekretariat">Sekretariat</option>
+                            <option value="Bidang Perumahan">Bidang Perumahan</option>
+                            <option value="Bidang Permukiman">Bidang Permukiman</option>
+                            <option value="Bidang Pertanahan">Bidang Pertanahan</option>
+                            <option value="Bidang PSU">Bidang PSU</option>
+                        </select>
+                    </div>
+
+                    <!-- TAHAP PEMBAYARAN DIPINDAH DI BAWAH UNIT KERJA -->
+                    <div id="box-tahap" class="hidden">
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tahap Pembayaran <span class="text-red-500">*</span></label>
                         <select id="inputTahap" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700">
+                            <option value="" disabled selected>-- Pilih Tahap Pembayaran --</option>
                             <option value="UM">Uang Muka (UM)</option>
                             <option value="Termin I (100%)">Termin I (100%)</option>
                             <option value="Termin 100%">Termin 100%</option>
                         </select>
                     </div>
 
+                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Program <span class="text-red-500">*</span></label><select id="inputProgram" required onchange="updateKegiatanDropdown()" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Kegiatan <span class="text-red-500">*</span></label><select id="inputKegiatan" required onchange="updateSubkegiatanDropdown()" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-700 mb-1">Sub Kegiatan <span class="text-red-500">*</span></label><select id="inputSubkegiatan" required class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white text-slate-700"></select></div>
+                    
                     <div class="md:col-span-2">
                         <label id="label-uraian" class="block text-xs font-bold text-slate-700 mb-1">Uraian / Deskripsi SPJ <span class="text-red-500">*</span></label>
                         <textarea id="inputUraian" required rows="3" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none text-sm text-slate-700"></textarea>
@@ -316,15 +335,12 @@
                 <button onclick="closeModal('modalVerify')" class="w-8 h-8 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-500 shadow-sm flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <!-- BAGIAN KONTEN ATAS -->
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">
-                    <!-- JUDUL URAIAN DIHAPUS (Sesuai Request) -->
                     <div>
                         <div id="detailUraian" class="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <!-- TAMBAHAN EMAIL PPTK DI BAWAH UNIT KERJA (Sesuai Request) -->
                         <div>
                             <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">PPTK</h4>
                             <p id="detailPptkNama" class="text-sm font-bold text-slate-800"></p>
@@ -348,7 +364,6 @@
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-3"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat & Status Dokumen</h4>
                     <div id="detailRiwayatBox" class="flex-1 overflow-y-auto pr-2 bg-slate-50/50 rounded-lg p-3 border border-slate-100 min-h-[200px]"></div>
                     
-                    <!-- PANEL PPTK REVISI -->
                     <div id="panelPptkRevisi" class="mt-6 pt-4 border-t border-slate-200 hidden">
                         <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
                             <h5 class="text-[11px] font-bold text-amber-800 uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Menunggu Tindakan Anda</h5>
@@ -358,7 +373,6 @@
                     </div>
                     
                     <div id="panelAksiVerifikator" class="hidden mt-4 pt-4 border-t border-slate-100">
-                        <!-- 1. BARIS ATAS: 4 Tombol Status -->
                         <div class="grid grid-cols-4 gap-2 mb-2">
                             <button onclick="actionSetujui()" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> SETUJUI</button>
                             <button onclick="toggleActionForm('REVISI')" class="py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-[10px] shadow-sm transition-colors flex items-center justify-center gap-1"><i class="fa-solid fa-rotate-left"></i> REVISI</button>
@@ -373,16 +387,13 @@
                 </div>
             </div>
             
-            <!-- BAGIAN KONFIRMASI (DIKEMBALIKAN KE BAWAH) -->
             <div id="confirmActionContainer" class="hidden border-t border-slate-200 bg-slate-50 p-5 rounded-b-xl">
-                <!-- FORM REVISI / DITOLAK -->
                 <div id="revisiContainer" class="hidden space-y-3 mb-4">
                     <label class="block text-xs font-bold text-amber-700"><i class="fa-solid fa-triangle-exclamation"></i> Catatan Revisi / Penolakan <span class="text-red-500">*</span></label>
                     <textarea id="catatanRevisiInput" rows="4" placeholder="Ketik catatan di sini..." class="w-full px-4 py-2 border border-amber-300 rounded text-sm bg-white outline-none focus:ring-2 focus:ring-amber-500"></textarea>
                     <p class="text-[10px] text-amber-600">Tekan <b>Enter</b> untuk numbering otomatis (1., 2., 3...)</p>
                 </div>
                 
-                <!-- FORM PINDAH BUKU -->
                 <div id="pindahbukuContainer" class="hidden space-y-4 mb-4 bg-blue-50 p-4 border border-blue-200 rounded-lg">
                     <h5 class="text-sm font-bold text-blue-800"><i class="fa-solid fa-money-bill-transfer"></i> Input Data Pencairan (PB)</h5>
                     <div class="grid grid-cols-2 gap-4">
@@ -498,8 +509,8 @@
         <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toastMessage" class="text-sm font-medium">Sukses!</span>
     </div>
 
-    <script src="config.js?v=51"></script>
-    <script src="app.js?v=51"></script>
+    <script src="config.js?v=52"></script>
+    <script src="app.js?v=52"></script>
     
     <script>
         // EVENT LISTENER UNTUK NUMBERING OTOMATIS CATATAN REVISI
@@ -509,28 +520,22 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     
-                    // Ambil isi saat ini dan pos cursor
                     const isiText = this.value;
                     const pos = this.selectionStart;
                     
-                    // Hitung jumlah baris yang sudah ada
                     const baris = isiText.substr(0, pos).split('\n');
                     const noBaru = baris.length + 1;
                     
-                    // Format tambahan jika baris pertama kosong
                     let teksTambahan = '\n' + noBaru + '. ';
                     if (isiText.trim() === '') {
-                        teksTambahan = '1. \n2. '; // Inisiasi langsung
+                        teksTambahan = '1. \n2. '; 
                     }
 
                     this.value = isiText.substring(0, pos) + teksTambahan + isiText.substring(pos);
-                    
-                    // Pindah kursor ke akhir baris baru
                     this.selectionStart = this.selectionEnd = pos + teksTambahan.length;
                 }
             });
             
-            // Tambahkan "1. " jika text area diklik saat masih kosong
             catatanRevisiArea.addEventListener('focus', function(e) {
                 if (this.value.trim() === '') {
                     this.value = '1. ';
