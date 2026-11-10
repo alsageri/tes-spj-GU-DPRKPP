@@ -57,16 +57,6 @@
                     <div class="absolute w-36 h-36 z-20 bg-[#0b1120] rounded-full p-4 border border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.3)] flex justify-center items-center">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/Lambang_Kabupaten_Blitar.png" alt="Logo Kab Blitar" class="max-w-full max-h-full object-contain">
                     </div>
-
-                    <div class="absolute top-[10px] left-[210px] w-20 h-20 rounded-full border border-blue-400/70 flex items-center justify-center text-[10px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(59,130,246,0.3)] node-float cursor-pointer hover:scale-110 transition-transform">RKPD</div>
-                    <div class="absolute top-[60px] left-[80px] w-[75px] h-[75px] rounded-full border border-amber-400/70 flex items-center justify-center text-[9px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(251,191,36,0.3)] node-float-delay-1 cursor-pointer hover:scale-110 transition-transform">e-Rakortek</div>
-                    <div class="absolute top-[160px] left-[20px] w-[90px] h-[90px] rounded-full border-2 border-emerald-400/60 flex items-center justify-center text-[9.5px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_20px_rgba(52,211,153,0.3)] node-float-delay-2 cursor-pointer hover:scale-110 transition-transform leading-tight">Pengendalian<br>dan Evaluasi</div>
-                    <div class="absolute top-[290px] left-[60px] w-[75px] h-[75px] rounded-full border border-purple-400/70 flex items-center justify-center text-[10px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(192,132,252,0.3)] node-float cursor-pointer hover:scale-110 transition-transform">RPJPD</div>
-                    <div class="absolute top-[350px] left-[170px] w-16 h-16 rounded-full border border-blue-300/70 flex items-center justify-center text-[8.5px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(147,197,253,0.3)] node-float-delay-1 cursor-pointer hover:scale-110 transition-transform">E-Walidata</div>
-                    <div class="absolute top-[340px] left-[290px] w-20 h-20 rounded-full border border-rose-400/70 flex items-center justify-center text-[9px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(251,113,133,0.3)] node-float-delay-2 cursor-pointer hover:scale-110 transition-transform">Pemutakhiran</div>
-                    <div class="absolute top-[260px] right-[40px] w-[85px] h-[85px] rounded-full border border-cyan-400/70 flex items-center justify-center text-[10px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(34,211,238,0.3)] node-float cursor-pointer hover:scale-110 transition-transform">RENSTRA</div>
-                    <div class="absolute top-[120px] right-[30px] w-[75px] h-[75px] rounded-full border border-orange-400/70 flex items-center justify-center text-[10px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(251,146,60,0.3)] node-float-delay-1 cursor-pointer hover:scale-110 transition-transform">RPJMD</div>
-                    <div class="absolute top-[40px] right-[110px] w-20 h-20 rounded-full border border-indigo-400/70 flex items-center justify-center text-[9px] font-bold bg-[#0b1120] z-10 text-center shadow-[0_0_15px_rgba(129,140,248,0.3)] node-float-delay-2 cursor-pointer hover:scale-110 transition-transform leading-tight">Data<br>Perencanaan</div>
                 </div>
             </div>
             <div class="absolute bottom-6 flex flex-col items-center gap-1">
@@ -90,14 +80,6 @@
             </div>
             
             <div class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tahun</label>
-                    <div class="relative">
-                        <select class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded text-sm outline-none appearance-none font-semibold text-slate-700 cursor-pointer"><option>Tahun Anggaran 2026</option></select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
-                    </div>
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">Username / Nomor Induk Pegawai</label>
                     <div class="relative flex items-center">
@@ -141,46 +123,25 @@
             <div class="overflow-y-auto flex-1 py-6 px-4 custom-scrollbar">
                 <div class="px-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Utama</div>
                 <ul class="space-y-1 mb-8">
-                    <li>
-                        <a href="#" onclick="setJenisTampilan('ALL')" id="menu-all" class="menu-item active-menu flex items-center justify-between px-3 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold shadow-sm transition-colors border border-emerald-100">
-                            <div class="flex items-center gap-3"><i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard Semua</div><div class="w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot"></div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="setJenisTampilan('GU')" id="menu-gu" class="menu-item flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
-                            <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-slate-400 menu-icon"></i> Data SPJ GU
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="setJenisTampilan('LS')" id="menu-ls" class="menu-item flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors">
-                            <i class="fa-solid fa-file-signature w-5 text-center text-slate-400 menu-icon"></i> Data SPJ LS
-                        </a>
-                    </li>
+                    <li><a href="#" onclick="setJenisTampilan('ALL')" id="menu-all" class="menu-item active-menu flex items-center justify-between px-3 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold shadow-sm transition-colors border border-emerald-100"><div class="flex items-center gap-3"><i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard Semua</div><div class="w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot"></div></a></li>
+                    <li><a href="#" onclick="setJenisTampilan('GU')" id="menu-gu" class="menu-item flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-file-invoice-dollar w-5 text-center text-slate-400 menu-icon"></i> Data SPJ GU</a></li>
+                    <li><a href="#" onclick="setJenisTampilan('LS')" id="menu-ls" class="menu-item flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 rounded-lg text-sm font-medium transition-colors"><i class="fa-solid fa-file-signature w-5 text-center text-slate-400 menu-icon"></i> Data SPJ LS</a></li>
                 </ul>
 
                 <div class="px-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penatausahaan</div>
                 <ul class="space-y-1 mb-8">
-                    <li>
-                        <button onclick="bukaFormSpjBaru()" class="w-full flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-800 hover:text-white rounded-lg text-sm font-medium transition-colors shadow-sm border border-transparent group">
-                            <div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus w-5 text-center text-emerald-500 group-hover:text-emerald-400"></i> Buat SPJ Baru</div>
-                        </button>
-                    </li>
+                    <li><button onclick="bukaFormSpjBaru()" class="w-full flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-800 hover:text-white rounded-lg text-sm font-medium transition-colors shadow-sm border border-transparent group"><div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus w-5 text-center text-emerald-500 group-hover:text-emerald-400"></i> Buat SPJ Baru</div></button></li>
                 </ul>
 
                 <div id="sidebarSuperAdmin" class="hidden flex-col">
                     <div class="px-2 mb-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest border-t border-slate-100 pt-6">Master Data</div>
                     <ul class="space-y-1">
-                        <li>
-                            <button onclick="bukaModalSuperAdmin()" class="w-full flex items-center justify-between px-3 py-2.5 text-slate-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 rounded-lg text-sm font-bold transition-colors border border-amber-200/50 shadow-sm">
-                                <div class="flex items-center gap-3"><i class="fa-solid fa-gears w-5 text-center text-amber-500"></i> Pengaturan Master</div>
-                            </button>
-                        </li>
+                        <li><button onclick="bukaModalSuperAdmin()" class="w-full flex items-center justify-between px-3 py-2.5 text-slate-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 rounded-lg text-sm font-bold transition-colors border border-amber-200/50 shadow-sm"><div class="flex items-center gap-3"><i class="fa-solid fa-gears w-5 text-center text-amber-500"></i> Pengaturan Master</div></button></li>
                     </ul>
                 </div>
             </div>
             
             <div class="p-4 border-t border-slate-100 bg-slate-50 mt-auto flex-shrink-0">
-                <div class="text-[10px] text-center text-slate-400 mb-3 border-b border-slate-200 pb-2"><div class="font-bold text-slate-500">Tim Sub Keuangan DISPERKIMTAN</div><div>Credit by GERI MANAJEMEN</div></div>
                 <button onclick="location.reload()" class="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-bold transition-colors shadow-sm"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
             </div>
         </aside>
@@ -189,19 +150,14 @@
         <div class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30 flex-shrink-0 relative">
                 <div class="flex items-center gap-4">
-                    <button class="text-slate-500 hover:text-slate-800 md:hidden p-1"><i class="fa-solid fa-bars text-xl"></i></button>
                     <div class="hidden sm:block">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            Selamat Pagi, <span id="user-display" class="uppercase"></span>
-                            <span id="role-badge" class="ml-2 text-[9px] px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-black tracking-wider"></span>
-                        </h2>
-                        <div class="text-[10px] text-slate-500 font-medium flex items-center mt-0.5"><span id="jabatan-header-text" class="text-slate-400 font-bold border-r border-slate-300 pr-2 mr-2 uppercase"></span>Dinas Perumahan Rakyat, Kawasan Permukiman, Dan Pertanahan (0052)</div>
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">Selamat Pagi, <span id="user-display" class="uppercase"></span><span id="role-badge" class="ml-2 text-[9px] px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-black tracking-wider"></span></h2>
+                        <div class="text-[10px] text-slate-500 font-medium flex items-center mt-0.5"><span id="jabatan-header-text" class="text-slate-400 font-bold border-r border-slate-300 pr-2 mr-2 uppercase"></span>Dinas Perumahan Rakyat, Kawasan Permukiman, Dan Pertanahan</div>
                     </div>
                 </div>
                 
                 <div class="flex items-center gap-3">
                     <button onclick="tarikDataDariServer()" class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-slate-100 hover:text-emerald-600 transition-colors shadow-sm" title="Refresh Data"><i class="fa-solid fa-rotate" id="refresh-icon"></i></button>
-                    
                     <div class="relative">
                         <div onclick="toggleProfileMenu()" class="w-9 h-9 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 cursor-pointer hover:border-emerald-500 transition-colors bg-white shadow-sm overflow-hidden" title="Profil Akun"><i class="fa-solid fa-user"></i></div>
                         <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-slate-200 z-50 overflow-hidden transition-all origin-top-right">
@@ -215,24 +171,10 @@
                 </div>
             </header>
 
-            <div class="px-6 pt-4 pb-1">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-[10px] text-slate-400 font-semibold">
-                        <i class="fa-solid fa-house"></i> <i class="fa-solid fa-chevron-right text-[8px]"></i> <span class="text-emerald-600" id="breadcrumb-text">Dashboard Semua</span>
-                    </div>
-                </div>
-            </div>
-
-            <main class="flex-1 overflow-y-auto px-4 sm:px-6 pb-8 pt-2">
+            <main class="flex-1 overflow-y-auto px-4 sm:px-6 pb-8 pt-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-800 mb-1 tracking-tight" id="page-title">Dashboard Utama</h1>
-                        <p class="text-xs text-slate-500" id="page-subtitle">Ringkasan SPJ GU & LS</p>
-                    </div>
-                    
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="bukaFormSpjBaru()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 border border-slate-800 rounded text-xs font-bold text-white shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-plus"></i> Buat SPJ Baru</button>
-                    </div>
+                    <div><h1 class="text-2xl font-bold text-slate-800 mb-1 tracking-tight" id="page-title">Dashboard Utama</h1></div>
+                    <div class="flex gap-2 w-full sm:w-auto"><button onclick="bukaFormSpjBaru()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 border border-slate-800 rounded text-xs font-bold text-white shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-plus"></i> Buat SPJ Baru</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6" id="dashboard-cards">
@@ -244,7 +186,6 @@
                         <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Sisa Pagu Tahunan</h3>
                         <div class="text-2xl font-black text-slate-800 tracking-tight" id="sisaTahunanVal">Rp 0</div>
                     </div>
-
                     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden flex flex-col group">
                         <div class="flex justify-between items-start mb-6">
                             <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
@@ -253,7 +194,6 @@
                         <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Sisa Pagu Triwulan</h3>
                         <div class="text-2xl font-black text-slate-800 tracking-tight" id="sisaTriwulanVal">Rp 0</div>
                     </div>
-
                     <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative overflow-hidden flex flex-col">
                         <div class="flex justify-between items-start mb-6"><div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-money-bill-trend-up"></i></div></div>
                         <h3 class="text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wider">Total Cair (Realisasi)</h3>
@@ -275,7 +215,6 @@
                                     <th class="py-3.5 px-4 border-b border-slate-200">Uraian SPJ</th>
                                     <th class="py-3.5 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
                                     <th class="py-3.5 px-4 border-b border-slate-200 text-center">Status</th>
-                                    <!-- z-20 di header sticky agar tidak tertumpuk tabel body -->
                                     <th class="py-3.5 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-50 shadow-[-8px_0_15px_rgba(0,0,0,0.02)] z-20 border-l border-slate-200">Aksi</th>
                                 </tr>
                             </thead>
@@ -302,14 +241,10 @@
     </div>
 
 
-    <!-- ============================================= -->
-    <!-- MODAL EDIT PAGU ANGGARAN (KHUSUS ADMIN)       -->
-    <!-- ============================================= -->
+    <!-- MODAL EDIT PAGU (ADMIN) -->
     <div id="modalEditPagu" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full relative overflow-hidden">
-            <div class="p-5 border-b border-slate-200 bg-slate-50">
-                <h2 class="text-lg font-bold text-slate-800" id="titleEditPagu">Edit Pagu</h2>
-            </div>
+            <div class="p-5 border-b border-slate-200 bg-slate-50"><h2 class="text-lg font-bold text-slate-800" id="titleEditPagu">Edit Pagu</h2></div>
             <div class="p-5">
                 <label class="block text-xs font-bold text-slate-700 mb-1">Masukkan Nominal (Rp)</label>
                 <input type="number" id="inputEditPagu" class="w-full px-4 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-lg text-slate-700 mb-4" placeholder="Cth: 15000000000">
@@ -355,7 +290,7 @@
     </div>
 
 
-    <!-- MODAL VERIFIKASI -->
+    <!-- MODAL VERIFIKASI (BUG SUDAH DIPERBAIKI) -->
     <div id="modalVerify" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden flex items-start justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8 relative flex flex-col">
             <div class="flex justify-between items-center p-5 border-b border-slate-200 bg-slate-50 rounded-t-xl sticky top-0 z-20">
@@ -380,6 +315,15 @@
                 <div class="flex flex-col h-full border-l border-slate-200 pl-6">
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-3"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat & Status Dokumen</h4>
                     <div id="detailRiwayatBox" class="flex-1 overflow-y-auto pr-2 bg-slate-50/50 rounded-lg p-3 border border-slate-100 min-h-[200px]"></div>
+                    
+                    <!-- PANEL PPTK REVISI (YG SEBELUMNYA HILANG) -->
+                    <div id="panelPptkRevisi" class="mt-6 pt-4 border-t border-slate-200 hidden">
+                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                            <h5 class="text-[11px] font-bold text-amber-800 uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Menunggu Tindakan Anda</h5>
+                            <p id="teksRevisiPptk" class="text-xs text-amber-700 leading-relaxed mb-3"></p>
+                            <a id="btnUploadRevisi" target="_blank" class="block w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded text-xs text-center shadow-sm transition-colors"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas Baru (Revisi)</a>
+                        </div>
+                    </div>
                     
                     <div id="panelAksiVerifikator" class="mt-6 pt-4 border-t border-slate-200 space-y-3 hidden">
                         <div class="flex gap-2">
@@ -416,10 +360,7 @@
     </div>
 
 
-    <!-- ============================================= -->
-    <!-- MODAL SUPER ADMIN (PENGATURAN MASTER DATA)    -->
-    <!-- PERUBAHAN: Form Sticky dan Kompak             -->
-    <!-- ============================================= -->
+    <!-- MODAL SUPER ADMIN (PENGATURAN MASTER DATA) -->
     <div id="modalSuperAdmin" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[300] flex items-start justify-center hidden p-4 overflow-y-auto">
         <div class="bg-slate-50 rounded-2xl shadow-2xl max-w-5xl w-full flex overflow-hidden h-[80vh] my-6 border border-slate-700">
             <!-- Sidebar Admin -->
@@ -438,12 +379,9 @@
             </div>
             
             <div class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
-                
                 <!-- TAB: PPTK -->
                 <div id="tab-content-pptk" class="admin-tab-content flex-col h-full flex relative">
                     <div class="p-5 flex-1 overflow-y-auto relative">
-                        
-                        <!-- FORM PPTK (STICKY DI ATAS) -->
                         <div class="bg-white border border-emerald-200 p-3 rounded-lg mb-4 sticky top-0 z-30 shadow-md">
                             <div class="flex justify-between items-center mb-3">
                                 <h3 class="font-bold text-sm text-emerald-800" id="titleFormPptk"><i class="fa-solid fa-plus-circle"></i> Tambah / Edit PPTK</h3>
@@ -474,8 +412,6 @@
                 <!-- TAB: AKUN -->
                 <div id="tab-content-akun" class="admin-tab-content flex-col h-full hidden relative">
                     <div class="p-5 flex-1 overflow-y-auto relative">
-                        
-                        <!-- FORM AKUN (STICKY DI ATAS, DIPERKECIL KE SAMPING) -->
                         <div class="bg-white border border-blue-200 p-3 rounded-lg mb-4 sticky top-0 z-30 shadow-md">
                             <div class="flex justify-between items-center mb-3">
                                 <h3 class="font-bold text-sm text-blue-800" id="titleFormAkun"><i class="fa-solid fa-user-plus"></i> Buat / Edit Detail Akun</h3>
@@ -521,7 +457,8 @@
         <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toastMessage" class="text-sm font-medium">Sukses!</span>
     </div>
 
-    <script src="config.js?v=43"></script>
-    <script src="app.js?v=43"></script>
+    <!-- Jangan lupa pastikan versi JS ini selalu dipanggil -->
+    <script src="config.js?v=50"></script>
+    <script src="app.js?v=50"></script>
 </body>
 </html>
