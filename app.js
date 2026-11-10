@@ -178,9 +178,19 @@ function setJenisTampilan(jenis) {
         if (!activeEl.querySelector('.indicator-dot')) { const dot = document.createElement('div'); dot.className = 'w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot'; activeEl.appendChild(dot); }
     }
     const title = document.getElementById('page-title'); const breadcrumb = document.getElementById('breadcrumb-text'); const tbTitle = document.getElementById('tabel-judul-jenis');
-    if(jenis === 'ALL') { title.innerText = 'Dashboard Utama'; breadcrumb.innerText = 'Dashboard Semua'; tbTitle.innerText = 'GU & LS'; }
-    else if(jenis === 'GU') { title.innerText = 'Data SPJ Ganti Uang (GU)'; breadcrumb.innerText = 'Data SPJ GU'; tbTitle.innerText = 'Ganti Uang (GU)'; }
-    else if(jenis === 'LS') { title.innerText = 'Data SPJ Langsung (LS)'; breadcrumb.innerText = 'Data SPJ LS'; tbTitle.innerText = 'Langsung (LS)'; }
+    if (jenis === 'ALL') { 
+    if (title) title.innerText = 'Dashboard Utama'; 
+    if (breadcrumb) breadcrumb.innerText = 'Dashboard Semua'; 
+    if (tbTitle) tbTitle.innerText = 'GU & LS'; 
+} else if (jenis === 'GU') { 
+    if (title) title.innerText = 'Data SPJ Ganti Uang (GU)'; 
+    if (breadcrumb) breadcrumb.innerText = 'Data SPJ GU'; 
+    if (tbTitle) tbTitle.innerText = 'Ganti Uang (GU)'; 
+} else if (jenis === 'LS') { 
+    if (title) title.innerText = 'Data SPJ Langsung (LS)'; 
+    if (breadcrumb) breadcrumb.innerText = 'Data SPJ LS'; 
+    if (tbTitle) tbTitle.innerText = 'Langsung (LS)'; 
+}
     const thJenis = document.getElementById('th-jenis'); if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } else { if(thJenis) thJenis.style.display = 'none'; }
     renderTabelSpj();
 }
@@ -225,7 +235,9 @@ function kirimPengajuanSpjBaru(e) {
                     const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`; 
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
                     if (payload.jenisSurat === 'LS') {
-                        const timeCode = idSistem.split('-')[1]; const noUrut = 'LS-' + timeCode.substring(timeCode.length - 4);
+                    // Menghitung jumlah dokumen LS yang sudah ada, ditambah 1
+                    const jumlahLSSaatIni = spjData.filter(item => String(item.jenisSurat) === 'LS').length;
+                    const noUrut = 'LS-' + String(jumlahLSSaatIni + 1).padStart(4, '0');
                         divSukses.innerHTML = `
                             <div class="text-4xl text-purple-500 mb-2"><i class="fa-solid fa-file-invoice"></i></div><h3 class="text-lg font-bold text-slate-800">Pengajuan LS Berhasil Disimpan!</h3>
                             <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg my-4 text-center mx-auto max-w-sm"><p class="text-xs text-purple-600 font-bold mb-1">NOMOR URUT / ANTREAN LS ANDA</p><h2 class="text-3xl font-black text-purple-800 tracking-widest">${noUrut}</h2></div>
