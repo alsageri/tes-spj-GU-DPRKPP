@@ -1,5 +1,5 @@
 // ========================================================
-// FILE: app.js (Sistem Logika Utama)
+// FILE: app.js (Sistem Logika Utama Terintegrasi)
 // ========================================================
 
 let spjData = []; let referensiData = {}; 
@@ -9,16 +9,35 @@ let isEditMode = false; let editIdTarget = null;
 let currentPage = 1; let rowsPerPage = 10;
 let filterJenis = 'ALL'; 
 
-// Variabel Editing Admin
-let editIndexAkun = -1;
-let editIndexPptk = -1;
+let editIndexAkun = -1; let editIndexPptk = -1;
+let paguEditType = null; // TAHUNAN atau TRIWULAN
+
+// 1. MEKANISME AUTO-SAVE LOCALSTORAGE TANPA DOWNLOAD
+// Sistem akan mengecek apakah browser punya data tersimpan. Jika tidak, pakai bawaan dari config.js
+function initLocalData() {
+    // Muat Database Akun
+    const savedAkun = localStorage.getItem("LOCAL_DATABASE_AKUN");
+    if (savedAkun) {
+        window.DATABASE_AKUN = JSON.parse(savedAkun);
+    } 
+    // Muat Pagu Tahunan
+    const savedPaguTahun = localStorage.getItem("LOCAL_PAGU_TAHUNAN");
+    if (savedPaguTahun) {
+        window.CONFIG.PAGU_TAHUNAN = Number(savedPaguTahun);
+    }
+    // Muat Pagu Triwulan
+    const savedPaguTriwulan = localStorage.getItem("LOCAL_PAGU_TRIWULAN");
+    if (savedPaguTriwulan) {
+        window.CONFIG.PAGU_TRIWULAN = Number(savedPaguTriwulan);
+    }
+}
+// Jalankan fungsi inisialisasi di awal
+initLocalData();
+
 
 function checkLogin() {
     try {
-        if (typeof DATABASE_AKUN === 'undefined') {
-            alert("Sistem belum siap atau config.js gagal dimuat. Harap tekan Ctrl + F5.");
-            return;
-        }
+        if (typeof DATABASE_AKUN === 'undefined') { alert("Sistem belum siap. Harap tekan Ctrl + F5."); return; }
         
         const uname = document.getElementById('username-input').value.trim().toLowerCase();
         const pass = document.getElementById('password-input').value;
@@ -35,8 +54,7 @@ function checkLogin() {
 }
 
 function togglePassword() {
-    const passwordInput = document.getElementById('password-input');
-    const eyeIcon = document.getElementById('eye-icon');
+    const passwordInput = document.getElementById('password-input'); const eyeIcon = document.getElementById('eye-icon');
     if (!passwordInput || !eyeIcon) return;
     if (passwordInput.type === 'password') { passwordInput.type = 'text'; eyeIcon.classList.replace('fa-eye', 'fa-eye-slash'); } 
     else { passwordInput.type = 'password'; eyeIcon.classList.replace('fa-eye-slash', 'fa-eye'); }
@@ -59,21 +77,20 @@ function masukSistem() {
     
     document.getElementById('role-badge').innerText = sesiAktif.role; 
     document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
-    const jabatanHeader = document.getElementById('jabatan-header-text');
-    if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
-
+    const jabatanHeader = document.getElementById('jabatan-header-text'); if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
     const ddNama = document.getElementById('dd-nama'); if(ddNama) ddNama.innerText = sesiAktif.namaLengkap;
     const ddRole = document.getElementById('dd-role'); if(ddRole) ddRole.innerText = sesiAktif.role;
 
     const sidebarSuperAdmin = document.getElementById('sidebarSuperAdmin');
     if (sesiAktif.role === 'SUPER_ADMIN') {
         if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.remove('hidden'); sidebarSuperAdmin.classList.add('flex'); }
+        // Tampilkan tombol Edit Pagu khusus Super Admin
+        document.querySelectorAll('.btn-edit-pagu').forEach(btn => btn.style.display = 'block');
     } else {
         if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.add('hidden'); sidebarSuperAdmin.classList.remove('flex'); }
     }
     
-    isiDropdownPptkUtama();
-    tarikDataDariServer();
+    isiDropdownPptkUtama(); tarikDataDariServer();
 }
 
 function isiDropdownPptkUtama() {
@@ -98,6 +115,9 @@ function tarikDataDariServer() {
         .finally(() => { document.getElementById('refresh-icon').classList.remove('animate-spin'); });
 }
 
+// FORMAT RUPIAH & HITUNG PAGU
+function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
+
 function hitungAnggaran() {
     let totalPencairan = 0;
     spjData.forEach(item => { if(item.status === 'SUDAH DIPINDAHBUKUKAN') totalPencairan += Number(item.nominal) || 0; });
@@ -106,6 +126,30 @@ function hitungAnggaran() {
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
+// LOGIKA EDIT PAGU (DASHBOARD)
+function bukaModalEditPagu(jenis) {
+    paguEditType = jenis;
+    document.getElementById('titleEditPagu').innerText = `Edit Pagu ${jenis === 'TAHUNAN' ? 'Tahunan' : 'Triwulan'}`;
+    const currentValue = jenis === 'TAHUNAN' ? CONFIG.PAGU_TAHUNAN : CONFIG.PAGU_TRIWULAN;
+    document.getElementById('inputEditPagu').value = currentValue;
+    openModal('modalEditPagu');
+}
+function simpanPaguBaru() {
+    const val = Number(document.getElementById('inputEditPagu').value);
+    if(val < 0) { alert('Nominal tidak boleh minus!'); return; }
+    
+    if (paguEditType === 'TAHUNAN') {
+        CONFIG.PAGU_TAHUNAN = val;
+        localStorage.setItem("LOCAL_PAGU_TAHUNAN", val);
+    } else {
+        CONFIG.PAGU_TRIWULAN = val;
+        localStorage.setItem("LOCAL_PAGU_TRIWULAN", val);
+    }
+    
+    hitungAnggaran(); closeModal('modalEditPagu'); showToast('Pagu berhasil diperbarui.');
+}
+
+// DROPDOWN
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); if(!progSelect) return;
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
@@ -123,7 +167,7 @@ function updateSubkegiatanDropdown() {
 }
 
 
-// --- FILTER KIRI ---
+// FILTER MENU
 function setJenisTampilan(jenis) {
     filterJenis = jenis; currentPage = 1;
     document.querySelectorAll('.menu-item').forEach(el => {
@@ -193,8 +237,7 @@ function kirimPengajuanSpjBaru(e) {
                 document.getElementById('formNewSpj').classList.add('hidden'); 
                 
                 if (isEditMode) {
-                    const divSukses = document.createElement('div');
-                    divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
+                    const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
                     divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Perbaikan Data Berhasil!</h3><button onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Tutup & Refresh</button>`;
                     document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
                 } else {
@@ -202,19 +245,12 @@ function kirimPengajuanSpjBaru(e) {
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
                     
                     if (payload.jenisSurat === 'LS') {
-                        // LOGIKA CETAK BUKTI LS
-                        const timeCode = idSistem.split('-')[1]; 
-                        const noUrut = 'LS-' + timeCode.substring(timeCode.length - 4);
+                        const timeCode = idSistem.split('-')[1]; const noUrut = 'LS-' + timeCode.substring(timeCode.length - 4);
                         divSukses.innerHTML = `
-                            <div class="text-4xl text-purple-500 mb-2"><i class="fa-solid fa-file-invoice"></i></div>
-                            <h3 class="text-lg font-bold text-slate-800">Pengajuan LS Berhasil Disimpan!</h3>
-                            <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg my-4 text-center mx-auto max-w-sm">
-                                <p class="text-xs text-purple-600 font-bold mb-1">NOMOR URUT / ANTREAN LS ANDA</p>
-                                <h2 class="text-3xl font-black text-purple-800 tracking-widest">${noUrut}</h2>
-                            </div>
+                            <div class="text-4xl text-purple-500 mb-2"><i class="fa-solid fa-file-invoice"></i></div><h3 class="text-lg font-bold text-slate-800">Pengajuan LS Berhasil Disimpan!</h3>
+                            <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg my-4 text-center mx-auto max-w-sm"><p class="text-xs text-purple-600 font-bold mb-1">NOMOR URUT / ANTREAN LS ANDA</p><h2 class="text-3xl font-black text-purple-800 tracking-widest">${noUrut}</h2></div>
                             <p class="text-sm text-slate-600 mb-4 font-medium">Harap Lanjut Klik Tombol Upload Berkas: Kwitansi & Berkas Pencairan.</p>
-                            <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md mb-3"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>
-                            <br>
+                            <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md mb-3"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a><br>
                             <button onclick="cetakNomorUrut('${noUrut}', '${payload.npd}', '${payload.nominal}', '${payload.pptk}')" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold transition-colors"><i class="fa-solid fa-print"></i> Unduh / Cetak Bukti Antrean LS</button>
                         `;
                     } else {
@@ -223,7 +259,6 @@ function kirimPengajuanSpjBaru(e) {
                             <p class="text-sm text-slate-600 mb-4 bg-amber-50 border border-amber-200 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan belum selesai. Lanjut klik tombol di bawah untuk Upload Berkas Keuangan & SPJ GU.</p>
                             <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>`;
                     }
-                    
                     document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
                 }
             } else { alert("GAGAL MENYIMPAN!\n" + res.message); }
@@ -235,32 +270,11 @@ function kirimPengajuanSpjBaru(e) {
 // LOGIKA CETAK LS
 function cetakNomorUrut(noUrut, npd, nominal, pptk) {
     const printWindow = window.open('', '_blank', 'width=450,height=500');
-    printWindow.document.write(`
-        <html><head><title>Bukti Antrean LS</title>
-        <style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head>
-        <body>
-            <h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2>
-            <p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p>
-            <hr>
-            <p style="font-size:12px;">Nama PPTK:</p>
-            <p><b>${pptk}</b></p>
-            <br>
-            <p style="font-size:12px;">Nomor Kontrak / SPK:</p>
-            <p><b>${npd}</b></p>
-            <br>
-            <p style="font-size:12px;">Nominal:</p>
-            <p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p>
-            <h1>${noUrut}</h1>
-            <hr>
-            <p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti bahwa Anda telah melakukan penginputan pada sistem ERP SPJ.</p>
-            <script>window.print();</script>
-        </body></html>
-    `);
+    printWindow.document.write(`<html><head><title>Bukti Antrean LS</title><style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head><body><h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2><p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p><hr><p style="font-size:12px;">Nama PPTK:</p><p><b>${pptk}</b></p><br><p style="font-size:12px;">Nomor Kontrak / SPK:</p><p><b>${npd}</b></p><br><p style="font-size:12px;">Nominal:</p><p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p><h1>${noUrut}</h1><hr><p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti penginputan pada sistem ERP SPJ.</p><script>window.print();<\/script></body></html>`);
     printWindow.document.close();
 }
 
 
-function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 function gantiPageSize() { rowsPerPage = parseInt(document.getElementById('selectPageSize').value); currentPage = 1; renderTabelSpj(); }
 function gantiHalaman(arah) { const tData = spjData.filter(i => filterJenis === 'ALL' || String(i.jenisSurat || 'GU') === filterJenis); const totalPages = Math.ceil(tData.length / rowsPerPage); currentPage += arah; if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages; renderTabelSpj(); }
 
@@ -270,15 +284,12 @@ function renderTabelSpj() {
     let filteredData = spjData;
     if (filterJenis !== 'ALL') { filteredData = spjData.filter(item => String(item.jenisSurat || 'GU') === filterJenis); }
     
-    const totalData = filteredData.length;
-    const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, totalData);
+    const totalData = filteredData.length; const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
+    const startIndex = (currentPage - 1) * rowsPerPage; const endIndex = Math.min(startIndex + rowsPerPage, totalData);
     
     const infoEl = document.getElementById('infoHalaman'); const btnPrev = document.getElementById('btnPrevPage'); const btnNext = document.getElementById('btnNextPage');
     if (infoEl) infoEl.innerText = `Hal ${currentPage} dari ${totalPages}`;
-    if (btnPrev) btnPrev.disabled = currentPage === 1;
-    if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
+    if (btnPrev) btnPrev.disabled = currentPage === 1; if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
 
     const dataHalamanIni = filteredData.slice(startIndex, endIndex);
 
@@ -317,19 +328,21 @@ function renderTabelSpj() {
 
 function openModal(id) { 
     if(id === 'modalNewSpj' && !isEditMode) { 
-        document.getElementById('formNewSpj').reset(); 
-        ubahLabelNpdKontrak();
+        document.getElementById('formNewSpj').reset(); ubahLabelNpdKontrak();
         const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
-        document.getElementById('formNewSpj').classList.remove('hidden');
-        document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
+        document.getElementById('formNewSpj').classList.remove('hidden'); document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
     }
     document.getElementById(id).classList.remove('hidden'); 
 }
 
 
 // ==========================================
-// LOGIKA CRUD MASTER DATA & EXPORT CONFIG
+// LOGIKA CRUD MASTER DATA & AUTO-SAVE
 // ==========================================
+function saveDatabaseToLocal() {
+    localStorage.setItem("LOCAL_DATABASE_AKUN", JSON.stringify(DATABASE_AKUN));
+}
+
 function switchTabAdmin(tabName) {
     document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.admin-tab-btn').forEach(el => {
@@ -346,22 +359,7 @@ function renderTabelAkunAdmin() {
     if (!tbody || !tbPptk) return; tbody.innerHTML = ''; tbPptk.innerHTML = '';
 
     DATABASE_AKUN.forEach((akun, index) => {
-        let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200">${akun.role}</span>`;
-        if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200">SUPER_ADMIN</span>`;
-        if (akun.role === 'PPTK') roleBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">PPTK</span>`;
-        if (akun.role === 'VERIFIKATOR') roleBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200">VERIFIKATOR</span>`;
-
-        tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
-                <td class="p-3 px-4 border-b border-slate-200 text-slate-500 font-mono text-[11px]">${akun.username}</td>
-                <td class="p-3 px-4 border-b border-slate-200 text-xs">${roleBadge}</td>
-                <td class="p-3 px-4 border-b border-slate-200 text-center whitespace-nowrap">
-                    <button onclick="editDataAkun(${index})" class="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded text-[10px] font-bold hover:bg-amber-100"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="hapusDataAkun(${index})" class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded text-[10px] font-bold hover:bg-red-100 ml-1"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>`;
-            
+        // TABEL PPTK (Hanya PPTK)
         if(akun.role === 'PPTK') {
             tbPptk.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
@@ -373,10 +371,56 @@ function renderTabelAkunAdmin() {
                 </td>
             </tr>`;
         }
+        
+        // TABEL AKUN LOGIN (Semua Akun)
+        let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200">${akun.role}</span>`;
+        if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200">SUPER_ADMIN</span>`;
+        if (akun.role === 'PPTK') roleBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">PPTK</span>`;
+        if (akun.role === 'VERIFIKATOR') roleBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200">VERIFIKATOR</span>`;
+
+        let identitasLogin = akun.username ? `<span class="text-blue-600 font-bold">${akun.username}</span> <br><span class="text-[9px] text-slate-400">Pass: ${akun.password}</span>` : `<span class="text-red-500 italic text-[10px]">Belum Punya Akun</span>`;
+
+        tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-slate-500 font-mono text-[11px]">${identitasLogin}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-xs">${roleBadge}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-center whitespace-nowrap">
+                    <button onclick="editDataAkun(${index})" class="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded text-[10px] font-bold hover:bg-amber-100"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="hapusDataAkun(${index})" class="px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded text-[10px] font-bold hover:bg-red-100 ml-1"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`;
     });
     isiDropdownPptkUtama(); // Update Dropdown Buat SPJ
 }
 
+// FUNGSI PPTK (Nama & NIP)
+function simpanDataPptk() {
+    const nama = document.getElementById('pptkNama').value; const nip = document.getElementById('pptkNip').value; 
+    if(!nama) { alert('Nama Lengkap wajib diisi!'); return; }
+    
+    if (editIndexPptk > -1) {
+        DATABASE_AKUN[editIndexPptk].namaLengkap = nama; DATABASE_AKUN[editIndexPptk].nip = nip;
+    } else {
+        // Buat data baru yang bertindak sebagai PPTK tapi belum punya username (kosong)
+        DATABASE_AKUN.push({ username: "", password: "", role: "PPTK", namaLengkap: nama, nip: nip });
+    }
+    
+    saveDatabaseToLocal(); // Simpan Otomatis
+    resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan & bisa langsung dipakai.');
+}
+
+function editDataPptk(index) {
+    editIndexPptk = index; const ak = DATABASE_AKUN[index];
+    document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-pen text-emerald-600"></i> Edit Data PPTK`;
+    document.getElementById('pptkNama').value = ak.namaLengkap || ""; document.getElementById('pptkNip').value = ak.nip || ""; 
+}
+function resetFormPptk() {
+    editIndexPptk = -1; document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah PPTK Baru`;
+    document.getElementById('pptkNama').value = ""; document.getElementById('pptkNip').value = "";
+}
+
+// FUNGSI AKUN (Username, Pass, Role)
 function simpanDataAkun() {
     const nama = document.getElementById('akunNama').value; const user = document.getElementById('akunUsername').value;
     const pass = document.getElementById('akunPassword').value; const role = document.getElementById('akunRole').value;
@@ -387,70 +431,35 @@ function simpanDataAkun() {
         DATABASE_AKUN[editIndexAkun].password = pass; DATABASE_AKUN[editIndexAkun].role = role;
     } else { DATABASE_AKUN.push({ username: user, password: pass, role: role, namaLengkap: nama }); }
     
-    resetFormAkun(); renderTabelAkunAdmin(); showToast('Tersimpan di sistem. Download config.js untuk dipermanenkan.');
+    saveDatabaseToLocal(); // Simpan Otomatis
+    resetFormAkun(); renderTabelAkunAdmin(); showToast('Akun Tersimpan & bisa langsung digunakan login.');
 }
 
 function editDataAkun(index) {
     editIndexAkun = index; const ak = DATABASE_AKUN[index];
-    document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-pen"></i> Edit Akun Login`;
+    document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-pen text-blue-600"></i> Buat / Edit Detail Akun`;
     document.getElementById('akunNama').value = ak.namaLengkap || ""; document.getElementById('akunUsername').value = ak.username || "";
     document.getElementById('akunPassword').value = ak.password || ""; document.getElementById('akunRole').value = ak.role || "PPTK";
 }
 
 function resetFormAkun() {
-    editIndexAkun = -1; document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Akun Baru`;
+    editIndexAkun = -1; document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-user-plus text-blue-600"></i> Tambah Akun Admin / Verifikator`;
     document.getElementById('akunNama').value = ""; document.getElementById('akunUsername').value = "";
-    document.getElementById('akunPassword').value = ""; document.getElementById('akunRole').value = "PPTK";
-}
-
-function simpanDataPptk() {
-    const nama = document.getElementById('pptkNama').value; const nip = document.getElementById('pptkNip').value; const user = document.getElementById('pptkUser').value;
-    if(!nama) { alert('Nama Lengkap wajib diisi!'); return; }
-    
-    if (editIndexPptk > -1) {
-        DATABASE_AKUN[editIndexPptk].namaLengkap = nama; DATABASE_AKUN[editIndexPptk].nip = nip;
-        if(user) DATABASE_AKUN[editIndexPptk].username = user;
-    } else {
-        if(!user) { alert('Silakan buat username untuk login PPTK tersebut!'); return; }
-        DATABASE_AKUN.push({ username: user, password: "123", role: "PPTK", namaLengkap: nama, nip: nip });
-    }
-    
-    resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan. Download config.js untuk backup.');
-}
-
-function editDataPptk(index) {
-    editIndexPptk = index; const ak = DATABASE_AKUN[index];
-    document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-pen text-amber-600"></i> Edit Data PPTK`;
-    document.getElementById('pptkNama').value = ak.namaLengkap || ""; document.getElementById('pptkNip').value = ak.nip || ""; document.getElementById('pptkUser').value = ak.username || "";
-}
-
-function resetFormPptk() {
-    editIndexPptk = -1; document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah PPTK Baru`;
-    document.getElementById('pptkNama').value = ""; document.getElementById('pptkNip').value = ""; document.getElementById('pptkUser').value = "";
+    document.getElementById('akunPassword').value = ""; document.getElementById('akunRole').value = "VERIFIKATOR";
 }
 
 function hapusDataAkun(index) {
-    if(confirm('Anda yakin ingin menghapus data akun/PPTK ini?')) { DATABASE_AKUN.splice(index, 1); renderTabelAkunAdmin(); showToast('Berhasil dihapus.'); }
+    if(confirm('Anda yakin ingin menghapus data ini?')) { 
+        DATABASE_AKUN.splice(index, 1); 
+        saveDatabaseToLocal(); // Simpan otomatis penghapusan
+        renderTabelAkunAdmin(); showToast('Berhasil dihapus permanen.'); 
+    }
 }
 
-function downloadConfigJs() {
-    const configContent = `const CONFIG = {
-    APPS_SCRIPT_URL: "${CONFIG.APPS_SCRIPT_URL}",
-    PAGU_TAHUNAN: ${CONFIG.PAGU_TAHUNAN}, 
-    PAGU_TRIWULAN: ${CONFIG.PAGU_TRIWULAN}
-};
-
-const DATABASE_AKUN = ${JSON.stringify(DATABASE_AKUN, null, 4)};`;
-
-    const blob = new Blob([configContent], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'config.js';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-}
 
 function bukaModalSuperAdmin() {
     const profileDd = document.getElementById('profileDropdown'); if(profileDd) profileDd.classList.add('hidden'); 
-    renderTabelAkunAdmin(); switchTabAdmin('akun'); openModal('modalSuperAdmin');
+    renderTabelAkunAdmin(); switchTabAdmin('pptk'); openModal('modalSuperAdmin');
 }
 
 // ==========================================
