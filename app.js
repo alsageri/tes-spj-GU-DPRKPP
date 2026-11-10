@@ -12,6 +12,22 @@ let filterJenis = 'ALL';
 let editIndexAkun = -1; let editIndexPptk = -1;
 let paguEditType = null; 
 
+// FUNGSI HELPER: UPDATE SAPAAN WAKTU
+function updateSapaanWaktu() {
+    const jam = new Date().getHours();
+    let sapaan = 'Selamat Pagi';
+    if (jam >= 4 && jam < 11) sapaan = 'Selamat Pagi';
+    else if (jam >= 11 && jam < 15) sapaan = 'Selamat Siang';
+    else if (jam >= 15 && jam < 18) sapaan = 'Selamat Sore';
+    else sapaan = 'Selamat Malam';
+
+    const loginSapaan = document.getElementById('sapaan-login');
+    if (loginSapaan) loginSapaan.innerHTML = `${sapaan} 👋`;
+    
+    const headerSapaan = document.getElementById('sapaan-header');
+    if (headerSapaan) headerSapaan.innerText = sapaan;
+}
+
 // FUNGSI HELPER: FORMAT TANGGAL INDONESIA (YYYY-MM-DD -> DD Bulan YYYY)
 function formatTanggalIndo(dateStr) {
     if (!dateStr || dateStr === '-') return '-';
@@ -23,6 +39,7 @@ function formatTanggalIndo(dateStr) {
 
 // 1. TARIK DATA DARI SPREADSHEET SAAT APLIKASI DIBUKA
 function inisialisasiServer() {
+    updateSapaanWaktu();
     const btnLogin = document.querySelector('button[onclick="checkLogin()"]');
     if(btnLogin) { btnLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...'; btnLogin.disabled = true; }
     
@@ -87,6 +104,7 @@ document.addEventListener('click', function(event) {
 function masukSistem() {
     document.getElementById('login-screen').style.display = 'none'; 
     document.getElementById('main-app').style.display = 'flex';
+    updateSapaanWaktu();
     
     document.getElementById('role-badge').innerText = sesiAktif.role; 
     document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
@@ -108,7 +126,7 @@ function masukSistem() {
 function isiDropdownPptkUtama() {
     const selectPptk = document.getElementById('inputPptk');
     if(selectPptk && window.DATABASE_AKUN) {
-        selectPptk.innerHTML = '<option value="">-- Pilih Nama PPTK --</option>';
+        selectPptk.innerHTML = '<option value="" disabled selected>-- Pilih Nama PPTK --</option>';
         window.DATABASE_AKUN.forEach(user => { if(user.role === 'PPTK') { selectPptk.innerHTML += `<option value="${user.namaLengkap}">${user.namaLengkap}</option>`; } });
     }
 }
@@ -159,17 +177,17 @@ function bukaFormSpjBaru() { isEditMode = false; editIdTarget = null; openModal(
 
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); if(!progSelect) return;
-    progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
+    progSelect.innerHTML = '<option value="" disabled selected>-- Pilih Program --</option>';
     for (let prog in referensiData) progSelect.innerHTML += `<option value="${prog}">${prog}</option>`;
 }
 function updateKegiatanDropdown() {
     const prog = document.getElementById('inputProgram').value; const kegSelect = document.getElementById('inputKegiatan'); const subSelect = document.getElementById('inputSubkegiatan');
-    kegSelect.innerHTML = '<option value="">-- Pilih Kegiatan --</option>'; subSelect.innerHTML = '<option value="">-- Pilih Subkegiatan --</option>';
+    kegSelect.innerHTML = '<option value="" disabled selected>-- Pilih Kegiatan --</option>'; subSelect.innerHTML = '<option value="" disabled selected>-- Pilih Subkegiatan --</option>';
     if(prog && referensiData[prog]) for (let keg in referensiData[prog]) kegSelect.innerHTML += `<option value="${keg}">${keg}</option>`;
 }
 function updateSubkegiatanDropdown() {
     const prog = document.getElementById('inputProgram').value; const keg = document.getElementById('inputKegiatan').value; const subSelect = document.getElementById('inputSubkegiatan');
-    subSelect.innerHTML = '<option value="">-- Pilih Subkegiatan --</option>';
+    subSelect.innerHTML = '<option value="" disabled selected>-- Pilih Subkegiatan --</option>';
     if(prog && keg && referensiData[prog][keg]) referensiData[prog][keg].forEach(sub => subSelect.innerHTML += `<option value="${sub}">${sub}</option>`);
 }
 
@@ -408,7 +426,6 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
-        // PERUBAHAN TAMPILAN URAIAN (CV -> Tahap -> Uraian, dipisah garis)
         let uraianTeks = `<div class="text-slate-600 leading-relaxed pt-1" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</div>`;
         
         if (jenisSurat === 'LS' && item.namaCv) {
@@ -564,7 +581,6 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    // PERUBAHAN TAMPILAN DI DALAM MODAL: Pisah 3 Judul dengan Garis Bawah
     let textUraian = '';
     if (String(item.jenisSurat) === 'LS' && item.namaCv) {
         textUraian = `<div class="pb-2 mb-2 border-b border-slate-200">
@@ -583,7 +599,6 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
     
-    // MENAMPILKAN EMAIL PPTK DI BAWAH UNIT KERJA (Otomatis masuk karena id-nya sudah ditambah di index.html)
     let elEmail = document.getElementById('detailEmailPptk');
     if (elEmail) elEmail.innerText = String(item.emailPptk || "-");
     
@@ -622,6 +637,7 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
+    // RENDER WARNA SPESIFIK UNTUK RIWAYAT
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
@@ -631,11 +647,36 @@ function bukaModalVerifikasi(id) {
             let dotColor = 'bg-slate-300 ring-slate-100'; let innerHtml = line; let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
             if (match) {
                 let tanggal = match[1]; let isiHtml = match[2];
-                if (isiHtml.includes('- Catatan:')) { let parts = isiHtml.split('- Catatan:'); let isiCatatan = parts[1].trim(); isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span><div class="mt-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] leading-relaxed shadow-sm"><i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b><br>${isiCatatan}</div>`; dotColor = 'bg-amber-500 ring-amber-100'; } 
-                else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) { dotColor = 'bg-amber-500 ring-amber-100'; isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`; } 
-                else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) { dotColor = 'bg-emerald-500 ring-emerald-100'; isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`; } else { isiHtml = `<span class="text-slate-600">${isiHtml}</span>`; }
+                if (isiHtml.includes('- Catatan:')) { 
+                    let parts = isiHtml.split('- Catatan:'); 
+                    let isiCatatan = parts[1].trim(); 
+                    isiHtml = `<span class="text-amber-700 font-semibold uppercase">${parts[0].trim()}</span><div class="mt-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] leading-relaxed shadow-sm"><i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b><br>${isiCatatan}</div>`; 
+                    dotColor = 'bg-amber-400 ring-amber-100'; 
+                } 
+                else if (isiHtml.includes('REVISI')) { 
+                    dotColor = 'bg-amber-400 ring-amber-100'; 
+                    isiHtml = `<span class="text-amber-700 font-bold uppercase">${isiHtml}</span>`; 
+                }
+                else if (isiHtml.includes('DITOLAK')) { 
+                    dotColor = 'bg-red-500 ring-red-100'; 
+                    isiHtml = `<span class="text-red-700 font-bold uppercase">${isiHtml}</span>`; 
+                } 
+                else if (isiHtml.includes('DISETUJUI')) { 
+                    dotColor = 'bg-emerald-500 ring-emerald-100'; 
+                    isiHtml = `<span class="text-emerald-700 font-bold uppercase">${isiHtml}</span>`; 
+                } 
+                else if (isiHtml.includes('SELESAI PB') || isiHtml.includes('DIPINDAHBUKUKAN')) { 
+                    dotColor = 'bg-blue-500 ring-blue-100'; 
+                    isiHtml = `<span class="text-blue-700 font-bold uppercase">${isiHtml}</span>`; 
+                }
+                else { 
+                    isiHtml = `<span class="text-slate-600 font-medium">${isiHtml}</span>`; 
+                }
                 innerHtml = `<span class="text-[10px] font-bold text-slate-400 block mb-0.5">${tanggal}</span>${isiHtml}`;
-            } else { innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; dotColor = 'bg-transparent ring-transparent'; }
+            } else { 
+                innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; 
+                dotColor = 'bg-transparent ring-transparent'; 
+            }
             logHtml += `<div class="relative pl-5 mb-4"><div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div><div class="text-[11px] leading-relaxed">${innerHtml}</div></div>`; 
         }); 
     } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
