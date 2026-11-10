@@ -104,7 +104,7 @@ function isiDropdownPptkUtama() {
     }
 }
 
-// PERBAIKAN 4: Menjadikan tarikDataDariServer sebagai PROMISE
+// Menggunakan Promise agar bisa di-await oleh aksi-aksi verifikasi
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     return fetch(CONFIG.APPS_SCRIPT_URL)
@@ -395,8 +395,8 @@ function renderTabelSpj() {
         
         let jenisSurat = String(item.jenisSurat || 'GU');
         let jenisBadge = jenisSurat === 'LS' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
-        let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
-        let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
+        let actionBtnText = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'Verifikasi' : 'Detail'; 
+        let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
         let extraLsInfo = "";
@@ -679,7 +679,7 @@ function toggleActionForm(type) {
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
 
-// PERBAIKAN 4: Auto-refresh data di modal setelah status disimpan
+// FUNGSI UPDATE STATUS YANG SUDAH DIOPTIMALKAN (Duplikasi dibuang)
 function prosesUpdateStatusAksi() {
     let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
     if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') { payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; } } 
