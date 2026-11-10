@@ -9,6 +9,7 @@ let isEditMode = false;
 let editIdTarget = null;
 let currentPage = 1;
 let rowsPerPage = 10;
+let filterJenis = 'ALL'; // ALL, GU, atau LS
 
 function checkLogin() {
     try {
@@ -37,67 +38,52 @@ function togglePassword() {
     const passwordInput = document.getElementById('password-input');
     const eyeIcon = document.getElementById('eye-icon');
     if (!passwordInput || !eyeIcon) return;
-
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
+    if (passwordInput.type === 'password') { passwordInput.type = 'text'; eyeIcon.classList.replace('fa-eye', 'fa-eye-slash'); } 
+    else { passwordInput.type = 'password'; eyeIcon.classList.replace('fa-eye-slash', 'fa-eye'); }
 }
 
-// LOGIKA DROPDOWN PROFIL
 function toggleProfileMenu() {
     const dd = document.getElementById('profileDropdown');
-    if(dd.classList.contains('hidden')) {
-        dd.classList.remove('hidden');
-        // Tambahkan efek fade-in kecil jika diperlukan
-    } else {
-        dd.classList.add('hidden');
-    }
+    if(dd.classList.contains('hidden')) { dd.classList.remove('hidden'); } else { dd.classList.add('hidden'); }
 }
 
-// Menutup dropdown jika user klik di luar area dropdown
 document.addEventListener('click', function(event) {
     const dropdown = document.getElementById('profileDropdown');
     if (!dropdown) return;
     const profileBtn = dropdown.previousElementSibling;
-    if (!dropdown.contains(event.target) && !profileBtn.contains(event.target)) {
-        dropdown.classList.add('hidden');
-    }
+    if (!dropdown.contains(event.target) && !profileBtn.contains(event.target)) { dropdown.classList.add('hidden'); }
 });
 
 function masukSistem() {
     document.getElementById('login-screen').style.display = 'none'; 
     document.getElementById('main-app').style.display = 'flex';
     
-    // Set Header Kiri Atas
     document.getElementById('role-badge').innerText = sesiAktif.role; 
     document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
     const jabatanHeader = document.getElementById('jabatan-header-text');
     if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
 
-    // Set Data di Dalam Dropdown Kanan Atas
     const ddNama = document.getElementById('dd-nama');
     if(ddNama) ddNama.innerText = sesiAktif.namaLengkap;
     const ddRole = document.getElementById('dd-role');
     if(ddRole) ddRole.innerText = sesiAktif.role;
 
-    // TAMPILKAN MENU SUPER ADMIN DI SIDEBAR KIRI JIKA ROLE = SUPER_ADMIN
     const sidebarSuperAdmin = document.getElementById('sidebarSuperAdmin');
     if (sesiAktif.role === 'SUPER_ADMIN') {
-        if(sidebarSuperAdmin) {
-            sidebarSuperAdmin.classList.remove('hidden');
-            sidebarSuperAdmin.classList.add('flex');
-        }
+        if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.remove('hidden'); sidebarSuperAdmin.classList.add('flex'); }
     } else {
-        if(sidebarSuperAdmin) {
-            sidebarSuperAdmin.classList.add('hidden');
-            sidebarSuperAdmin.classList.remove('flex');
-        }
+        if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.add('hidden'); sidebarSuperAdmin.classList.remove('flex'); }
     }
     
+    // Isi otomatis Dropdown PPTK di Form Buat Baru dari DATABASE_AKUN
+    const selectPptk = document.getElementById('inputPptk');
+    if(selectPptk && typeof DATABASE_AKUN !== 'undefined') {
+        selectPptk.innerHTML = '<option value="">-- Pilih Nama PPTK --</option>';
+        DATABASE_AKUN.forEach(user => {
+            if(user.role === 'PPTK') { selectPptk.innerHTML += `<option value="${user.namaLengkap}">${user.namaLengkap}</option>`; }
+        });
+    }
+
     tarikDataDariServer();
 }
 
@@ -143,6 +129,70 @@ function updateSubkegiatanDropdown() {
     if(prog && keg && referensiData[prog][keg]) { referensiData[prog][keg].forEach(sub => { subSelect.innerHTML += `<option value="${sub}">${sub}</option>`; }); }
 }
 
+
+// --- LOGIKA FILTER MENU KIRI ---
+function setJenisTampilan(jenis) {
+    filterJenis = jenis;
+    currentPage = 1;
+    
+    // Update visual menu aktif
+    document.querySelectorAll('.menu-item').forEach(el => {
+        el.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-100', 'active-menu', 'font-bold');
+        el.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-emerald-600', 'font-medium', 'border-transparent');
+        const icon = el.querySelector('.menu-icon');
+        if(icon) icon.classList.replace('text-emerald-500', 'text-slate-400');
+        const dot = el.querySelector('.indicator-dot');
+        if(dot) dot.remove();
+    });
+
+    const activeEl = document.getElementById('menu-' + jenis.toLowerCase());
+    if (activeEl) {
+        activeEl.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-emerald-600', 'font-medium', 'border-transparent');
+        activeEl.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-100', 'active-menu', 'font-bold');
+        const icon = activeEl.querySelector('.menu-icon');
+        if(icon) icon.classList.replace('text-slate-400', 'text-emerald-500');
+        
+        // Add dot jika belum ada
+        if (!activeEl.querySelector('.indicator-dot')) {
+            const dot = document.createElement('div');
+            dot.className = 'w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot';
+            activeEl.appendChild(dot);
+        }
+    }
+
+    // Update Text Title
+    const title = document.getElementById('page-title');
+    const breadcrumb = document.getElementById('breadcrumb-text');
+    const tbTitle = document.getElementById('tabel-judul-jenis');
+    
+    if(jenis === 'ALL') { title.innerText = 'Dashboard Utama'; breadcrumb.innerText = 'Dashboard Semua'; tbTitle.innerText = 'GU & LS'; }
+    else if(jenis === 'GU') { title.innerText = 'Data SPJ Ganti Uang (GU)'; breadcrumb.innerText = 'Data SPJ GU'; tbTitle.innerText = 'Ganti Uang (GU)'; }
+    else if(jenis === 'LS') { title.innerText = 'Data SPJ Langsung (LS)'; breadcrumb.innerText = 'Data SPJ LS'; tbTitle.innerText = 'Langsung (LS)'; }
+
+    // Sembunyikan kolom JENIS jika sudah difilter spesifik
+    const thJenis = document.getElementById('th-jenis');
+    if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } 
+    else { if(thJenis) thJenis.style.display = 'none'; }
+
+    renderTabelSpj();
+}
+
+// Logika Ubah Label NPD menjadi Kontrak jika LS dipilih di form Input
+function ubahLabelNpdKontrak() {
+    const jenis = document.getElementById('inputJenisSurat').value;
+    const label = document.getElementById('label-npd-kontrak');
+    const input = document.getElementById('inputNpd');
+    
+    if (jenis === 'LS') {
+        label.innerText = 'Nomor Kontrak / SPK';
+        input.placeholder = 'Cth: 027/01/SPK/2026';
+    } else {
+        label.innerText = 'Nomor NPD';
+        input.placeholder = 'Cth: 001/NPD/2026';
+    }
+}
+
+
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); 
@@ -152,13 +202,7 @@ function kirimPengajuanSpjBaru(e) {
     let generatedId = "";
     if (!isEditMode) {
         const now = new Date();
-        const yy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const mnt = String(now.getMinutes()).padStart(2, '0');
-        const sec = String(now.getSeconds()).padStart(2, '0');
-        generatedId = `SPJ-${yy}${mm}${dd}-${hh}${mnt}${sec}`; 
+        generatedId = `SPJ-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`; 
     }
 
     const idSistem = isEditMode ? editIdTarget : generatedId; 
@@ -188,9 +232,14 @@ function kirimPengajuanSpjBaru(e) {
                     document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
                 } else {
                     const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`; 
+                    
+                    let textUploadInfo = payload.jenisSurat === 'LS' ? "1. Kwitansi Kontrak <br>2. Berkas Pencairan LS" : "1. Dokumen Keuangan <br>2. Berkas SPJ Fungsional";
+
                     const divSukses = document.createElement('div');
                     divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-6 space-y-4";
-                    divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3><p class="text-sm text-slate-600 mb-4 bg-amber-50 border border-amber-200 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan belum selesai. Lanjut klik tombol di bawah untuk Upload Berkas (Keuangan & SPJ GU).</p><a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>`;
+                    divSukses.innerHTML = `<div class="text-5xl text-emerald-500 mb-2"><i class="fa-solid fa-circle-check"></i></div><h3 class="text-lg font-bold text-slate-800">Data Pengajuan Berhasil Disimpan!</h3>
+                    <p class="text-sm text-slate-600 mb-4 bg-amber-50 border border-amber-200 p-3 rounded text-left"><strong>PENTING:</strong> Pengajuan belum selesai. Lanjut klik tombol di bawah untuk Upload Berkas:<br><span class="font-bold text-blue-700">${textUploadInfo}</span></p>
+                    <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a>`;
                     document.getElementById('formNewSpj').parentElement.appendChild(divSukses);
                 }
             } else { alert("GAGAL MENYIMPAN!\n" + res.message); }
@@ -199,84 +248,21 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
-function toggleActionForm(type) {
-    pendingStatusChange = type;
-    document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
-    if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
-    if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
-}
-
-function prosesUpdateStatusAksi() {
-    let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
-    if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') {
-        payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; }
-    } else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') {
-        payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value;
-        if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; }
-    }
-
-    const btn = document.getElementById('btnConfirmAction'); 
-    if (btn) { btn.innerText = 'MEMPROSES...'; btn.disabled = true; }
-
-    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-    .then(res => res.json())
-    .then(res => {
-        if(res.status === 'success') { 
-            showToast(`Sukses memperbarui status.`); 
-            
-            const item = spjData.find(i => String(i.id) === String(activeSelectedId));
-            if(item) {
-                item.status = pendingStatusChange;
-                if(pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') item.catatanRevisi = payload.catatanRevisi;
-                if(pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') { item.noPb = payload.noPb; item.tglPb = payload.tglPb; item.buktiPb = payload.buktiPb; }
-                
-                let timeNow = new Date().toLocaleString("en-GB", {timeZone: "Asia/Jakarta"}).replace(',', '');
-                let parts = timeNow.split(' ');
-                let cleanTime = `[${parts[0]} ${parts[1].substring(0,5)}]`;
-                
-                let catatanClean = (payload.catatanRevisi || "").replace(/\n/g, "<br>");
-                
-                item.riwayatLog = `${cleanTime} ${pendingStatusChange} oleh ${sesiAktif.namaLengkap}` + (catatanClean ? ` - Catatan: ${catatanClean}` : '') + `\n` + (item.riwayatLog || "");
-            }
-
-            tarikDataDariServer(); 
-            
-            document.getElementById('confirmActionContainer').classList.add('hidden');
-            document.getElementById('revisiContainer').classList.add('hidden');
-            document.getElementById('pindahbukuContainer').classList.add('hidden');
-            document.getElementById('catatanRevisiInput').value = ""; 
-            pendingStatusChange = null;
-            
-            bukaModalVerifikasi(activeSelectedId); 
-        } 
-        else { alert("GAGAL UPDATE STATUS:\n" + res.message); }
-    })
-    .catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); })
-    .finally(() => { if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } });
-}
-
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
-
-function gantiPageSize() {
-    rowsPerPage = parseInt(document.getElementById('selectPageSize').value);
-    currentPage = 1; 
-    renderTabelSpj();
-}
-
-function gantiHalaman(arah) {
-    const totalPages = Math.ceil(spjData.length / rowsPerPage);
-    currentPage += arah;
-    if (currentPage < 1) currentPage = 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    renderTabelSpj();
-}
+function gantiPageSize() { rowsPerPage = parseInt(document.getElementById('selectPageSize').value); currentPage = 1; renderTabelSpj(); }
+function gantiHalaman(arah) { const tData = spjData.filter(i => filterJenis === 'ALL' || String(i.jenisSurat || 'GU') === filterJenis); const totalPages = Math.ceil(tData.length / rowsPerPage); currentPage += arah; if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages; renderTabelSpj(); }
 
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); 
     tbody.innerHTML = '';
     
-    const totalData = spjData.length;
+    // Filter by GU / LS
+    let filteredData = spjData;
+    if (filterJenis !== 'ALL') {
+        filteredData = spjData.filter(item => String(item.jenisSurat || 'GU') === filterJenis);
+    }
+    
+    const totalData = filteredData.length;
     const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalData);
@@ -285,14 +271,14 @@ function renderTabelSpj() {
     const btnPrev = document.getElementById('btnPrevPage');
     const btnNext = document.getElementById('btnNextPage');
     
-    if (infoEl) infoEl.innerText = `Menampilkan ${totalData === 0 ? 0 : startIndex + 1}-${endIndex} dari ${totalData} (Hal ${currentPage}/${totalPages})`;
+    if (infoEl) infoEl.innerText = `Hal ${currentPage} dari ${totalPages}`;
     if (btnPrev) btnPrev.disabled = currentPage === 1;
     if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
 
-    const dataHalamanIni = spjData.slice(startIndex, endIndex);
+    const dataHalamanIni = filteredData.slice(startIndex, endIndex);
 
     if (dataHalamanIni.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="${filterJenis === 'ALL' ? '10' : '9'}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`;
         return;
     }
 
@@ -309,17 +295,18 @@ function renderTabelSpj() {
         let actionBtnText = sesiAktif.role === 'VERIFIKATOR' ? 'Verifikasi' : 'Detail'; 
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         
+        let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
+
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
                 <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
-                <td class="py-4 px-4 text-xs align-top whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>
+                ${tdJenisHtml}
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
                 <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px] whitespace-normal break-words"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
                 <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
-                <td class="py-4 px-4 text-xs text-slate-500 align-top max-w-[100px] whitespace-normal break-words">${String(item.noPb || '-')}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]">
                     <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer relative z-50">${actionBtnText}</button>
                 </td>
@@ -331,6 +318,7 @@ function renderTabelSpj() {
 function openModal(id) { 
     if(id === 'modalNewSpj' && !isEditMode) { 
         document.getElementById('formNewSpj').reset(); 
+        ubahLabelNpdKontrak();
         const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
         document.getElementById('formNewSpj').classList.remove('hidden');
         document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
@@ -338,18 +326,32 @@ function openModal(id) {
     document.getElementById(id).classList.remove('hidden'); 
 }
 
-// Men-generate tabel dari config.js
+// LOGIKA MODAL ADMIN
+function switchTabAdmin(tabName) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.admin-tab-btn').forEach(el => {
+        el.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30');
+        el.classList.add('hover:bg-slate-700/50', 'hover:text-white');
+    });
+
+    const activeTab = document.getElementById(`tab-content-${tabName}`);
+    const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+    
+    if(activeTab) { activeTab.classList.remove('hidden'); activeTab.classList.add('flex'); }
+    if(activeBtn) {
+        activeBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-blue-500/30');
+        activeBtn.classList.remove('hover:bg-slate-700/50', 'hover:text-white');
+    }
+}
+
 function renderTabelAkunAdmin() {
     const tbody = document.getElementById('tabelAkunBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const tbPptk = document.getElementById('tabelPptkBody');
+    if (!tbody || !tbPptk) return;
+    tbody.innerHTML = ''; tbPptk.innerHTML = '';
 
-    if (typeof DATABASE_AKUN === 'undefined') {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500 font-bold bg-red-50">Data config.js tidak ditemukan!</td></tr>';
-        return;
-    }
+    if (typeof DATABASE_AKUN === 'undefined') { return; }
 
-    // Melakukan perulangan dari config.js
     DATABASE_AKUN.forEach(akun => {
         let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200 tracking-wide">${akun.role}</span>`;
         if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200 tracking-wide">SUPER_ADMIN</span>`;
@@ -361,30 +363,31 @@ function renderTabelAkunAdmin() {
                 <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
                 <td class="p-3 px-4 border-b border-slate-200 text-slate-500 font-mono text-[11px]">${akun.username}</td>
                 <td class="p-3 px-4 border-b border-slate-200 text-xs">${roleBadge}</td>
-                <td class="p-3 px-4 border-b border-slate-200 text-center">
-                    <button class="px-3 py-1.5 bg-white hover:bg-slate-100 rounded text-[10px] font-bold border border-slate-300 shadow-sm text-slate-600 transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                </td>
-            </tr>
-        `;
+            </tr>`;
+            
+        if(akun.role === 'PPTK') {
+            tbPptk.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-3 px-4 border-b border-slate-200 font-bold text-slate-800 text-xs">${akun.namaLengkap}</td>
+                <td class="p-3 px-4 border-b border-slate-200 text-slate-500 font-mono text-[11px]">${akun.nip || '-'}</td>
+            </tr>`;
+        }
     });
 }
 
 function bukaModalSuperAdmin() {
     const profileDd = document.getElementById('profileDropdown');
     if(profileDd) profileDd.classList.add('hidden'); 
-    
-    // Panggil fungsi render sebelum membuka modal
     renderTabelAkunAdmin(); 
-    
+    switchTabAdmin('akun'); // default buka tab akun
     openModal('modalSuperAdmin');
 }
 
 function bukaFormSpjBaru() {
-    isEditMode = false;
-    editIdTarget = null;
+    isEditMode = false; editIdTarget = null;
     document.getElementById('formNewSpj').reset(); 
-    const existingSukses = document.getElementById('pesanSuksesDiv'); 
-    if(existingSukses) existingSukses.remove();
+    ubahLabelNpdKontrak();
+    const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
     document.getElementById('formNewSpj').classList.remove('hidden');
     document.getElementById('btnSubmitNew').innerText = "Lanjut ke Form Upload"; 
     openModal('modalNewSpj');
@@ -410,6 +413,30 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailEmailPptk').innerText = String(item.emailPptk || "-");
     document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
     
+    // Ubah Text Berkas jika LS
+    const boxBerkas = document.getElementById('berkas-area-gu');
+    if (String(item.jenisSurat) === 'LS') {
+        boxBerkas.innerHTML = `
+            <div class="text-sm">
+                <span class="font-bold text-slate-700 block mb-1">1. Kwitansi Kontrak / SPK</span>
+                <div id="linkDokKeuangan"></div>
+            </div>
+            <div class="text-sm mt-3">
+                <span class="font-bold text-slate-700 block mb-1">2. Berkas Pencairan LS</span>
+                <div id="linkDokSpj"></div>
+            </div>`;
+    } else {
+        boxBerkas.innerHTML = `
+            <div class="text-sm">
+                <span class="font-bold text-slate-700 block mb-1">1. Dok. Keuangan (SPP/SPM/Pajak)</span>
+                <div id="linkDokKeuangan"></div>
+            </div>
+            <div class="text-sm mt-3">
+                <span class="font-bold text-slate-700 block mb-1">2. SPJ Fungsional (Kwitansi/Nota/Absen)</span>
+                <div id="linkDokSpj"></div>
+            </div>`;
+    }
+    
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id);
     document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id);
     document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi, item.id);
@@ -423,53 +450,39 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
+    // (Logika Riwayat sama seperti sebelumnya)
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
-    
     if (safeRiwayat.trim() !== "") { 
         let logEntries = [];
         safeRiwayat.split('\n').forEach(line => {
             let trimmed = line.trim();
             if (!trimmed) return;
             if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) { logEntries.push(trimmed); } 
-            else {
-                if (logEntries.length > 0) { logEntries[logEntries.length - 1] += '<br>' + trimmed; } 
-                else { logEntries.push(trimmed); }
-            }
+            else { if (logEntries.length > 0) { logEntries[logEntries.length - 1] += '<br>' + trimmed; } else { logEntries.push(trimmed); } }
         });
-
         logEntries.forEach((line) => { 
-            let dotColor = 'bg-slate-300 ring-slate-100';
-            let innerHtml = line;
-
+            let dotColor = 'bg-slate-300 ring-slate-100'; let innerHtml = line;
             let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
             if (match) {
                 let tanggal = match[1]; let isiHtml = match[2];
                 if (isiHtml.includes('- Catatan:')) {
-                    let parts = isiHtml.split('- Catatan:');
-                    let isiCatatan = parts[1].trim();
+                    let parts = isiHtml.split('- Catatan:'); let isiCatatan = parts[1].trim();
                     isiHtml = `<span class="text-slate-700 font-semibold">${parts[0].trim()}</span>
                                <div class="mt-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] leading-relaxed shadow-sm">
                                  <i class="fa-solid fa-circle-exclamation me-1 text-amber-600"></i> <b class="text-amber-900">Catatan:</b><br>${isiCatatan}
                                </div>`;
                     dotColor = 'bg-amber-500 ring-amber-100';
-                } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
-                    dotColor = 'bg-amber-500 ring-amber-100'; isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
-                } else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) {
-                    dotColor = 'bg-emerald-500 ring-emerald-100'; isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
-                } else {
-                    isiHtml = `<span class="text-slate-600">${isiHtml}</span>`;
-                }
+                } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) { dotColor = 'bg-amber-500 ring-amber-100'; isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`; } 
+                else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) { dotColor = 'bg-emerald-500 ring-emerald-100'; isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`; } 
+                else { isiHtml = `<span class="text-slate-600">${isiHtml}</span>`; }
                 innerHtml = `<span class="text-[10px] font-bold text-slate-400 block mb-0.5">${tanggal}</span>${isiHtml}`;
             } else {
-                innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`;
-                dotColor = 'bg-transparent ring-transparent'; 
+                innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; dotColor = 'bg-transparent ring-transparent'; 
             }
             logHtml += `<div class="relative pl-5 mb-4"><div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div><div class="text-[11px] leading-relaxed">${innerHtml}</div></div>`; 
         }); 
-    } else {
-        logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`;
-    }
+    } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
     logHtml += '</div>';
     document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
@@ -477,37 +490,15 @@ function bukaModalVerifikasi(id) {
 
     if (sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); 
-        document.getElementById('waContainer').classList.remove('hidden');
-        document.getElementById('waContainer').classList.add('flex');
+        document.getElementById('waContainer').classList.remove('hidden'); document.getElementById('waContainer').classList.add('flex');
         
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); 
         if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
-        
-        let emailText = `Yth. PPTK,\n\nBerikut adalah update status dokumen SPJ Anda (NPD: ${item.npd}).\nStatus Saat Ini: ${item.status}\n`;
-        if(item.status === 'REVISI' || item.status === 'DITOLAK') emailText += `\nCatatan Verifikator:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n\nMohon segera diperbaiki.`;
-        let mailtoLink = `mailto:${item.emailPptk}?subject=Update Status SPJ GU - ${item.npd}&body=${encodeURIComponent(emailText)}`;
-        
-        let btnEmail = document.getElementById('btnSendEmail');
-        if (btnEmail) {
-            btnEmail.href = mailtoLink;
-            btnEmail.onclick = function() {
-                let originalHtml = this.innerHTML;
-                this.innerHTML = '<i class="fa-solid fa-check text-sm"></i> Draft Terbuka!';
-                this.classList.replace('bg-blue-600', 'bg-emerald-600');
-                showToast('Aplikasi Email dibuka.');
-                setTimeout(() => {
-                    this.innerHTML = originalHtml;
-                    this.classList.replace('bg-emerald-600', 'bg-blue-600');
-                }, 3000);
-            };
-        }
     } else {
-        document.getElementById('panelAksiVerifikator').classList.add('hidden'); 
-        document.getElementById('waContainer').classList.add('hidden');
-        document.getElementById('waContainer').classList.remove('flex');
+        document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden'); document.getElementById('waContainer').classList.remove('flex');
         
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
@@ -528,45 +519,46 @@ function bukaFormEdit() {
 
     try { const parts = String(item.createdAt).split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } catch(e){}
     
-    document.getElementById('inputNpd').value = item.npd; document.getElementById('inputPptk').value = item.pptk;
     document.getElementById('inputJenisSurat').value = item.jenisSurat || 'GU';
+    ubahLabelNpdKontrak();
+    
+    document.getElementById('inputNpd').value = item.npd; document.getElementById('inputPptk').value = item.pptk;
     document.getElementById('inputUnitKerja').value = item.unitKerja; document.getElementById('inputEmail').value = item.emailPptk;
     document.getElementById('inputWa').value = item.wa;
-    
     document.getElementById('inputProgram').value = item.program; updateKegiatanDropdown();
     document.getElementById('inputKegiatan').value = item.kegiatan; updateSubkegiatanDropdown();
     document.getElementById('inputSubkegiatan').value = item.subKegiatan;
-    
     document.getElementById('inputNominal').value = item.nominal; document.getElementById('inputUraian').value = item.uraian;
     
     document.getElementById('btnSubmitNew').innerText = "Simpan Perubahan (Edit)";
     closeModal('modalVerify'); openModal('modalNewSpj');
 }
 
-// Auto-numbering Textarea Revisi
-document.addEventListener('DOMContentLoaded', function() {
-    const textarea = document.getElementById('catatanRevisiInput');
-    if (textarea) {
-        textarea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const cursorPos = this.selectionStart;
-                const textBeforeCursor = this.value.substring(0, cursorPos);
-                const lines = textBeforeCursor.split('\n');
-                const lastLine = lines[lines.length - 1];
-                const match = lastLine.match(/^(\d+)\.\s/);
-                if (match) {
-                    e.preventDefault();
-                    if (lastLine.trim() === `${match[1]}.`) {
-                        this.value = textBeforeCursor.substring(0, textBeforeCursor.lastIndexOf(lastLine)) + this.value.substring(this.selectionEnd);
-                        return;
-                    }
-                    const nextNum = parseInt(match[1]) + 1;
-                    const nextPrefix = `\n${nextNum}. `;
-                    const textAfterCursor = this.value.substring(this.selectionEnd);
-                    this.value = textBeforeCursor + nextPrefix + textAfterCursor;
-                    this.selectionStart = this.selectionEnd = cursorPos + nextPrefix.length;
-                }
-            }
-        });
-    }
-});
+function actionSetujui() { pendingStatusChange = 'DISETUJUI'; prosesUpdateStatusAksi(); }
+function toggleActionForm(type) {
+    pendingStatusChange = type;
+    document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
+    if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
+    if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
+}
+
+function prosesUpdateStatusAksi() {
+    let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
+    if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') { payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; } } 
+    else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') { payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value; if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; } }
+
+    const btn = document.getElementById('btnConfirmAction'); if (btn) { btn.innerText = 'MEMPROSES...'; btn.disabled = true; }
+
+    fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+    .then(res => res.json())
+    .then(res => {
+        if(res.status === 'success') { 
+            showToast(`Sukses memperbarui status.`); tarikDataDariServer(); 
+            document.getElementById('confirmActionContainer').classList.add('hidden');
+            bukaModalVerifikasi(activeSelectedId); 
+        } 
+        else { alert("GAGAL UPDATE:\n" + res.message); }
+    })
+    .catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); })
+    .finally(() => { if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } });
+}
