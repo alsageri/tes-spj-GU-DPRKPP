@@ -319,10 +319,22 @@
             <!-- BAGIAN KONTEN ATAS -->
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-6">
-                    <div><h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">Uraian / Rincian SPJ</h4><p id="detailUraian" class="text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded border border-slate-200"></p></div>
+                    <!-- JUDUL URAIAN DIHAPUS (Sesuai Request) -->
+                    <div>
+                        <div id="detailUraian" class="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm"></div>
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">PPTK</h4><p id="detailPptkNama" class="text-sm font-bold text-slate-800"></p><p id="detailUnitKerja" class="text-[10px] text-slate-500"></p></div>
-                        <div><h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">Nominal SPJ</h4><p id="detailNominal" class="text-sm font-black text-slate-800 text-emerald-600"></p></div>
+                        <!-- TAMBAHAN EMAIL PPTK DI BAWAH UNIT KERJA (Sesuai Request) -->
+                        <div>
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">PPTK</h4>
+                            <p id="detailPptkNama" class="text-sm font-bold text-slate-800"></p>
+                            <p id="detailUnitKerja" class="text-[10px] text-slate-500"></p>
+                            <p id="detailEmailPptk" class="text-[10px] text-blue-600 font-medium mt-0.5 break-all"></p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-1">Nominal SPJ</h4>
+                            <p id="detailNominal" class="text-sm font-black text-slate-800 text-emerald-600"></p>
+                        </div>
                     </div>
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 space-y-4">
                         <h4 class="text-xs font-bold text-blue-800 flex items-center gap-2 border-b border-blue-200 pb-2"><i class="fa-solid fa-folder-open"></i> Lampiran Berkas</h4>
@@ -486,8 +498,8 @@
         <i class="fa-solid fa-circle-check text-emerald-400"></i><span id="toastMessage" class="text-sm font-medium">Sukses!</span>
     </div>
 
-    <script src="config.js?v=50"></script>
-    <script src="app.js?v=50"></script>
+    <script src="config.js?v=51"></script>
+    <script src="app.js?v=51"></script>
     
     <script>
         // EVENT LISTENER UNTUK NUMBERING OTOMATIS CATATAN REVISI
