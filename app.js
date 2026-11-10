@@ -418,7 +418,13 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
-    document.getElementById('detailEmailPptk').innerText = String(item.emailPptk || "-");
+    
+    // PERBAIKAN: Menambahkan kondisi if agar tidak crash jika elemen HTML tidak ada
+    let elEmail = document.getElementById('detailEmailPptk');
+    if (elEmail) {
+        elEmail.innerText = String(item.emailPptk || "-");
+    }
+    
     document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
     
     const boxBerkas = document.getElementById('berkas-area-gu');
