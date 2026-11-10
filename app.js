@@ -12,6 +12,15 @@ let filterJenis = 'ALL';
 let editIndexAkun = -1; let editIndexPptk = -1;
 let paguEditType = null; 
 
+// FUNGSI HELPER: FORMAT TANGGAL INDONESIA (YYYY-MM-DD -> DD Bulan YYYY)
+function formatTanggalIndo(dateStr) {
+    if (!dateStr || dateStr === '-') return '-';
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length !== 3) return dateStr.split('T')[0];
+    const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return `${parseInt(parts[2], 10)} ${bulan[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+}
+
 // 1. TARIK DATA DARI SPREADSHEET SAAT APLIKASI DIBUKA
 function inisialisasiServer() {
     const btnLogin = document.querySelector('button[onclick="checkLogin()"]');
@@ -399,19 +408,22 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
-        // PERUBAHAN URUTAN URAIAN (CV -> Tahap -> Uraian)
-        let uraianTeks = `<span class="text-slate-600" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</span>`;
+        // PERUBAHAN TAMPILAN URAIAN (CV -> Tahap -> Uraian, dipisah garis)
+        let uraianTeks = `<div class="text-slate-600 leading-relaxed pt-1" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</div>`;
         
         if (jenisSurat === 'LS' && item.namaCv) {
-            uraianTeks = `<div class="mb-1 pb-1 border-b border-slate-100 text-[10px]">
-                            <span class="font-bold text-purple-700">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span><br>
-                            <span class="font-bold text-purple-700">Tahap:</span> <span class="text-slate-500">${item.tahap || '-'}</span>
-                           </div>` + uraianTeks;
+            uraianTeks = `<div class="mb-1.5 pb-1.5 border-b border-slate-200 text-xs">
+                            <span class="font-bold text-purple-700">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span>
+                          </div>
+                          <div class="mb-1.5 pb-1.5 border-b border-slate-200 text-xs">
+                            <span class="font-bold text-purple-700">Tahap:</span> <span class="text-slate-600">${item.tahap || '-'}</span>
+                          </div>
+                          ${uraianTeks}`;
         }
 
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
-                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
+                <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500 font-medium">${formatTanggalIndo(item.createdAt)}</td>
                 <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
                 ${tdJenisHtml}
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
@@ -420,7 +432,7 @@ function renderTabelSpj() {
                     <span class="text-slate-500">${String(item.kegiatan || '-')}</span><br>
                     <span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span>
                 </td>
-                <td class="py-4 px-4 text-xs align-top max-w-[200px] whitespace-normal break-words leading-relaxed">${uraianTeks}</td>
+                <td class="py-4 px-4 text-xs align-top max-w-[200px] whitespace-normal break-words">${uraianTeks}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)] z-10 border-l border-slate-100">
@@ -534,7 +546,6 @@ function hapusDataAkun(index) {
 function bukaModalSuperAdmin() { const profileDd = document.getElementById('profileDropdown'); if(profileDd) profileDd.classList.add('hidden'); renderTabelAkunAdmin(); switchTabAdmin('pptk'); openModal('modalSuperAdmin'); }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-// TOAST DIUBAH AGAR MUNCUL DARI ATAS (Karena kita naikin lokasinya)
 function showToast(msg) { 
     const toast = document.getElementById('toast'); 
     document.getElementById('toastMessage').innerText = msg; 
@@ -553,20 +564,26 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    // PERUBAHAN URUTAN URAIAN (CV -> Tahap -> Uraian)
-    let textUraian = `<div class="font-medium text-slate-700 mt-2 pt-2 border-t border-slate-200">${String(item.uraian || '-')}</div>`;
+    // PERUBAHAN TAMPILAN DI DALAM MODAL: Pisah 3 Judul dengan Garis Bawah
+    let textUraian = '';
     if (String(item.jenisSurat) === 'LS' && item.namaCv) {
-        textUraian = `<div class="text-xs">
-                        <span class="font-bold text-purple-800">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span><br>
-                        <span class="font-bold text-purple-800">Tahap:</span> <span class="text-slate-500">${item.tahap || '-'}</span>
-                      </div>` + textUraian;
+        textUraian = `<div class="pb-2 mb-2 border-b border-slate-200">
+                        <span class="block text-[10px] font-bold text-purple-700 uppercase mb-0.5">Penyedia / CV</span>
+                        <span class="text-sm font-bold text-slate-800">${item.namaCv}</span>
+                      </div>
+                      <div class="pb-2 mb-2 border-b border-slate-200">
+                        <span class="block text-[10px] font-bold text-purple-700 uppercase mb-0.5">Tahap</span>
+                        <span class="text-sm text-slate-700">${item.tahap || '-'}</span>
+                      </div>
+                      <div class="text-sm font-medium text-slate-700 leading-relaxed pt-1">${String(item.uraian || '-')}</div>`;
     } else {
-        textUraian = `<div class="font-medium text-slate-700">${String(item.uraian || '-')}</div>`; // Untuk GU, langsung uraian
+        textUraian = `<div class="text-sm font-medium text-slate-700 leading-relaxed">${String(item.uraian || '-')}</div>`;
     }
     document.getElementById('detailUraian').innerHTML = textUraian;
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
     
+    // MENAMPILKAN EMAIL PPTK DI BAWAH UNIT KERJA (Otomatis masuk karena id-nya sudah ditambah di index.html)
     let elEmail = document.getElementById('detailEmailPptk');
     if (elEmail) elEmail.innerText = String(item.emailPptk || "-");
     
@@ -624,7 +641,6 @@ function bukaModalVerifikasi(id) {
     } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
     logHtml += '</div>'; document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
-    // KEMBALIKAN POSISI SEMULA (DI HIDE DULU)
     document.getElementById('revisiContainer').classList.add('hidden'); 
     document.getElementById('pindahbukuContainer').classList.add('hidden'); 
     document.getElementById('confirmActionContainer').classList.add('hidden'); 
@@ -693,7 +709,6 @@ function toggleActionForm(type) {
     if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
     
-    // Auto scroll ke bawah agar form konfirmasi terlihat
     const modalContent = document.getElementById('modalVerify');
     modalContent.scrollTo({ top: modalContent.scrollHeight, behavior: 'smooth' });
 }
@@ -720,7 +735,6 @@ function prosesUpdateStatusAksi() {
     .finally(() => { if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } });
 }
 
-// KIRIM EMAIL TANPA CONFIRM POP-UP LAGI
 function kirimEmailManual() {
     if(!activeSelectedId) return;
     
