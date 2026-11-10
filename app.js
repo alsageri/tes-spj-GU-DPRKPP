@@ -104,7 +104,7 @@ function isiDropdownPptkUtama() {
     }
 }
 
-// Menggunakan Promise agar bisa di-await oleh aksi-aksi verifikasi
+// Menggunakan Promise agar bisa di-await
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     return fetch(CONFIG.APPS_SCRIPT_URL)
@@ -399,12 +399,14 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
-        let extraLsInfo = "";
+        // PERUBAHAN URUTAN URAIAN (CV -> Tahap -> Uraian)
+        let uraianTeks = `<span class="text-slate-600" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</span>`;
+        
         if (jenisSurat === 'LS' && item.namaCv) {
-            extraLsInfo = `<div class="mt-1 pt-1 border-t border-slate-100 text-[10px]">
-                            <span class="font-bold text-purple-700">CV:</span> <span class="text-slate-500">${item.namaCv}</span><br>
+            uraianTeks = `<div class="mb-1 pb-1 border-b border-slate-100 text-[10px]">
+                            <span class="font-bold text-purple-700">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span><br>
                             <span class="font-bold text-purple-700">Tahap:</span> <span class="text-slate-500">${item.tahap || '-'}</span>
-                           </div>`;
+                           </div>` + uraianTeks;
         }
 
         tbody.innerHTML += `
@@ -417,9 +419,8 @@ function renderTabelSpj() {
                     <span class="font-bold text-slate-800">${String(item.program || '-')}</span><br>
                     <span class="text-slate-500">${String(item.kegiatan || '-')}</span><br>
                     <span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span>
-                    ${extraLsInfo}
                 </td>
-                <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
+                <td class="py-4 px-4 text-xs align-top max-w-[200px] whitespace-normal break-words leading-relaxed">${uraianTeks}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)] z-10 border-l border-slate-100">
@@ -533,7 +534,13 @@ function hapusDataAkun(index) {
 function bukaModalSuperAdmin() { const profileDd = document.getElementById('profileDropdown'); if(profileDd) profileDd.classList.add('hidden'); renderTabelAkunAdmin(); switchTabAdmin('pptk'); openModal('modalSuperAdmin'); }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-function showToast(msg) { const toast = document.getElementById('toast'); document.getElementById('toastMessage').innerText = msg; toast.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500); }
+// TOAST DIUBAH AGAR MUNCUL DARI ATAS (Karena kita naikin lokasinya)
+function showToast(msg) { 
+    const toast = document.getElementById('toast'); 
+    document.getElementById('toastMessage').innerText = msg; 
+    toast.classList.remove('-translate-y-20', 'opacity-0'); 
+    setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 3500); 
+}
 
 function jadikanLink(textUrl, idItem) {
     if (!textUrl || textUrl === "-") {
@@ -546,9 +553,15 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    let textUraian = String(item.uraian || '-');
+    // PERUBAHAN URUTAN URAIAN (CV -> Tahap -> Uraian)
+    let textUraian = `<div class="font-medium text-slate-700 mt-2 pt-2 border-t border-slate-200">${String(item.uraian || '-')}</div>`;
     if (String(item.jenisSurat) === 'LS' && item.namaCv) {
-        textUraian += `<div class="mt-2 pt-2 border-t border-slate-200 text-xs"><span class="font-bold text-purple-800">Penyedia / CV:</span> ${item.namaCv} <br><span class="font-bold text-purple-800">Tahap:</span> ${item.tahap || '-'}</div>`;
+        textUraian = `<div class="text-xs">
+                        <span class="font-bold text-purple-800">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span><br>
+                        <span class="font-bold text-purple-800">Tahap:</span> <span class="text-slate-500">${item.tahap || '-'}</span>
+                      </div>` + textUraian;
+    } else {
+        textUraian = `<div class="font-medium text-slate-700">${String(item.uraian || '-')}</div>`; // Untuk GU, langsung uraian
     }
     document.getElementById('detailUraian').innerHTML = textUraian;
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
@@ -611,10 +624,12 @@ function bukaModalVerifikasi(id) {
     } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
     logHtml += '</div>'; document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
+    // KEMBALIKAN POSISI SEMULA (DI HIDE DULU)
     document.getElementById('revisiContainer').classList.add('hidden'); 
     document.getElementById('pindahbukuContainer').classList.add('hidden'); 
     document.getElementById('confirmActionContainer').classList.add('hidden'); 
     document.getElementById('panelPptkRevisi').classList.add('hidden');
+    document.getElementById('catatanRevisiInput').value = ""; // Kosongkan text area
 
     if (sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); 
@@ -677,9 +692,12 @@ function toggleActionForm(type) {
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.remove('hidden');
     if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
+    
+    // Auto scroll ke bawah agar form konfirmasi terlihat
+    const modalContent = document.getElementById('modalVerify');
+    modalContent.scrollTo({ top: modalContent.scrollHeight, behavior: 'smooth' });
 }
 
-// FUNGSI UPDATE STATUS YANG SUDAH DIOPTIMALKAN (Duplikasi dibuang)
 function prosesUpdateStatusAksi() {
     let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
     if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') { payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; } } 
@@ -694,24 +712,17 @@ function prosesUpdateStatusAksi() {
         if(res.status === 'success') { 
             showToast(`Sukses memperbarui status.`); 
             document.getElementById('confirmActionContainer').classList.add('hidden'); 
-            
-            // Tarik ulang data dan otomatis muat ulang isi popup (tanpa ditutup)
-            tarikDataDariServer().then(() => {
-                bukaModalVerifikasi(activeSelectedId); 
-            });
+            tarikDataDariServer().then(() => { bukaModalVerifikasi(activeSelectedId); });
         } 
         else { alert("GAGAL UPDATE:\n" + res.message); }
     })
     .catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); })
-    .finally(() => { 
-        if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } 
-    });
+    .finally(() => { if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } });
 }
 
-// KIRIM EMAIL MANUAL
+// KIRIM EMAIL TANPA CONFIRM POP-UP LAGI
 function kirimEmailManual() {
     if(!activeSelectedId) return;
-    if(!confirm("Kirim ulang notifikasi status terakhir ke email PPTK?")) return;
     
     const btn = document.getElementById('btnSendEmailManual');
     if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...'; btn.disabled = true; }
