@@ -178,7 +178,6 @@ function setJenisTampilan(jenis) {
         if (!activeEl.querySelector('.indicator-dot')) { const dot = document.createElement('div'); dot.className = 'w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot'; activeEl.appendChild(dot); }
     }
     
-    // PERBAIKAN: Check if element exists before modifying
     const title = document.getElementById('page-title'); 
     const breadcrumb = document.getElementById('breadcrumb-text'); 
     const tbTitle = document.getElementById('tabel-judul-jenis');
@@ -205,8 +204,28 @@ function setJenisTampilan(jenis) {
 }
 
 function ubahLabelNpdKontrak() {
-    const jenis = document.getElementById('inputJenisSurat').value; const label = document.getElementById('label-npd-kontrak'); const input = document.getElementById('inputNpd');
-    if (jenis === 'LS') { label.innerText = 'Nomor Kontrak / SPK'; input.placeholder = 'Cth: 027/01/SPK/2026'; } else { label.innerText = 'Nomor NPD'; input.placeholder = 'Cth: 001/NPD/2026'; }
+    const jenis = document.getElementById('inputJenisSurat').value; 
+    const labelNpd = document.getElementById('label-npd-kontrak'); 
+    const inputNpd = document.getElementById('inputNpd');
+    
+    // DOM Element Tambahan Untuk LS
+    const labelUraian = document.getElementById('label-uraian');
+    const boxCv = document.getElementById('box-cv');
+    const boxTahap = document.getElementById('box-tahap');
+    
+    if (jenis === 'LS') { 
+        labelNpd.innerText = 'Nomor Kontrak / SPK'; 
+        inputNpd.placeholder = 'Cth: 027/01/SPK/2026'; 
+        if(labelUraian) labelUraian.innerHTML = 'Nama Pekerjaan <span class="text-red-500">*</span>';
+        if(boxCv) boxCv.classList.remove('hidden');
+        if(boxTahap) boxTahap.classList.remove('hidden');
+    } else { 
+        labelNpd.innerText = 'Nomor NPD'; 
+        inputNpd.placeholder = 'Cth: 001/NPD/2026'; 
+        if(labelUraian) labelUraian.innerHTML = 'Uraian / Deskripsi SPJ <span class="text-red-500">*</span>';
+        if(boxCv) boxCv.classList.add('hidden');
+        if(boxTahap) boxTahap.classList.add('hidden');
+    }
 }
 
 function kirimPengajuanSpjBaru(e) {
@@ -222,13 +241,19 @@ function kirimPengajuanSpjBaru(e) {
     const idSistem = isEditMode ? editIdTarget : generatedId; 
     const actionType = isEditMode ? 'update_data_teks' : 'create';
 
+    const inputCv = document.getElementById('inputCv');
+    const inputTahap = document.getElementById('inputTahap');
+
     const payload = {
         action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
         jenisSurat: document.getElementById('inputJenisSurat').value, pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
         subKegiatan: document.getElementById('inputSubkegiatan').value, nominal: document.getElementById('inputNominal').value, 
-        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value, status: 'BELUM_DIPROSES'
+        uraian: document.getElementById('inputUraian').value, wa: document.getElementById('inputWa').value,
+        namaCv: inputCv ? inputCv.value : "",
+        tahap: inputTahap ? inputTahap.value : "",
+        status: 'BELUM_DIPROSES'
     };
 
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
@@ -245,21 +270,16 @@ function kirimPengajuanSpjBaru(e) {
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
                     
                     if (payload.jenisSurat === 'LS') {
-                        // PERBAIKAN: Hitung jumlah LS yang ada di database ditambah 1 (agar urut dari 0001)
                         const jumlahLSSaatIni = spjData.filter(item => String(item.jenisSurat) === 'LS').length;
                         const noUrut = 'LS-' + String(jumlahLSSaatIni + 1).padStart(4, '0');
-                        
-                        // Hindari error syntax JS saat memasukkan string panjang dengan kutip
-                        const safeUraian = payload.uraian.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                         const safeNpd = payload.npd.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                        const safePptk = payload.pptk.replace(/'/g, "\\'").replace(/"/g, "&quot;");
                         
                         divSukses.innerHTML = `
                             <div class="text-4xl text-purple-500 mb-2"><i class="fa-solid fa-file-invoice"></i></div><h3 class="text-lg font-bold text-slate-800">Pengajuan LS Berhasil Disimpan!</h3>
                             <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg my-4 text-center mx-auto max-w-sm"><p class="text-xs text-purple-600 font-bold mb-1">NOMOR URUT / ANTREAN LS ANDA</p><h2 class="text-3xl font-black text-purple-800 tracking-widest">${noUrut}</h2></div>
                             <p class="text-sm text-slate-600 mb-4 font-medium">Harap Lanjut Klik Tombol Upload Berkas: Kwitansi & Berkas Pencairan.</p>
                             <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md mb-3"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a><br>
-                            <button onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${payload.nominal}', '${safePptk}', '${safeUraian}')" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold transition-colors"><i class="fa-solid fa-print"></i> Unduh / Cetak Bukti Antrean LS</button>
+                            <button onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${payload.createdAt}')" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold transition-colors"><i class="fa-solid fa-print"></i> Unduh / Cetak Bukti Antrean LS</button>
                         `;
                     } else {
                         divSukses.innerHTML = `
@@ -275,10 +295,40 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// PERBAIKAN: Menambahkan argumen ke-5 (uraian) untuk dicetak pada dokumen
-function cetakNomorUrut(noUrut, npd, nominal, pptk, uraian) {
+// FORMAT BARU CETAK TANDA TERIMA ANTREAN LS
+function cetakNomorUrut(noUrut, npd, tglUpload) {
     const printWindow = window.open('', '_blank', 'width=450,height=600');
-    printWindow.document.write(`<html><head><title>Bukti Antrean LS</title><style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head><body><h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2><p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p><hr><p style="font-size:12px;">Nama PPTK:</p><p><b>${pptk}</b></p><br><p style="font-size:12px;">Nomor Kontrak / SPK:</p><p><b>${npd}</b></p><br><p style="font-size:12px;">Uraian Pekerjaan:</p><p><b>${uraian}</b></p><br><p style="font-size:12px;">Nominal:</p><p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p><h1>${noUrut}</h1><hr><p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti penginputan pada sistem ERP SPJ.</p><script>window.print();<\/script></body></html>`);
+    printWindow.document.write(`
+        <html><head><title>Bukti Antrean LS</title>
+        <style>
+            body{font-family:sans-serif; text-align:center; padding:30px; color:#333;}
+            h2{margin-bottom:10px; text-transform:uppercase; font-size:20px; font-weight:900; letter-spacing:1px;}
+            h1{font-size:55px; margin:10px 0; border:2px dashed #000; padding:15px; background:#f8f9fa; letter-spacing:2px;}
+            p{margin:5px 0; font-size:14px; color:#444;}
+            .table-box { width: 100%; border-collapse: collapse; margin-top: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.05);}
+            .table-box th, .table-box td { border: 1px solid #000; padding: 12px; text-align:center; }
+            .table-box th { background-color: #f1f5f9; text-transform: uppercase; letter-spacing:1px;}
+        </style></head><body>
+            <h2>Tanda Terima Antrean LS</h2>
+            <h1>${noUrut}</h1>
+            <p style="margin-top:15px; font-size: 13px;">Nomor Kontrak:</p>
+            <p><b>${npd}</b></p>
+            <p style="margin-top:10px; font-size: 13px;">Tanggal Upload:</p>
+            <p><b>${tglUpload}</b></p>
+
+            <table class="table-box">
+                <thead>
+                    <tr><th colspan="2" style="font-size: 16px;">DISETUJUI</th></tr>
+                    <tr><th width="50%" style="font-size: 12px;">TANGGAL</th><th width="50%" style="font-size: 12px;">PARAF</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td style="height: 80px;"></td><td></td></tr>
+                </tbody>
+            </table>
+            
+            <script>setTimeout(function(){ window.print(); }, 500);<\/script>
+        </body></html>
+    `);
     printWindow.document.close();
 }
 
@@ -453,21 +503,18 @@ function bukaModalVerifikasi(id) {
     
     document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
 
-    // PERBAIKAN: Bersihkan tombol cetak lama jika masih ada
     let btnCetakEksis = document.getElementById('btnPrintAntrean');
     if(btnCetakEksis) btnCetakEksis.remove();
 
-    // PERBAIKAN: Ciptakan ulang tombol cetak nomor antrean untuk SPJ LS
     if (String(item.jenisSurat) === 'LS') {
         const allLS = [...spjData].reverse().filter(i => String(i.jenisSurat) === 'LS');
         const idx = allLS.findIndex(i => String(i.id) === String(item.id)) + 1;
         const noUrut = 'LS-' + String(idx).padStart(4, '0');
         
-        const safeUraian = String(item.uraian || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
         const safeNpd = String(item.npd || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const safePptk = String(item.pptk || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const tgl = String(item.createdAt || '-').split('T')[0];
         
-        const btnHtml = `<button id="btnPrintAntrean" onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${item.nominal}', '${safePptk}', '${safeUraian}')" class="mt-3 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded text-[11px] font-bold shadow-sm flex items-center gap-2 transition-colors w-full justify-center"><i class="fa-solid fa-print"></i> Cetak Ulang Antrean (${noUrut})</button>`;
+        const btnHtml = `<button id="btnPrintAntrean" onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${tgl}')" class="mt-3 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded text-[11px] font-bold shadow-sm flex items-center gap-2 transition-colors w-full justify-center"><i class="fa-solid fa-print"></i> Cetak Ulang Antrean (${noUrut})</button>`;
         
         document.getElementById('detailNominal').insertAdjacentHTML('afterend', btnHtml);
     }
