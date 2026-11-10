@@ -104,9 +104,10 @@ function isiDropdownPptkUtama() {
     }
 }
 
+// PERBAIKAN 4: Menjadikan tarikDataDariServer sebagai PROMISE
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
-    fetch(CONFIG.APPS_SCRIPT_URL)
+    return fetch(CONFIG.APPS_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
             if (data.status === 'error') { alert("Gagal mengambil data dari Google Sheets."); return; }
@@ -117,6 +118,7 @@ function tarikDataDariServer() {
             renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
             const tbAkun = document.getElementById('tabelAkunBody'); if(tbAkun && tbAkun.innerHTML !== '') renderTabelAkunAdmin();
         })
+        .catch(e => console.error(e))
         .finally(() => { document.getElementById('refresh-icon').classList.remove('animate-spin'); });
 }
 
@@ -230,8 +232,8 @@ function ubahLabelNpdKontrak() {
 function kirimPengajuanSpjBaru(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitNew'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...'; btn.disabled = true;
-    const rawDate = document.getElementById('inputTanggal').value; const [y, m, d] = rawDate.split('-');
     
+    const rawDate = document.getElementById('inputTanggal').value; 
     let generatedId = "";
     if (!isEditMode) {
         const now = new Date();
@@ -244,7 +246,7 @@ function kirimPengajuanSpjBaru(e) {
     const inputTahap = document.getElementById('inputTahap');
 
     const payload = {
-        action: actionType, id: idSistem, createdAt: `${d}/${m}/${y}`, username: sesiAktif.namaLengkap,
+        action: actionType, id: idSistem, createdAt: rawDate, username: sesiAktif.namaLengkap,
         jenisSurat: document.getElementById('inputJenisSurat').value, pptk: document.getElementById('inputPptk').value, emailPptk: document.getElementById('inputEmail').value, 
         unitKerja: document.getElementById('inputUnitKerja').value, npd: document.getElementById('inputNpd').value, 
         program: document.getElementById('inputProgram').value, kegiatan: document.getElementById('inputKegiatan').value, 
@@ -294,7 +296,6 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// CETAK HITAM PUTIH (DUAL RANGKAP SESUAI TEMPLATE WORD)
 function cetakNomorUrut(noUrut, npd, tglUpload) {
     const printWindow = window.open('', '_blank', 'width=550,height=750');
     const itemCardHtml = `
@@ -305,25 +306,31 @@ function cetakNomorUrut(noUrut, npd, tglUpload) {
             </div>
             <div class="section-title">NOMOR ANTREAN</div>
             <div class="number-box">${noUrut}</div>
-            <div class="info-grid">
-                <div>
-                    <div class="section-title">NOMOR KONTRAK</div>
-                    <div class="info-val">${npd}</div>
+            
+            <div class="content-wrapper">
+                <div class="info-side">
+                    <div class="info-group">
+                        <div class="section-title">NOMOR KONTRAK</div>
+                        <div class="info-val">${npd}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="section-title">TANGGAL UPLOAD</div>
+                        <div class="info-val">${tglUpload}</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="section-title">TANGGAL UPLOAD</div>
-                    <div class="info-val">${tglUpload}</div>
+                
+                <div class="sign-side">
+                    <table class="para-table">
+                        <thead>
+                            <tr><th colspan="2">DISETUJUI</th></tr>
+                            <tr><th width="40%">TANGGAL</th><th width="60%">PARAF</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td height="55"></td><td></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <table class="para-table">
-                <thead>
-                    <tr><th colspan="2">DISETUJUI</th></tr>
-                    <tr><th width="50%">TANGGAL</th><th width="50%">PARAF</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td height="55"></td><td></td></tr>
-                </tbody>
-            </table>
         </div>
     `;
 
@@ -341,11 +348,17 @@ function cetakNomorUrut(noUrut, npd, tglUpload) {
             .sub { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #333; }
             .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; color: #222; }
             .number-box { font-size: 42px; font-weight: 900; text-align: center; border: 2px solid #000; padding: 8px; margin-bottom: 14px; letter-spacing: 2px; }
-            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 14px; }
+            
+            .content-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; }
+            .info-side { flex: 1; padding-right: 20px; }
+            .info-group { margin-bottom: 12px; }
             .info-val { font-size: 13px; font-weight: bold; word-break: break-word; }
-            .para-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+            
+            .sign-side { width: 220px; }
+            .para-table { width: 100%; border-collapse: collapse; }
             .para-table th, .para-table td { border: 1px solid #000; padding: 6px; text-align: center; }
             .para-table th { font-size: 11px; font-weight: 800; background: #fff; }
+            
             .cut-line { text-align: center; border-bottom: 2px dashed #000; line-height: 0.1em; margin: 30px 0 35px 0; font-size: 11px; font-weight: bold; text-transform: uppercase; }
             .cut-line span { background: #fff; padding: 0 15px; }
         </style></head><body>
@@ -386,13 +399,26 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
+        let extraLsInfo = "";
+        if (jenisSurat === 'LS' && item.namaCv) {
+            extraLsInfo = `<div class="mt-1 pt-1 border-t border-slate-100 text-[10px]">
+                            <span class="font-bold text-purple-700">CV:</span> <span class="text-slate-500">${item.namaCv}</span><br>
+                            <span class="font-bold text-purple-700">Tahap:</span> <span class="text-slate-500">${item.tahap || '-'}</span>
+                           </div>`;
+        }
+
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
                 <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
                 ${tdJenisHtml}
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px] whitespace-normal break-words"><span class="font-bold text-slate-800">${String(item.program || '-')}</span><br><span class="text-slate-500">${String(item.kegiatan || '-')}</span><br><span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span></td>
+                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px] whitespace-normal break-words">
+                    <span class="font-bold text-slate-800">${String(item.program || '-')}</span><br>
+                    <span class="text-slate-500">${String(item.kegiatan || '-')}</span><br>
+                    <span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span>
+                    ${extraLsInfo}
+                </td>
                 <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
@@ -585,24 +611,29 @@ function bukaModalVerifikasi(id) {
     } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
     logHtml += '</div>'; document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
-    document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.add('hidden'); document.getElementById('panelPptkRevisi').classList.add('hidden');
+    document.getElementById('revisiContainer').classList.add('hidden'); 
+    document.getElementById('pindahbukuContainer').classList.add('hidden'); 
+    document.getElementById('confirmActionContainer').classList.add('hidden'); 
+    document.getElementById('panelPptkRevisi').classList.add('hidden');
 
     if (sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN') {
-        document.getElementById('panelAksiVerifikator').classList.remove('hidden'); document.getElementById('waContainer').classList.remove('hidden'); document.getElementById('waContainer').classList.add('flex');
+        document.getElementById('panelAksiVerifikator').classList.remove('hidden'); 
+        
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`; if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
-        document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
-    } else {
-        document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden'); document.getElementById('waContainer').classList.remove('flex');
         
-        // PENGATURAN TAMPILAN PPTK: Tombol Upload & Edit Data Teks
+        const btnSendWa = document.getElementById('btnSendWa');
+        if (btnSendWa) btnSendWa.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
+        
+    } else {
+        document.getElementById('panelAksiVerifikator').classList.add('hidden'); 
+        
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
             if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks atau mengunggah ulang berkas.";
             if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
             document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${item.id}`;
             
-            // TAMBAHAN: Menambahkan Tombol Edit Data Teks bagi PPTK
             let existingEditBtnPptk = document.getElementById('btnEditDataPptk');
             if(existingEditBtnPptk) existingEditBtnPptk.remove();
             
@@ -618,7 +649,13 @@ function bukaFormEdit() {
     isEditMode = true; editIdTarget = item.id;
     const existingSukses = document.getElementById('pesanSuksesDiv'); if(existingSukses) existingSukses.remove();
     document.getElementById('formNewSpj').classList.remove('hidden');
-    try { const parts = String(item.createdAt).split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } catch(e){}
+    
+    try { 
+        let rawTgl = String(item.createdAt || '').split('T')[0]; 
+        if (rawTgl.includes('/')) { let parts = rawTgl.split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } 
+        else { document.getElementById('inputTanggal').value = rawTgl; }
+    } catch(e){}
+
     document.getElementById('inputJenisSurat').value = item.jenisSurat || 'GU'; ubahLabelNpdKontrak();
     document.getElementById('inputNpd').value = item.npd; document.getElementById('inputPptk').value = item.pptk;
     document.getElementById('inputUnitKerja').value = item.unitKerja; document.getElementById('inputEmail').value = item.emailPptk; document.getElementById('inputWa').value = item.wa;
@@ -626,10 +663,8 @@ function bukaFormEdit() {
     document.getElementById('inputNominal').value = item.nominal; document.getElementById('inputUraian').value = item.uraian;
     
     if (item.jenisSurat === 'LS') {
-        const inputCv = document.getElementById('inputCv');
-        const inputTahap = document.getElementById('inputTahap');
-        if(inputCv) inputCv.value = item.namaCv || "";
-        if(inputTahap) inputTahap.value = item.tahap || "UM";
+        const inputCv = document.getElementById('inputCv'); const inputTahap = document.getElementById('inputTahap');
+        if(inputCv) inputCv.value = item.namaCv || ""; if(inputTahap) inputTahap.value = item.tahap || "UM";
     }
     
     document.getElementById('btnSubmitNew').innerText = "Simpan Perubahan (Edit)";
@@ -643,17 +678,55 @@ function toggleActionForm(type) {
     if(type === 'REVISI' || type === 'DITOLAK') document.getElementById('revisiContainer').classList.remove('hidden');
     if(type === 'SUDAH DIPINDAHBUKUKAN') document.getElementById('pindahbukuContainer').classList.remove('hidden');
 }
+
+// PERBAIKAN 4: Auto-refresh data di modal setelah status disimpan
 function prosesUpdateStatusAksi() {
     let payload = { action: 'update_status', id: activeSelectedId, status: pendingStatusChange, username: sesiAktif.namaLengkap, noPb: '', tglPb: '', catatanRevisi: '', buktiPb: '' };
     if (pendingStatusChange === 'REVISI' || pendingStatusChange === 'DITOLAK') { payload.catatanRevisi = document.getElementById('catatanRevisiInput').value; if(!payload.catatanRevisi) { alert('Catatan wajib diisi!'); return; } } 
     else if (pendingStatusChange === 'SUDAH DIPINDAHBUKUKAN') { payload.noPb = document.getElementById('noPbInput').value; payload.tglPb = document.getElementById('tglPbInput').value; payload.buktiPb = document.getElementById('buktiPbInput').value; if(!payload.noPb || !payload.tglPb) { alert('No PB & Tgl wajib diisi!'); return; } }
-    const btn = document.getElementById('btnConfirmAction'); if (btn) { btn.innerText = 'MEMPROSES...'; btn.disabled = true; }
+    
+    const btn = document.getElementById('btnConfirmAction'); 
+    if (btn) { btn.innerText = 'MEMPROSES...'; btn.disabled = true; }
+    
     fetch(CONFIG.APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
     .then(res => res.json())
     .then(res => {
-        if(res.status === 'success') { showToast(`Sukses memperbarui status.`); tarikDataDariServer(); document.getElementById('confirmActionContainer').classList.add('hidden'); bukaModalVerifikasi(activeSelectedId); } 
+        if(res.status === 'success') { 
+            showToast(`Sukses memperbarui status.`); 
+            document.getElementById('confirmActionContainer').classList.add('hidden'); 
+            
+            // Tarik ulang data dan otomatis muat ulang isi popup (tanpa ditutup)
+            tarikDataDariServer().then(() => {
+                bukaModalVerifikasi(activeSelectedId); 
+            });
+        } 
         else { alert("GAGAL UPDATE:\n" + res.message); }
     })
     .catch(err => { alert("KONEKSI TERPUTUS:\n" + err.message); })
-    .finally(() => { if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } });
+    .finally(() => { 
+        if (btn) { btn.innerText = 'Simpan Keputusan'; btn.disabled = false; } 
+    });
+}
+
+// KIRIM EMAIL MANUAL
+function kirimEmailManual() {
+    if(!activeSelectedId) return;
+    if(!confirm("Kirim ulang notifikasi status terakhir ke email PPTK?")) return;
+    
+    const btn = document.getElementById('btnSendEmailManual');
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...'; btn.disabled = true; }
+
+    fetch(CONFIG.APPS_SCRIPT_URL, { 
+        method: 'POST', 
+        body: JSON.stringify({ action: 'resend_email', id: activeSelectedId }) 
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.status === 'success') { showToast("Email Notifikasi Berhasil Terkirim!"); }
+        else { alert("Gagal kirim email: " + (res.message || "Email PPTK tidak valid")); }
+    })
+    .catch(err => alert("Koneksi gagal saat mengirim email."))
+    .finally(() => { 
+        if(btn) { btn.innerHTML = '<i class="fa-solid fa-envelope"></i> KIRIM NOTIFIKASI EMAIL KE PPTK'; btn.disabled = false; } 
+    });
 }
