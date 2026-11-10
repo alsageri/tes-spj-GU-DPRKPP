@@ -33,7 +33,6 @@ function checkLogin() {
     }
 }
 
-// FUNGSI UNTUK IKON MATA PASSWORD
 function togglePassword() {
     const passwordInput = document.getElementById('password-input');
     const eyeIcon = document.getElementById('eye-icon');
@@ -48,14 +47,57 @@ function togglePassword() {
     }
 }
 
+// LOGIKA DROPDOWN PROFIL
+function toggleProfileMenu() {
+    const dd = document.getElementById('profileDropdown');
+    if(dd.classList.contains('hidden')) {
+        dd.classList.remove('hidden');
+        // Tambahkan efek fade-in kecil jika diperlukan
+    } else {
+        dd.classList.add('hidden');
+    }
+}
+
+// Menutup dropdown jika user klik di luar area dropdown
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('profileDropdown');
+    if (!dropdown) return;
+    const profileBtn = dropdown.previousElementSibling;
+    if (!dropdown.contains(event.target) && !profileBtn.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
 function masukSistem() {
-    document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('login-screen').style.display = 'none'; 
+    document.getElementById('main-app').style.display = 'flex';
+    
+    // Set Header Kiri Atas
     document.getElementById('role-badge').innerText = sesiAktif.role; 
     document.getElementById('user-display').innerText = sesiAktif.namaLengkap;
     
-    // --> TAMBAHKAN BARIS INI UNTUK UPDATE JABATAN DI HEADER <--
     const jabatanHeader = document.getElementById('jabatan-header-text');
     if(jabatanHeader) jabatanHeader.innerText = sesiAktif.role; 
+
+    // Set Data di Dalam Dropdown Kanan Atas
+    const ddNama = document.getElementById('dd-nama');
+    if(ddNama) ddNama.innerText = sesiAktif.namaLengkap;
+    const ddRole = document.getElementById('dd-role');
+    if(ddRole) ddRole.innerText = sesiAktif.role;
+
+    // LOGIKA TAMPILKAN MENU SUPER ADMIN
+    const menuSuper = document.getElementById('menuSuperAdmin');
+    if (sesiAktif.role === 'SUPER_ADMIN') {
+        if(menuSuper) {
+            menuSuper.classList.remove('hidden');
+            menuSuper.classList.add('flex');
+        }
+    } else {
+        if(menuSuper) {
+            menuSuper.classList.add('hidden');
+            menuSuper.classList.remove('flex');
+        }
+    }
     
     tarikDataDariServer();
 }
@@ -217,9 +259,6 @@ function prosesUpdateStatusAksi() {
 
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
-// ==========================================
-// PAGINATION LOGIC
-// ==========================================
 function gantiPageSize() {
     rowsPerPage = parseInt(document.getElementById('selectPageSize').value);
     currentPage = 1; 
@@ -300,6 +339,12 @@ function openModal(id) {
     document.getElementById(id).classList.remove('hidden'); 
 }
 
+// BUKA MODAL SUPER ADMIN
+function bukaModalSuperAdmin() {
+    document.getElementById('profileDropdown').classList.add('hidden'); // Tutup pop-up
+    openModal('modalSuperAdmin');
+}
+
 function bukaFormSpjBaru() {
     isEditMode = false;
     editIdTarget = null;
@@ -325,7 +370,6 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    // ISI HEADER MODAL
     document.getElementById('detailUraian').innerText = String(item.uraian || '-');
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
@@ -345,7 +389,6 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER RIWAYAT 
     let logHtml = '<div class="relative border-l-2 border-slate-100 ml-2 mt-3 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     
@@ -354,14 +397,10 @@ function bukaModalVerifikasi(id) {
         safeRiwayat.split('\n').forEach(line => {
             let trimmed = line.trim();
             if (!trimmed) return;
-            if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) {
-                logEntries.push(trimmed);
-            } else {
-                if (logEntries.length > 0) {
-                    logEntries[logEntries.length - 1] += '<br>' + trimmed;
-                } else {
-                    logEntries.push(trimmed);
-                }
+            if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) { logEntries.push(trimmed); } 
+            else {
+                if (logEntries.length > 0) { logEntries[logEntries.length - 1] += '<br>' + trimmed; } 
+                else { logEntries.push(trimmed); }
             }
         });
 
@@ -371,9 +410,7 @@ function bukaModalVerifikasi(id) {
 
             let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
             if (match) {
-                let tanggal = match[1];
-                let isiHtml = match[2];
-                
+                let tanggal = match[1]; let isiHtml = match[2];
                 if (isiHtml.includes('- Catatan:')) {
                     let parts = isiHtml.split('- Catatan:');
                     let isiCatatan = parts[1].trim();
@@ -383,11 +420,9 @@ function bukaModalVerifikasi(id) {
                                </div>`;
                     dotColor = 'bg-amber-500 ring-amber-100';
                 } else if (isiHtml.includes('REVISI') || isiHtml.includes('DITOLAK')) {
-                    dotColor = 'bg-amber-500 ring-amber-100';
-                    isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
+                    dotColor = 'bg-amber-500 ring-amber-100'; isiHtml = `<span class="text-amber-700 font-semibold">${isiHtml}</span>`;
                 } else if (isiHtml.includes('DISETUJUI') || isiHtml.includes('SELESAI')) {
-                    dotColor = 'bg-emerald-500 ring-emerald-100';
-                    isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
+                    dotColor = 'bg-emerald-500 ring-emerald-100'; isiHtml = `<span class="text-emerald-700 font-semibold">${isiHtml}</span>`;
                 } else {
                     isiHtml = `<span class="text-slate-600">${isiHtml}</span>`;
                 }
@@ -396,12 +431,7 @@ function bukaModalVerifikasi(id) {
                 innerHtml = `<span class="text-slate-500 italic block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`;
                 dotColor = 'bg-transparent ring-transparent'; 
             }
-
-            logHtml += `
-            <div class="relative pl-5 mb-4">
-                <div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
-                <div class="text-[11px] leading-relaxed">${innerHtml}</div>
-            </div>`; 
+            logHtml += `<div class="relative pl-5 mb-4"><div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div><div class="text-[11px] leading-relaxed">${innerHtml}</div></div>`; 
         }); 
     } else {
         logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-200 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`;
@@ -411,14 +441,13 @@ function bukaModalVerifikasi(id) {
     
     document.getElementById('revisiContainer').classList.add('hidden'); document.getElementById('pindahbukuContainer').classList.add('hidden'); document.getElementById('confirmActionContainer').classList.add('hidden'); document.getElementById('panelPptkRevisi').classList.add('hidden');
 
-    if (sesiAktif.role === 'VERIFIKATOR') {
+    if (sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN') {
         document.getElementById('panelAksiVerifikator').classList.remove('hidden'); 
         document.getElementById('waContainer').classList.remove('hidden');
         document.getElementById('waContainer').classList.add('flex');
         
         let cleanPhone = String(item.wa || '').replace(/[^0-9]/g, ''); 
         if (cleanPhone.startsWith('0')) { cleanPhone = '62' + cleanPhone.slice(1); } else if (cleanPhone.startsWith('8')) { cleanPhone = '62' + cleanPhone; }        
-        
         let waText = `Yth. PPTK,\nUpdate SPJ (NPD: ${item.npd}):\n*Status: ${item.status}*\n`;
         if(item.status === 'REVISI' || item.status === 'DITOLAK') waText += `Catatan:\n${String(item.catatanRevisi).replace(/<br>/g, '\n')}\n`;
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
@@ -434,16 +463,13 @@ function bukaModalVerifikasi(id) {
                 let originalHtml = this.innerHTML;
                 this.innerHTML = '<i class="fa-solid fa-check text-sm"></i> Draft Terbuka!';
                 this.classList.replace('bg-blue-600', 'bg-emerald-600');
-                this.classList.replace('hover:bg-blue-700', 'hover:bg-emerald-700');
                 showToast('Aplikasi Email dibuka.');
                 setTimeout(() => {
                     this.innerHTML = originalHtml;
                     this.classList.replace('bg-emerald-600', 'bg-blue-600');
-                    this.classList.replace('hover:bg-emerald-700', 'hover:bg-blue-700');
                 }, 3000);
             };
         }
-    
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); 
         document.getElementById('waContainer').classList.add('hidden');
@@ -483,9 +509,7 @@ function bukaFormEdit() {
     closeModal('modalVerify'); openModal('modalNewSpj');
 }
 
-// ==========================================
-// FITUR AUTO-NUMBERING PADA TEXTAREA REVISI
-// ==========================================
+// Auto-numbering Textarea Revisi
 document.addEventListener('DOMContentLoaded', function() {
     const textarea = document.getElementById('catatanRevisiInput');
     if (textarea) {
@@ -493,16 +517,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 const cursorPos = this.selectionStart;
                 const textBeforeCursor = this.value.substring(0, cursorPos);
-                
                 const lines = textBeforeCursor.split('\n');
                 const lastLine = lines[lines.length - 1];
                 const match = lastLine.match(/^(\d+)\.\s/);
-                
                 if (match) {
                     e.preventDefault();
                     if (lastLine.trim() === `${match[1]}.`) {
-                        this.value = textBeforeCursor.substring(0, textBeforeCursor.lastIndexOf(lastLine)) + 
-                                     this.value.substring(this.selectionEnd);
+                        this.value = textBeforeCursor.substring(0, textBeforeCursor.lastIndexOf(lastLine)) + this.value.substring(this.selectionEnd);
                         return;
                     }
                     const nextNum = parseInt(match[1]) + 1;
