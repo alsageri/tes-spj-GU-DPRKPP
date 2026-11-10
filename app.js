@@ -177,21 +177,30 @@ function setJenisTampilan(jenis) {
         const icon = activeEl.querySelector('.menu-icon'); if(icon) icon.classList.replace('text-slate-400', 'text-emerald-500');
         if (!activeEl.querySelector('.indicator-dot')) { const dot = document.createElement('div'); dot.className = 'w-1.5 h-1.5 bg-emerald-500 rounded-full indicator-dot'; activeEl.appendChild(dot); }
     }
-    const title = document.getElementById('page-title'); const breadcrumb = document.getElementById('breadcrumb-text'); const tbTitle = document.getElementById('tabel-judul-jenis');
+    
+    // PERBAIKAN: Check if element exists before modifying
+    const title = document.getElementById('page-title'); 
+    const breadcrumb = document.getElementById('breadcrumb-text'); 
+    const tbTitle = document.getElementById('tabel-judul-jenis');
+    
     if (jenis === 'ALL') { 
-    if (title) title.innerText = 'Dashboard Utama'; 
-    if (breadcrumb) breadcrumb.innerText = 'Dashboard Semua'; 
-    if (tbTitle) tbTitle.innerText = 'GU & LS'; 
-} else if (jenis === 'GU') { 
-    if (title) title.innerText = 'Data SPJ Ganti Uang (GU)'; 
-    if (breadcrumb) breadcrumb.innerText = 'Data SPJ GU'; 
-    if (tbTitle) tbTitle.innerText = 'Ganti Uang (GU)'; 
-} else if (jenis === 'LS') { 
-    if (title) title.innerText = 'Data SPJ Langsung (LS)'; 
-    if (breadcrumb) breadcrumb.innerText = 'Data SPJ LS'; 
-    if (tbTitle) tbTitle.innerText = 'Langsung (LS)'; 
-}
-    const thJenis = document.getElementById('th-jenis'); if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } else { if(thJenis) thJenis.style.display = 'none'; }
+        if(title) title.innerText = 'Dashboard Utama'; 
+        if(breadcrumb) breadcrumb.innerText = 'Dashboard Semua'; 
+        if(tbTitle) tbTitle.innerText = 'GU & LS'; 
+    } else if (jenis === 'GU') { 
+        if(title) title.innerText = 'Data SPJ Ganti Uang (GU)'; 
+        if(breadcrumb) breadcrumb.innerText = 'Data SPJ GU'; 
+        if(tbTitle) tbTitle.innerText = 'Ganti Uang (GU)'; 
+    } else if (jenis === 'LS') { 
+        if(title) title.innerText = 'Data SPJ Langsung (LS)'; 
+        if(breadcrumb) breadcrumb.innerText = 'Data SPJ LS'; 
+        if(tbTitle) tbTitle.innerText = 'Langsung (LS)'; 
+    }
+    
+    const thJenis = document.getElementById('th-jenis'); 
+    if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } 
+    else { if(thJenis) thJenis.style.display = 'none'; }
+    
     renderTabelSpj();
 }
 
@@ -234,16 +243,23 @@ function kirimPengajuanSpjBaru(e) {
                 } else {
                     const formPrefilledUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`; 
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
+                    
                     if (payload.jenisSurat === 'LS') {
-                    // Menghitung jumlah dokumen LS yang sudah ada, ditambah 1
-                    const jumlahLSSaatIni = spjData.filter(item => String(item.jenisSurat) === 'LS').length;
-                    const noUrut = 'LS-' + String(jumlahLSSaatIni + 1).padStart(4, '0');
+                        // PERBAIKAN: Hitung jumlah LS yang ada di database ditambah 1 (agar urut dari 0001)
+                        const jumlahLSSaatIni = spjData.filter(item => String(item.jenisSurat) === 'LS').length;
+                        const noUrut = 'LS-' + String(jumlahLSSaatIni + 1).padStart(4, '0');
+                        
+                        // Hindari error syntax JS saat memasukkan string panjang dengan kutip
+                        const safeUraian = payload.uraian.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                        const safeNpd = payload.npd.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        const safePptk = payload.pptk.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        
                         divSukses.innerHTML = `
                             <div class="text-4xl text-purple-500 mb-2"><i class="fa-solid fa-file-invoice"></i></div><h3 class="text-lg font-bold text-slate-800">Pengajuan LS Berhasil Disimpan!</h3>
                             <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg my-4 text-center mx-auto max-w-sm"><p class="text-xs text-purple-600 font-bold mb-1">NOMOR URUT / ANTREAN LS ANDA</p><h2 class="text-3xl font-black text-purple-800 tracking-widest">${noUrut}</h2></div>
                             <p class="text-sm text-slate-600 mb-4 font-medium">Harap Lanjut Klik Tombol Upload Berkas: Kwitansi & Berkas Pencairan.</p>
                             <a href="${formPrefilledUrl}" target="_blank" onclick="closeModal('modalNewSpj'); tarikDataDariServer();" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md mb-3"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Lanjut Upload Berkas</a><br>
-                            <button onclick="cetakNomorUrut('${noUrut}', '${payload.npd}', '${payload.nominal}', '${payload.pptk}')" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold transition-colors"><i class="fa-solid fa-print"></i> Unduh / Cetak Bukti Antrean LS</button>
+                            <button onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${payload.nominal}', '${safePptk}', '${safeUraian}')" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold transition-colors"><i class="fa-solid fa-print"></i> Unduh / Cetak Bukti Antrean LS</button>
                         `;
                     } else {
                         divSukses.innerHTML = `
@@ -259,9 +275,10 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-function cetakNomorUrut(noUrut, npd, nominal, pptk) {
-    const printWindow = window.open('', '_blank', 'width=450,height=500');
-    printWindow.document.write(`<html><head><title>Bukti Antrean LS</title><style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head><body><h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2><p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p><hr><p style="font-size:12px;">Nama PPTK:</p><p><b>${pptk}</b></p><br><p style="font-size:12px;">Nomor Kontrak / SPK:</p><p><b>${npd}</b></p><br><p style="font-size:12px;">Nominal:</p><p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p><h1>${noUrut}</h1><hr><p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti penginputan pada sistem ERP SPJ.</p><script>window.print();<\/script></body></html>`);
+// PERBAIKAN: Menambahkan argumen ke-5 (uraian) untuk dicetak pada dokumen
+function cetakNomorUrut(noUrut, npd, nominal, pptk, uraian) {
+    const printWindow = window.open('', '_blank', 'width=450,height=600');
+    printWindow.document.write(`<html><head><title>Bukti Antrean LS</title><style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head><body><h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2><p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p><hr><p style="font-size:12px;">Nama PPTK:</p><p><b>${pptk}</b></p><br><p style="font-size:12px;">Nomor Kontrak / SPK:</p><p><b>${npd}</b></p><br><p style="font-size:12px;">Uraian Pekerjaan:</p><p><b>${uraian}</b></p><br><p style="font-size:12px;">Nominal:</p><p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p><h1>${noUrut}</h1><hr><p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti penginputan pada sistem ERP SPJ.</p><script>window.print();<\/script></body></html>`);
     printWindow.document.close();
 }
 
@@ -431,13 +448,29 @@ function bukaModalVerifikasi(id) {
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
     
-    // PERBAIKAN: Menambahkan kondisi if agar tidak crash jika elemen HTML tidak ada
     let elEmail = document.getElementById('detailEmailPptk');
-    if (elEmail) {
-        elEmail.innerText = String(item.emailPptk || "-");
-    }
+    if (elEmail) elEmail.innerText = String(item.emailPptk || "-");
     
     document.getElementById('detailNominal').innerText = formatRupiah(item.nominal || 0);
+
+    // PERBAIKAN: Bersihkan tombol cetak lama jika masih ada
+    let btnCetakEksis = document.getElementById('btnPrintAntrean');
+    if(btnCetakEksis) btnCetakEksis.remove();
+
+    // PERBAIKAN: Ciptakan ulang tombol cetak nomor antrean untuk SPJ LS
+    if (String(item.jenisSurat) === 'LS') {
+        const allLS = [...spjData].reverse().filter(i => String(i.jenisSurat) === 'LS');
+        const idx = allLS.findIndex(i => String(i.id) === String(item.id)) + 1;
+        const noUrut = 'LS-' + String(idx).padStart(4, '0');
+        
+        const safeUraian = String(item.uraian || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+        const safeNpd = String(item.npd || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const safePptk = String(item.pptk || '-').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        
+        const btnHtml = `<button id="btnPrintAntrean" onclick="cetakNomorUrut('${noUrut}', '${safeNpd}', '${item.nominal}', '${safePptk}', '${safeUraian}')" class="mt-3 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded text-[11px] font-bold shadow-sm flex items-center gap-2 transition-colors w-full justify-center"><i class="fa-solid fa-print"></i> Cetak Ulang Antrean (${noUrut})</button>`;
+        
+        document.getElementById('detailNominal').insertAdjacentHTML('afterend', btnHtml);
+    }
     
     const boxBerkas = document.getElementById('berkas-area-gu');
     if (String(item.jenisSurat) === 'LS') {
