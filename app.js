@@ -10,30 +10,35 @@ let currentPage = 1; let rowsPerPage = 10;
 let filterJenis = 'ALL'; 
 
 let editIndexAkun = -1; let editIndexPptk = -1;
-let paguEditType = null; // TAHUNAN atau TRIWULAN
+let paguEditType = null; 
 
-// 1. MEKANISME AUTO-SAVE LOCALSTORAGE TANPA DOWNLOAD
-// Sistem akan mengecek apakah browser punya data tersimpan. Jika tidak, pakai bawaan dari config.js
+// 1. MEKANISME AUTO-SAVE LOCALSTORAGE (DIPERBAIKI)
 function initLocalData() {
-    // Muat Database Akun
-    const savedAkun = localStorage.getItem("LOCAL_DATABASE_AKUN");
-    if (savedAkun) {
-        window.DATABASE_AKUN = JSON.parse(savedAkun);
-    } 
-    // Muat Pagu Tahunan
-    const savedPaguTahun = localStorage.getItem("LOCAL_PAGU_TAHUNAN");
-    if (savedPaguTahun) {
-        window.CONFIG.PAGU_TAHUNAN = Number(savedPaguTahun);
-    }
-    // Muat Pagu Triwulan
-    const savedPaguTriwulan = localStorage.getItem("LOCAL_PAGU_TRIWULAN");
-    if (savedPaguTriwulan) {
-        window.CONFIG.PAGU_TRIWULAN = Number(savedPaguTriwulan);
-    }
+    try {
+        // Tarik Database Akun dari Browser
+        const savedAkun = localStorage.getItem("LOCAL_DATABASE_AKUN");
+        if (savedAkun && typeof DATABASE_AKUN !== 'undefined') {
+            const parsed = JSON.parse(savedAkun);
+            // Mutasi array agar tidak bentrok (Password/Akun akan tersimpan permanen)
+            DATABASE_AKUN.length = 0; 
+            parsed.forEach(item => DATABASE_AKUN.push(item));
+        } 
+        
+        // Tarik Pagu Tahunan
+        const savedPaguTahun = localStorage.getItem("LOCAL_PAGU_TAHUNAN");
+        if (savedPaguTahun && typeof CONFIG !== 'undefined') {
+            CONFIG.PAGU_TAHUNAN = Number(savedPaguTahun);
+        }
+        
+        // Tarik Pagu Triwulan
+        const savedPaguTriwulan = localStorage.getItem("LOCAL_PAGU_TRIWULAN");
+        if (savedPaguTriwulan && typeof CONFIG !== 'undefined') {
+            CONFIG.PAGU_TRIWULAN = Number(savedPaguTriwulan);
+        }
+    } catch(e) { console.error("Error load local data", e); }
 }
-// Jalankan fungsi inisialisasi di awal
-initLocalData();
-
+// Jalankan otomatis
+setTimeout(initLocalData, 100);
 
 function checkLogin() {
     try {
@@ -84,7 +89,6 @@ function masukSistem() {
     const sidebarSuperAdmin = document.getElementById('sidebarSuperAdmin');
     if (sesiAktif.role === 'SUPER_ADMIN') {
         if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.remove('hidden'); sidebarSuperAdmin.classList.add('flex'); }
-        // Tampilkan tombol Edit Pagu khusus Super Admin
         document.querySelectorAll('.btn-edit-pagu').forEach(btn => btn.style.display = 'block');
     } else {
         if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.add('hidden'); sidebarSuperAdmin.classList.remove('flex'); }
@@ -147,6 +151,13 @@ function simpanPaguBaru() {
     }
     
     hitungAnggaran(); closeModal('modalEditPagu'); showToast('Pagu berhasil diperbarui.');
+}
+
+// FUNGSI BUKA SPJ BARU (YANG SEBELUMNYA HILANG)
+function bukaFormSpjBaru() {
+    isEditMode = false;
+    editIdTarget = null;
+    openModal('modalNewSpj');
 }
 
 // DROPDOWN
@@ -308,8 +319,9 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
+        // BUG TOMBOL DETAIL TERATASI: Dihilangkan class 'relative z-10' dari <tr> yang menghalangi klik
         tbody.innerHTML += `
-            <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors relative z-10">
+            <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
                 <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
                 ${tdJenisHtml}
@@ -318,8 +330,8 @@ function renderTabelSpj() {
                 <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</td>
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
-                <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)]">
-                    <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer relative z-50">${actionBtnText}</button>
+                <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)] z-10 border-l border-slate-100">
+                    <button onclick="bukaModalVerifikasi('${String(item.id)}')" class="px-4 py-1.5 ${actionBtnColor} text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer">${actionBtnText}</button>
                 </td>
             </tr>
         `;
@@ -416,7 +428,7 @@ function editDataPptk(index) {
     document.getElementById('pptkNama').value = ak.namaLengkap || ""; document.getElementById('pptkNip').value = ak.nip || ""; 
 }
 function resetFormPptk() {
-    editIndexPptk = -1; document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah PPTK Baru`;
+    editIndexPptk = -1; document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah / Edit PPTK`;
     document.getElementById('pptkNama').value = ""; document.getElementById('pptkNip').value = "";
 }
 
@@ -443,7 +455,7 @@ function editDataAkun(index) {
 }
 
 function resetFormAkun() {
-    editIndexAkun = -1; document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-user-plus text-blue-600"></i> Tambah Akun Admin / Verifikator`;
+    editIndexAkun = -1; document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-user-plus text-blue-600"></i> Buat / Edit Detail Akun`;
     document.getElementById('akunNama').value = ""; document.getElementById('akunUsername').value = "";
     document.getElementById('akunPassword').value = ""; document.getElementById('akunRole').value = "VERIFIKATOR";
 }
