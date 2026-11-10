@@ -499,4 +499,177 @@
                     
                     <div id="panelAksiVerifikator" class="mt-6 pt-4 border-t border-slate-200 space-y-3 hidden">
                         <div class="flex gap-2">
-                            <button onclick="actionSetujui()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa
+                            <button onclick="actionSetujui()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-check me-1"></i> SETUJUI</button>
+                            <button onclick="toggleActionForm('REVISI')" class="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-rotate-left me-1"></i> REVISI</button>
+                            <button onclick="toggleActionForm('DITOLAK')" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-xmark me-1"></i> TOLAK</button>
+                        </div>
+                        <button onclick="toggleActionForm('SUDAH DIPINDAHBUKUKAN')" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-money-bill-transfer me-1"></i> SELESAI / CAIR (INPUT PB)</button>
+                        <button onclick="bukaFormEdit()" class="w-full py-2 bg-slate-700 hover:bg-slate-800 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-pen-to-square me-1"></i> EDIT DATA TEKS (ADMIN)</button>
+                        <div id="waContainer" class="hidden gap-2 mt-2 pt-2 border-t border-slate-100">
+                            <a id="btnSendWa" target="_blank" class="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded font-bold text-[11px] shadow-sm transition-colors text-center block"><i class="fa-brands fa-whatsapp me-1"></i> Chat WA</a>
+                            <a id="btnSendEmail" target="_blank" class="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold text-[11px] shadow-sm transition-colors text-center block"><i class="fa-regular fa-envelope me-1"></i> Email</a>
+                        </div>
+                    </div>
+
+                    <div id="panelPptkRevisi" class="mt-6 pt-4 border-t border-slate-200 hidden">
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                            <h5 class="text-[11px] font-bold text-amber-800 mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Dokumen Perlu Perbaikan</h5>
+                            <p id="teksRevisiPptk" class="text-xs text-amber-700 leading-relaxed"></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a id="btnUploadRevisi" href="#" target="_blank" class="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white text-center rounded font-bold text-xs shadow-sm transition-colors block"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Bukti Revisi</a>
+                            <button onclick="bukaFormEdit()" class="flex-1 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded font-bold text-xs shadow-sm transition-colors"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Data Teks</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="confirmActionContainer" class="hidden border-t border-slate-200 bg-slate-50 p-5 rounded-b-xl">
+                <div id="revisiContainer" class="hidden space-y-3 mb-4">
+                    <label class="block text-xs font-bold text-amber-700"><i class="fa-solid fa-triangle-exclamation"></i> Catatan Revisi / Penolakan <span class="text-red-500">*</span></label>
+                    <textarea id="catatanRevisiInput" rows="3" class="w-full px-4 py-2 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white"></textarea>
+                </div>
+                <div id="pindahbukuContainer" class="hidden space-y-4 mb-4 bg-blue-50 p-4 border border-blue-200 rounded-lg">
+                    <h5 class="text-sm font-bold text-blue-800"><i class="fa-solid fa-money-bill-transfer"></i> Input Data Pindah Buku (Pencairan)</h5>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Nomor PB <span class="text-red-500">*</span></label>
+                            <input type="text" id="noPbInput" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">Tanggal PB <span class="text-red-500">*</span></label>
+                            <input type="date" id="tglPbInput" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm outline-none">
+                        </div>
+                        <div class="space-y-1 col-span-2">
+                            <label class="block text-xs font-bold text-slate-700">Link Lampiran Bukti PB (Gdrive) / Kata Kunci Arsip Fisik</label>
+                            <input type="text" id="buktiPbInput" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button onclick="document.getElementById('confirmActionContainer').classList.add('hidden')" class="px-5 py-2 bg-slate-200 text-slate-700 font-bold rounded hover:bg-slate-300 text-xs">Batal</button>
+                    <button id="btnConfirmAction" onclick="prosesUpdateStatusAksi()" class="px-6 py-2 bg-slate-800 text-white font-bold rounded hover:bg-slate-900 shadow-md text-xs">Simpan Keputusan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- MODAL SUPER ADMIN (PENGATURAN MASTER DATA)    -->
+    <!-- ============================================= -->
+    <div id="modalSuperAdmin" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[300] flex items-start justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-slate-50 rounded-2xl shadow-2xl max-w-5xl w-full flex overflow-hidden h-[80vh] my-6 border border-slate-700">
+            <!-- Sidebar Admin -->
+            <div class="w-64 bg-slate-800 text-slate-300 flex-shrink-0 flex flex-col border-r border-slate-700">
+                <div class="p-5 border-b border-slate-700 bg-slate-900">
+                    <h3 class="text-lg font-black text-white flex items-center gap-2"><i class="fa-solid fa-user-shield text-amber-500"></i> Panel Admin</h3>
+                    <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Kontrol Master Data</p>
+                </div>
+                <div class="p-3 space-y-1">
+                    <button onclick="switchTabAdmin('akun')" id="tab-btn-akun" class="admin-tab-btn w-full text-left px-4 py-3 bg-blue-600/20 text-blue-400 font-bold rounded-lg border border-blue-500/30 text-sm flex items-center gap-3 transition-colors"><i class="fa-solid fa-users w-4"></i> Kelola Akun Login</button>
+                    <button onclick="switchTabAdmin('pptk')" id="tab-btn-pptk" class="admin-tab-btn w-full text-left px-4 py-3 hover:bg-slate-700/50 hover:text-white rounded-lg text-sm flex items-center gap-3 transition-colors"><i class="fa-solid fa-user-tie w-4"></i> Daftar Nama PPTK</button>
+                </div>
+                <div class="mt-auto p-4 border-t border-slate-700">
+                    <button onclick="closeModal('modalSuperAdmin')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold text-sm transition-colors">Tutup Panel</button>
+                </div>
+            </div>
+            
+            <!-- Konten Panel Admin -->
+            <div class="flex-1 flex flex-col bg-white overflow-hidden">
+                
+                <!-- TAB: AKUN -->
+                <div id="tab-content-akun" class="admin-tab-content flex-col h-full flex">
+                    <div class="p-5 border-b border-slate-200 bg-white flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Manajemen Akun Login</h2>
+                            <p class="text-xs text-slate-500 mt-1">Tambah, edit, atau hapus akun beserta Role.</p>
+                        </div>
+                        <button onclick="downloadConfigJs()" class="px-4 py-2 bg-slate-800 text-white font-bold rounded-lg shadow text-xs hover:bg-slate-900 transition-colors flex items-center gap-2"><i class="fa-solid fa-download"></i> Backup & Download config.js</button>
+                    </div>
+                    <div class="p-5 flex-1 overflow-y-auto">
+                        
+                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 max-w-2xl">
+                            <h3 class="font-bold text-sm text-blue-800 mb-3" id="titleFormAkun"><i class="fa-solid fa-user-plus"></i> Tambah Akun Baru</h3>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap</label><input type="text" id="akunNama" class="w-full px-3 py-2 border border-blue-300 rounded text-sm outline-none focus:border-blue-500"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">Username</label><input type="text" id="akunUsername" class="w-full px-3 py-2 border border-blue-300 rounded text-sm outline-none font-mono focus:border-blue-500"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">Password</label><input type="text" id="akunPassword" class="w-full px-3 py-2 border border-blue-300 rounded text-sm outline-none font-mono focus:border-blue-500"></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Role / Jabatan</label>
+                                    <select id="akunRole" class="w-full px-3 py-2 border border-blue-300 rounded text-sm outline-none focus:border-blue-500">
+                                        <option value="PPTK">PPTK</option>
+                                        <option value="VERIFIKATOR">VERIFIKATOR</option>
+                                        <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="simpanDataAkun()" class="px-5 py-2 bg-blue-600 text-white font-bold rounded text-xs shadow-sm hover:bg-blue-700">Simpan Akun</button>
+                            <button onclick="resetFormAkun()" class="px-5 py-2 bg-slate-200 text-slate-700 font-bold rounded text-xs ml-2 hover:bg-slate-300">Batal</button>
+                        </div>
+
+                        <table class="w-full border-collapse border border-slate-200 text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 border border-slate-200 text-left">Nama Pengguna</th>
+                                    <th class="p-3 border border-slate-200 text-left">Username</th>
+                                    <th class="p-3 border border-slate-200 text-left">Role / Jabatan</th>
+                                    <th class="p-3 border border-slate-200 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelAkunBody" class="text-slate-600 divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: PPTK -->
+                <div id="tab-content-pptk" class="admin-tab-content flex-col h-full hidden">
+                    <div class="p-5 border-b border-slate-200 bg-white flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Daftar Pejabat Pelaksana Teknis (PPTK)</h2>
+                            <p class="text-xs text-slate-500 mt-1">Input data Nama dan NIP. Akun otomatis dibuat berstatus PPTK.</p>
+                        </div>
+                        <button onclick="downloadConfigJs()" class="px-4 py-2 bg-slate-800 text-white font-bold rounded-lg shadow text-xs hover:bg-slate-900 transition-colors flex items-center gap-2"><i class="fa-solid fa-download"></i> Backup & Download config.js</button>
+                    </div>
+                    <div class="p-5 flex-1 overflow-y-auto">
+                        
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg mb-6 max-w-lg">
+                            <h3 class="font-bold text-sm text-emerald-800 mb-3" id="titleFormPptk"><i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah PPTK Baru</h3>
+                            <div class="space-y-3">
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap & Gelar</label><input type="text" id="pptkNama" placeholder="Contoh: Budi Santoso, ST, MT" class="w-full px-3 py-2 border border-emerald-300 rounded text-sm outline-none focus:border-emerald-500"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">NIP (Nomor Induk Pegawai)</label><input type="text" id="pptkNip" placeholder="1980..." class="w-full px-3 py-2 border border-emerald-300 rounded text-sm outline-none focus:border-emerald-500 font-mono"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 mb-1">Username Login (Password standar: 123)</label><input type="text" id="pptkUser" placeholder="budi_s" class="w-full px-3 py-2 border border-emerald-300 rounded text-sm outline-none focus:border-emerald-500 font-mono"></div>
+                                <div>
+                                    <button onclick="simpanDataPptk()" class="px-5 py-2 bg-emerald-600 text-white font-bold rounded text-xs hover:bg-emerald-700 shadow-sm">Simpan Data PPTK</button>
+                                    <button onclick="resetFormPptk()" class="px-5 py-2 bg-slate-200 text-slate-700 font-bold rounded text-xs ml-2 hover:bg-slate-300">Batal</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="w-full border-collapse border border-slate-200 text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 border border-slate-200 text-left">Nama Lengkap PPTK</th>
+                                    <th class="p-3 border border-slate-200 text-left">NIP</th>
+                                    <th class="p-3 border border-slate-200 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelPptkBody" class="text-slate-600 divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMessage" class="text-sm font-medium">Sukses!</span>
+    </div>
+
+    <script src="config.js?v=40"></script>
+    <script src="app.js?v=40"></script>
+</body>
+</html>
