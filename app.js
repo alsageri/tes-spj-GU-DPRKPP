@@ -1,5 +1,5 @@
 // ========================================================
-// FILE: app.js (Sistem Logika Utama Terintegrasi)
+// FILE: app.js (Sistem Logika Utama Terintegrasi Spreadsheet)
 // ========================================================
 
 let spjData = []; let referensiData = {}; 
@@ -12,41 +12,41 @@ let filterJenis = 'ALL';
 let editIndexAkun = -1; let editIndexPptk = -1;
 let paguEditType = null; 
 
-// 1. MEKANISME AUTO-SAVE LOCALSTORAGE (DIPERBAIKI)
-function initLocalData() {
-    try {
-        // Tarik Database Akun dari Browser
-        const savedAkun = localStorage.getItem("LOCAL_DATABASE_AKUN");
-        if (savedAkun && typeof DATABASE_AKUN !== 'undefined') {
-            const parsed = JSON.parse(savedAkun);
-            // Mutasi array agar tidak bentrok (Password/Akun akan tersimpan permanen)
-            DATABASE_AKUN.length = 0; 
-            parsed.forEach(item => DATABASE_AKUN.push(item));
-        } 
-        
-        // Tarik Pagu Tahunan
-        const savedPaguTahun = localStorage.getItem("LOCAL_PAGU_TAHUNAN");
-        if (savedPaguTahun && typeof CONFIG !== 'undefined') {
-            CONFIG.PAGU_TAHUNAN = Number(savedPaguTahun);
-        }
-        
-        // Tarik Pagu Triwulan
-        const savedPaguTriwulan = localStorage.getItem("LOCAL_PAGU_TRIWULAN");
-        if (savedPaguTriwulan && typeof CONFIG !== 'undefined') {
-            CONFIG.PAGU_TRIWULAN = Number(savedPaguTriwulan);
-        }
-    } catch(e) { console.error("Error load local data", e); }
+// 1. TARIK DATA DARI SPREADSHEET SAAT APLIKASI DIBUKA
+function inisialisasiServer() {
+    const btnLogin = document.querySelector('button[onclick="checkLogin()"]');
+    if(btnLogin) { btnLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Menghubungkan ke Database...'; btnLogin.disabled = true; }
+    
+    fetch(CONFIG.APPS_SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Simpan data dari Gsheets ke variabel global
+                window.DATABASE_AKUN = data.akun || [];
+                if(data.pagu) {
+                    window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan;
+                    window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan;
+                }
+                if(data.spj) spjData = data.spj.reverse(); 
+                if(data.referensi) referensiData = data.referensi;
+                
+                if(btnLogin) { btnLogin.innerHTML = 'Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i>'; btnLogin.disabled = false; }
+            }
+        })
+        .catch(e => {
+            if(btnLogin) { btnLogin.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Gagal Koneksi ke Spreadsheet. Refresh (F5)'; }
+        });
 }
 // Jalankan otomatis
-setTimeout(initLocalData, 100);
+inisialisasiServer();
 
 function checkLogin() {
     try {
-        if (typeof DATABASE_AKUN === 'undefined') { alert("Sistem belum siap. Harap tekan Ctrl + F5."); return; }
+        if (!window.DATABASE_AKUN || window.DATABASE_AKUN.length === 0) { alert("Data akun kosong di server. Super Admin perlu mendaftarkan akun di Spreadsheet terlebih dahulu."); return; }
         
         const uname = document.getElementById('username-input').value.trim().toLowerCase();
         const pass = document.getElementById('password-input').value;
-        const userFound = DATABASE_AKUN.find(u => u.username === uname && u.password === pass);
+        const userFound = window.DATABASE_AKUN.find(u => u.username === uname && u.password === pass);
         
         if (userFound) { 
             sesiAktif = { role: userFound.role, username: userFound.username, namaLengkap: userFound.namaLengkap };
@@ -94,32 +94,43 @@ function masukSistem() {
         if(sidebarSuperAdmin) { sidebarSuperAdmin.classList.add('hidden'); sidebarSuperAdmin.classList.remove('flex'); }
     }
     
-    isiDropdownPptkUtama(); tarikDataDariServer();
+    isiDropdownPptkUtama(); renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
 }
 
 function isiDropdownPptkUtama() {
     const selectPptk = document.getElementById('inputPptk');
-    if(selectPptk && typeof DATABASE_AKUN !== 'undefined') {
+    if(selectPptk && window.DATABASE_AKUN) {
         selectPptk.innerHTML = '<option value="">-- Pilih Nama PPTK --</option>';
-        DATABASE_AKUN.forEach(user => { if(user.role === 'PPTK') { selectPptk.innerHTML += `<option value="${user.namaLengkap}">${user.namaLengkap}</option>`; } });
+        window.DATABASE_AKUN.forEach(user => { if(user.role === 'PPTK') { selectPptk.innerHTML += `<option value="${user.namaLengkap}">${user.namaLengkap}</option>`; } });
     }
 }
 
+// Fungsi Tarik Manual pasca Login
 function tarikDataDariServer() {
     document.getElementById('refresh-icon').classList.add('animate-spin');
     fetch(CONFIG.APPS_SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
             if (data.status === 'error') { alert("Sistem Google Menolak: " + data.message); return; }
+            
+            if(data.akun) window.DATABASE_AKUN = data.akun;
+            if(data.pagu) {
+                window.CONFIG.PAGU_TAHUNAN = data.pagu.tahunan;
+                window.CONFIG.PAGU_TRIWULAN = data.pagu.triwulan;
+            }
             if(data.spj) spjData = data.spj.reverse(); 
             if(data.referensi) referensiData = data.referensi;
+            
             renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
+            
+            // Refresh tabel admin jika sedang dibuka
+            const tbAkun = document.getElementById('tabelAkunBody');
+            if(tbAkun && tbAkun.innerHTML !== '') { renderTabelAkunAdmin(); }
         })
         .catch(e => { alert("Gagal memuat data! Detail Error: " + e.message); })
         .finally(() => { document.getElementById('refresh-icon').classList.remove('animate-spin'); });
 }
 
-// FORMAT RUPIAH & HITUNG PAGU
 function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
 
 function hitungAnggaran() {
@@ -130,7 +141,7 @@ function hitungAnggaran() {
     document.getElementById('totalCairVal').innerText = formatRupiah(totalPencairan);
 }
 
-// LOGIKA EDIT PAGU (DASHBOARD)
+// LOGIKA PUSH PAGU KE GOOGLE SHEETS
 function bukaModalEditPagu(jenis) {
     paguEditType = jenis;
     document.getElementById('titleEditPagu').innerText = `Edit Pagu ${jenis === 'TAHUNAN' ? 'Tahunan' : 'Triwulan'}`;
@@ -142,25 +153,26 @@ function simpanPaguBaru() {
     const val = Number(document.getElementById('inputEditPagu').value);
     if(val < 0) { alert('Nominal tidak boleh minus!'); return; }
     
-    if (paguEditType === 'TAHUNAN') {
-        CONFIG.PAGU_TAHUNAN = val;
-        localStorage.setItem("LOCAL_PAGU_TAHUNAN", val);
-    } else {
-        CONFIG.PAGU_TRIWULAN = val;
-        localStorage.setItem("LOCAL_PAGU_TRIWULAN", val);
-    }
+    if (paguEditType === 'TAHUNAN') { CONFIG.PAGU_TAHUNAN = val; } 
+    else { CONFIG.PAGU_TRIWULAN = val; }
     
-    hitungAnggaran(); closeModal('modalEditPagu'); showToast('Pagu berhasil diperbarui.');
+    // Push ke Server (Google Sheets)
+    fetch(CONFIG.APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'sync_pagu',
+            paguTahunan: CONFIG.PAGU_TAHUNAN,
+            paguTriwulan: CONFIG.PAGU_TRIWULAN
+        })
+    }).catch(e => console.error(e));
+    
+    hitungAnggaran(); closeModal('modalEditPagu'); showToast('Pagu tersinkronisasi ke server.');
 }
 
-// FUNGSI BUKA SPJ BARU (YANG SEBELUMNYA HILANG)
 function bukaFormSpjBaru() {
-    isEditMode = false;
-    editIdTarget = null;
-    openModal('modalNewSpj');
+    isEditMode = false; editIdTarget = null; openModal('modalNewSpj');
 }
 
-// DROPDOWN
 function isiDropdownProgram() {
     const progSelect = document.getElementById('inputProgram'); if(!progSelect) return;
     progSelect.innerHTML = '<option value="">-- Pilih Program --</option>';
@@ -178,7 +190,6 @@ function updateSubkegiatanDropdown() {
 }
 
 
-// FILTER MENU
 function setJenisTampilan(jenis) {
     filterJenis = jenis; currentPage = 1;
     document.querySelectorAll('.menu-item').forEach(el => {
@@ -278,7 +289,6 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// LOGIKA CETAK LS
 function cetakNomorUrut(noUrut, npd, nominal, pptk) {
     const printWindow = window.open('', '_blank', 'width=450,height=500');
     printWindow.document.write(`<html><head><title>Bukti Antrean LS</title><style>body{font-family:sans-serif; text-align:center; padding:20px; color:#333;} hr{border:1px dashed #ccc; margin:20px 0;} p{margin:5px 0;} h1{font-size:50px; margin:20px 0; border:2px dashed #000; padding:15px;}</style></head><body><h2 style="margin-bottom:5px;">TANDA TERIMA<br>PENGAJUAN SPJ LS</h2><p style="font-size:12px; color:#666;">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan</p><hr><p style="font-size:12px;">Nama PPTK:</p><p><b>${pptk}</b></p><br><p style="font-size:12px;">Nomor Kontrak / SPK:</p><p><b>${npd}</b></p><br><p style="font-size:12px;">Nominal:</p><p><b>Rp ${formatRupiah(nominal).replace('Rp', '')}</b></p><h1>${noUrut}</h1><hr><p style="font-size:12px; line-height:1.5;">Simpan nomor antrean ini atau cetak sebagai bukti penginputan pada sistem ERP SPJ.</p><script>window.print();<\/script></body></html>`);
@@ -291,17 +301,13 @@ function gantiHalaman(arah) { const tData = spjData.filter(i => filterJenis === 
 
 function renderTabelSpj() {
     const tbody = document.getElementById('spjTableBody'); tbody.innerHTML = '';
-    
     let filteredData = spjData;
     if (filterJenis !== 'ALL') { filteredData = spjData.filter(item => String(item.jenisSurat || 'GU') === filterJenis); }
-    
     const totalData = filteredData.length; const totalPages = Math.ceil(totalData / rowsPerPage) || 1;
     const startIndex = (currentPage - 1) * rowsPerPage; const endIndex = Math.min(startIndex + rowsPerPage, totalData);
-    
     const infoEl = document.getElementById('infoHalaman'); const btnPrev = document.getElementById('btnPrevPage'); const btnNext = document.getElementById('btnNextPage');
     if (infoEl) infoEl.innerText = `Hal ${currentPage} dari ${totalPages}`;
     if (btnPrev) btnPrev.disabled = currentPage === 1; if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
-
     const dataHalamanIni = filteredData.slice(startIndex, endIndex);
 
     if (dataHalamanIni.length === 0) { tbody.innerHTML = `<tr><td colspan="${filterJenis === 'ALL' ? '9' : '8'}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`; return; }
@@ -319,7 +325,6 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
-        // BUG TOMBOL DETAIL TERATASI: Dihilangkan class 'relative z-10' dari <tr> yang menghalangi klik
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap text-slate-500">${String(item.createdAt || '-').split('T')[0]}</td>
@@ -349,10 +354,19 @@ function openModal(id) {
 
 
 // ==========================================
-// LOGIKA CRUD MASTER DATA & AUTO-SAVE
+// LOGIKA CRUD PUSH KE GOOGLE SHEETS
 // ==========================================
 function saveDatabaseToLocal() {
-    localStorage.setItem("LOCAL_DATABASE_AKUN", JSON.stringify(DATABASE_AKUN));
+    // Fungsi ini diganti untuk mengirim data Akun ke Google Sheets
+    fetch(CONFIG.APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'sync_akun',
+            listAkun: window.DATABASE_AKUN
+        })
+    }).then(res => res.json()).then(res => {
+        if(res.status !== 'success') alert('Gagal sinkronisasi data akun ke Database Sheet!');
+    }).catch(e => console.log(e));
 }
 
 function switchTabAdmin(tabName) {
@@ -370,8 +384,7 @@ function renderTabelAkunAdmin() {
     const tbody = document.getElementById('tabelAkunBody'); const tbPptk = document.getElementById('tabelPptkBody');
     if (!tbody || !tbPptk) return; tbody.innerHTML = ''; tbPptk.innerHTML = '';
 
-    DATABASE_AKUN.forEach((akun, index) => {
-        // TABEL PPTK (Hanya PPTK)
+    window.DATABASE_AKUN.forEach((akun, index) => {
         if(akun.role === 'PPTK') {
             tbPptk.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
@@ -384,7 +397,6 @@ function renderTabelAkunAdmin() {
             </tr>`;
         }
         
-        // TABEL AKUN LOGIN (Semua Akun)
         let roleBadge = `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200">${akun.role}</span>`;
         if (akun.role === 'SUPER_ADMIN') roleBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200">SUPER_ADMIN</span>`;
         if (akun.role === 'PPTK') roleBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">PPTK</span>`;
@@ -403,27 +415,25 @@ function renderTabelAkunAdmin() {
                 </td>
             </tr>`;
     });
-    isiDropdownPptkUtama(); // Update Dropdown Buat SPJ
+    isiDropdownPptkUtama(); 
 }
 
-// FUNGSI PPTK (Nama & NIP)
 function simpanDataPptk() {
     const nama = document.getElementById('pptkNama').value; const nip = document.getElementById('pptkNip').value; 
     if(!nama) { alert('Nama Lengkap wajib diisi!'); return; }
     
     if (editIndexPptk > -1) {
-        DATABASE_AKUN[editIndexPptk].namaLengkap = nama; DATABASE_AKUN[editIndexPptk].nip = nip;
+        window.DATABASE_AKUN[editIndexPptk].namaLengkap = nama; window.DATABASE_AKUN[editIndexPptk].nip = nip;
     } else {
-        // Buat data baru yang bertindak sebagai PPTK tapi belum punya username (kosong)
-        DATABASE_AKUN.push({ username: "", password: "", role: "PPTK", namaLengkap: nama, nip: nip });
+        window.DATABASE_AKUN.push({ username: "", password: "", role: "PPTK", namaLengkap: nama, nip: nip });
     }
     
-    saveDatabaseToLocal(); // Simpan Otomatis
-    resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan & bisa langsung dipakai.');
+    saveDatabaseToLocal(); // Ini sekarang Push ke Server Google Sheets
+    resetFormPptk(); renderTabelAkunAdmin(); showToast('Data PPTK Tersimpan ke Database Server.');
 }
 
 function editDataPptk(index) {
-    editIndexPptk = index; const ak = DATABASE_AKUN[index];
+    editIndexPptk = index; const ak = window.DATABASE_AKUN[index];
     document.getElementById('titleFormPptk').innerHTML = `<i class="fa-solid fa-pen text-emerald-600"></i> Edit Data PPTK`;
     document.getElementById('pptkNama').value = ak.namaLengkap || ""; document.getElementById('pptkNip').value = ak.nip || ""; 
 }
@@ -432,23 +442,22 @@ function resetFormPptk() {
     document.getElementById('pptkNama').value = ""; document.getElementById('pptkNip').value = "";
 }
 
-// FUNGSI AKUN (Username, Pass, Role)
 function simpanDataAkun() {
     const nama = document.getElementById('akunNama').value; const user = document.getElementById('akunUsername').value;
     const pass = document.getElementById('akunPassword').value; const role = document.getElementById('akunRole').value;
     if(!nama || !user || !pass) { alert('Harap isi semua kolom nama, username, dan password!'); return; }
     
     if (editIndexAkun > -1) {
-        DATABASE_AKUN[editIndexAkun].namaLengkap = nama; DATABASE_AKUN[editIndexAkun].username = user;
-        DATABASE_AKUN[editIndexAkun].password = pass; DATABASE_AKUN[editIndexAkun].role = role;
-    } else { DATABASE_AKUN.push({ username: user, password: pass, role: role, namaLengkap: nama }); }
+        window.DATABASE_AKUN[editIndexAkun].namaLengkap = nama; window.DATABASE_AKUN[editIndexAkun].username = user;
+        window.DATABASE_AKUN[editIndexAkun].password = pass; window.DATABASE_AKUN[editIndexAkun].role = role;
+    } else { window.DATABASE_AKUN.push({ username: user, password: pass, role: role, namaLengkap: nama }); }
     
-    saveDatabaseToLocal(); // Simpan Otomatis
-    resetFormAkun(); renderTabelAkunAdmin(); showToast('Akun Tersimpan & bisa langsung digunakan login.');
+    saveDatabaseToLocal(); // Ini sekarang Push ke Server Google Sheets
+    resetFormAkun(); renderTabelAkunAdmin(); showToast('Akun Tersimpan ke Database Server.');
 }
 
 function editDataAkun(index) {
-    editIndexAkun = index; const ak = DATABASE_AKUN[index];
+    editIndexAkun = index; const ak = window.DATABASE_AKUN[index];
     document.getElementById('titleFormAkun').innerHTML = `<i class="fa-solid fa-pen text-blue-600"></i> Buat / Edit Detail Akun`;
     document.getElementById('akunNama').value = ak.namaLengkap || ""; document.getElementById('akunUsername').value = ak.username || "";
     document.getElementById('akunPassword').value = ak.password || ""; document.getElementById('akunRole').value = ak.role || "PPTK";
@@ -461,10 +470,10 @@ function resetFormAkun() {
 }
 
 function hapusDataAkun(index) {
-    if(confirm('Anda yakin ingin menghapus data ini?')) { 
-        DATABASE_AKUN.splice(index, 1); 
-        saveDatabaseToLocal(); // Simpan otomatis penghapusan
-        renderTabelAkunAdmin(); showToast('Berhasil dihapus permanen.'); 
+    if(confirm('Anda yakin ingin menghapus data ini? Aksi ini akan mempengaruhi semua user.')) { 
+        window.DATABASE_AKUN.splice(index, 1); 
+        saveDatabaseToLocal(); // Push ke Gsheets
+        renderTabelAkunAdmin(); showToast('Berhasil dihapus dari server.'); 
     }
 }
 
