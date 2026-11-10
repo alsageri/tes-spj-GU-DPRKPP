@@ -23,8 +23,5 @@ const DATABASE_AKUN = [
     { username: "gunadi", password: "123", role: "PPTK", namaLengkap: "GUNADI, SKM, M.Si" },
     { username: "nurhidayat", password: "123", role: "PPTK", namaLengkap: "MOHAMAD NURHIDAYAT, ST, MM" },
     { username: "may", password: "123", role: "PPTK", namaLengkap: "MAY HUDHA NUGROHO, SE, MM" }
-];
-const DATABASE_AKUN = [
-    // ... akun PPTK Anda yang lain ...
     { username: "superadmin", password: "123", role: "SUPER_ADMIN", namaLengkap: "GERI MANAJEMEN" }
 ];
