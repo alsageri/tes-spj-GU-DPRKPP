@@ -208,20 +208,19 @@ function ubahLabelNpdKontrak() {
     const labelNpd = document.getElementById('label-npd-kontrak'); 
     const inputNpd = document.getElementById('inputNpd');
     
-    // DOM Element Tambahan Untuk LS
     const labelUraian = document.getElementById('label-uraian');
     const boxCv = document.getElementById('box-cv');
     const boxTahap = document.getElementById('box-tahap');
     
     if (jenis === 'LS') { 
-        labelNpd.innerText = 'Nomor Kontrak / SPK'; 
-        inputNpd.placeholder = 'Cth: 027/01/SPK/2026'; 
+        if(labelNpd) labelNpd.innerText = 'Nomor Kontrak / SPK'; 
+        if(inputNpd) inputNpd.placeholder = 'Cth: 027/01/SPK/2026'; 
         if(labelUraian) labelUraian.innerHTML = 'Nama Pekerjaan <span class="text-red-500">*</span>';
         if(boxCv) boxCv.classList.remove('hidden');
         if(boxTahap) boxTahap.classList.remove('hidden');
     } else { 
-        labelNpd.innerText = 'Nomor NPD'; 
-        inputNpd.placeholder = 'Cth: 001/NPD/2026'; 
+        if(labelNpd) labelNpd.innerText = 'Nomor NPD'; 
+        if(inputNpd) inputNpd.placeholder = 'Cth: 001/NPD/2026'; 
         if(labelUraian) labelUraian.innerHTML = 'Uraian / Deskripsi SPJ <span class="text-red-500">*</span>';
         if(boxCv) boxCv.classList.add('hidden');
         if(boxTahap) boxTahap.classList.add('hidden');
@@ -295,38 +294,65 @@ function kirimPengajuanSpjBaru(e) {
         .finally(() => { btn.innerHTML = 'Kirim Pengajuan'; btn.disabled = false; });
 }
 
-// FORMAT BARU CETAK TANDA TERIMA ANTREAN LS
+// CETAK HITAM PUTIH (DUAL RANGKAP SESUAI TEMPLATE WORD)
 function cetakNomorUrut(noUrut, npd, tglUpload) {
-    const printWindow = window.open('', '_blank', 'width=450,height=600');
+    const printWindow = window.open('', '_blank', 'width=550,height=750');
+    const itemCardHtml = `
+        <div class="antrean-card">
+            <div class="header-row">
+                <span class="title">TANDA TERIMA ANTREAN LS</span>
+                <span class="sub">BUKTI ADMINISTRASI</span>
+            </div>
+            <div class="section-title">NOMOR ANTREAN</div>
+            <div class="number-box">${noUrut}</div>
+            <div class="info-grid">
+                <div>
+                    <div class="section-title">NOMOR KONTRAK</div>
+                    <div class="info-val">${npd}</div>
+                </div>
+                <div>
+                    <div class="section-title">TANGGAL UPLOAD</div>
+                    <div class="info-val">${tglUpload}</div>
+                </div>
+            </div>
+            <table class="para-table">
+                <thead>
+                    <tr><th colspan="2">DISETUJUI</th></tr>
+                    <tr><th width="50%">TANGGAL</th><th width="50%">PARAF</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td height="55"></td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
     printWindow.document.write(`
         <html><head><title>Bukti Antrean LS</title>
         <style>
-            body{font-family:sans-serif; text-align:center; padding:30px; color:#333;}
-            h2{margin-bottom:10px; text-transform:uppercase; font-size:20px; font-weight:900; letter-spacing:1px;}
-            h1{font-size:55px; margin:10px 0; border:2px dashed #000; padding:15px; background:#f8f9fa; letter-spacing:2px;}
-            p{margin:5px 0; font-size:14px; color:#444;}
-            .table-box { width: 100%; border-collapse: collapse; margin-top: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.05);}
-            .table-box th, .table-box td { border: 1px solid #000; padding: 12px; text-align:center; }
-            .table-box th { background-color: #f1f5f9; text-transform: uppercase; letter-spacing:1px;}
+            @media print {
+                @page { size: A4; margin: 15mm; }
+                body { -webkit-print-color-adjust: exact; }
+            }
+            body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; padding: 10px; margin: 0; background: #fff; }
+            .antrean-card { border: 2px solid #000; padding: 18px; margin-bottom: 20px; background: #fff; }
+            .header-row { display: flex; justify-content: space-between; align-items: baseline; border-b: 2px solid #000; padding-bottom: 6px; margin-bottom: 12px; }
+            .title { font-size: 15px; font-weight: 900; letter-spacing: 0.5px; }
+            .sub { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #333; }
+            .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; color: #222; }
+            .number-box { font-size: 42px; font-weight: 900; text-align: center; border: 2px solid #000; padding: 8px; margin-bottom: 14px; letter-spacing: 2px; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 14px; }
+            .info-val { font-size: 13px; font-weight: bold; word-break: break-word; }
+            .para-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+            .para-table th, .para-table td { border: 1px solid #000; padding: 6px; text-align: center; }
+            .para-table th { font-size: 11px; font-weight: 800; background: #fff; }
+            .cut-line { text-align: center; border-bottom: 2px dashed #000; line-height: 0.1em; margin: 30px 0 35px 0; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+            .cut-line span { background: #fff; padding: 0 15px; }
         </style></head><body>
-            <h2>Tanda Terima Antrean LS</h2>
-            <h1>${noUrut}</h1>
-            <p style="margin-top:15px; font-size: 13px;">Nomor Kontrak:</p>
-            <p><b>${npd}</b></p>
-            <p style="margin-top:10px; font-size: 13px;">Tanggal Upload:</p>
-            <p><b>${tglUpload}</b></p>
-
-            <table class="table-box">
-                <thead>
-                    <tr><th colspan="2" style="font-size: 16px;">DISETUJUI</th></tr>
-                    <tr><th width="50%" style="font-size: 12px;">TANGGAL</th><th width="50%" style="font-size: 12px;">PARAF</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td style="height: 80px;"></td><td></td></tr>
-                </tbody>
-            </table>
-            
-            <script>setTimeout(function(){ window.print(); }, 500);<\/script>
+            ${itemCardHtml}
+            <div class="cut-line"><span>✂ POTONG DI SINI ✂</span></div>
+            ${itemCardHtml}
+            <script>setTimeout(function(){ window.print(); }, 400);<\/script>
         </body></html>
     `);
     printWindow.document.close();
@@ -494,7 +520,11 @@ function jadikanLink(textUrl, idItem) {
 function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
-    document.getElementById('detailUraian').innerText = String(item.uraian || '-');
+    let textUraian = String(item.uraian || '-');
+    if (String(item.jenisSurat) === 'LS' && item.namaCv) {
+        textUraian += `<div class="mt-2 pt-2 border-t border-slate-200 text-xs"><span class="font-bold text-purple-800">Penyedia / CV:</span> ${item.namaCv} <br><span class="font-bold text-purple-800">Tahap:</span> ${item.tahap || '-'}</div>`;
+    }
+    document.getElementById('detailUraian').innerHTML = textUraian;
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
     document.getElementById('detailUnitKerja').innerText = String(item.unitKerja || "-");
     
@@ -564,11 +594,20 @@ function bukaModalVerifikasi(id) {
         document.getElementById('btnSendWa').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}`;
     } else {
         document.getElementById('panelAksiVerifikator').classList.add('hidden'); document.getElementById('waContainer').classList.add('hidden'); document.getElementById('waContainer').classList.remove('flex');
+        
+        // PENGATURAN TAMPILAN PPTK: Tombol Upload & Edit Data Teks
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
-            if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks sebelum diverifikasi.";
+            if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks atau mengunggah ulang berkas.";
             if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
             document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${item.id}`;
+            
+            // TAMBAHAN: Menambahkan Tombol Edit Data Teks bagi PPTK
+            let existingEditBtnPptk = document.getElementById('btnEditDataPptk');
+            if(existingEditBtnPptk) existingEditBtnPptk.remove();
+            
+            const editBtnPptkHtml = `<button id="btnEditDataPptk" onclick="bukaFormEdit()" class="w-full mt-2 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"><i class="fa-solid fa-pen-to-square"></i> EDIT DATA TEKS</button>`;
+            document.getElementById('panelPptkRevisi').insertAdjacentHTML('beforeend', editBtnPptkHtml);
         }
     }
     openModal('modalVerify');
@@ -585,6 +624,14 @@ function bukaFormEdit() {
     document.getElementById('inputUnitKerja').value = item.unitKerja; document.getElementById('inputEmail').value = item.emailPptk; document.getElementById('inputWa').value = item.wa;
     document.getElementById('inputProgram').value = item.program; updateKegiatanDropdown(); document.getElementById('inputKegiatan').value = item.kegiatan; updateSubkegiatanDropdown(); document.getElementById('inputSubkegiatan').value = item.subKegiatan;
     document.getElementById('inputNominal').value = item.nominal; document.getElementById('inputUraian').value = item.uraian;
+    
+    if (item.jenisSurat === 'LS') {
+        const inputCv = document.getElementById('inputCv');
+        const inputTahap = document.getElementById('inputTahap');
+        if(inputCv) inputCv.value = item.namaCv || "";
+        if(inputTahap) inputTahap.value = item.tahap || "UM";
+    }
+    
     document.getElementById('btnSubmitNew').innerText = "Simpan Perubahan (Edit)";
     closeModal('modalVerify'); openModal('modalNewSpj');
 }
