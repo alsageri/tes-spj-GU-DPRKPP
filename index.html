@@ -50,18 +50,29 @@
         <div class="hidden lg:flex flex-1 flex-col justify-center items-center relative overflow-hidden bg-sipd-navy text-white px-10 border-r border-slate-800 shadow-[inset_-10px_0_20px_rgba(0,0,0,0.2)]">
             <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             
-            <div class="relative z-10 w-full max-w-4xl text-center flex flex-col items-center">
-                <h1 class="text-3xl font-bold tracking-wide mb-12 z-30 drop-shadow-md font-sans">DINAS PERUMAHAN RAKYAT,<br>KAWASAN PERMUKIMAN DAN PERTANAHAN</h1>
+            <div class="relative z-10 w-full max-w-4xl text-center flex flex-col items-center justify-center h-full">
+                <!-- TULISAN DINAS (DIPERBESAR & MARGIN DISESUAIKAN) -->
+                <h1 class="text-4xl lg:text-5xl font-extrabold tracking-wide mb-8 z-30 drop-shadow-lg font-sans leading-tight">
+                    DINAS PERUMAHAN RAKYAT,<br>KAWASAN PERMUKIMAN DAN PERTANAHAN
+                </h1>
                 
-                <div class="relative flex flex-col items-center justify-center mt-4 node-float">
+                <!-- CONTAINER LOGO (DIPASTIKAN CENTER) -->
+                <div class="relative flex flex-col items-center justify-center node-float">
                     <!-- Lingkaran Background Logo -->
-                    <div class="w-40 h-40 z-20 bg-white/5 backdrop-blur-sm rounded-full p-5 border border-white/10 shadow-lg flex justify-center items-center mb-4">
-                        <img src="Logo_KabBlitar.png" alt="Logo Kab Blitar" class="max-w-full max-h-full object-contain">
+                    <div class="w-48 h-48 z-20 bg-white/5 backdrop-blur-sm rounded-full p-5 border border-white/10 shadow-xl flex justify-center items-center mb-6">
+                        <img src="Logo_KabBlitar.png" alt="Logo Kab Blitar" class="max-w-full max-h-full object-contain drop-shadow-md">
                     </div>
                     <!-- Tambahan Tulisan di bawah logo -->
-                    <h2 class="text-2xl font-bold tracking-widest text-white drop-shadow-md">KABUPATEN BLITAR</h2>
+                    <h2 class="text-3xl font-bold tracking-widest text-white drop-shadow-md">KABUPATEN BLITAR</h2>
                 </div>
             </div>
+            
+            <!-- CREDIT FOOTER -->
+            <div class="absolute bottom-6 flex flex-col items-center gap-1">
+                <div class="text-[11px] text-slate-400 font-medium tracking-wide">Powered by <span class="text-sipd-emerald font-bold">Tim Sub Keuangan DISPERKIMTAN</span></div>
+                <div class="text-[10px] text-slate-500 tracking-widest uppercase">Credit by <span class="font-credit text-slate-300 font-bold">NUSA MANAJEMEN</span></div>
+            </div>
+        </div>
             
             <div class="absolute bottom-6 flex flex-col items-center gap-1">
                 <div class="text-[11px] text-slate-400 font-medium tracking-wide">Powered by <span class="text-sipd-emerald font-bold">Tim Sub Keuangan DISPERKIMTAN</span></div>
