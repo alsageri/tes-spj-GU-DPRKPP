@@ -637,8 +637,8 @@ function bukaModalVerifikasi(id) {
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER WARNA SPESIFIK UNTUK RIWAYAT (Tema utama Merah)
-    let logHtml = '<div class="relative border-l-2 border-red-400 ml-2 mt-3 pb-2">'; 
+    // RENDER WARNA SPESIFIK UNTUK RIWAYAT (Garis netral abu-abu, status membesar + icon)
+    let logHtml = '<div class="relative border-l-2 border-slate-200 ml-3 mt-4 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
         let logEntries = [];
@@ -650,7 +650,7 @@ function bukaModalVerifikasi(id) {
         });
         
         logEntries.forEach((line) => { 
-            let dotColor = 'bg-red-500 ring-red-200'; 
+            let dotColor = 'bg-slate-400 ring-slate-100'; 
             let innerHtml = line; 
             let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
             
@@ -658,6 +658,9 @@ function bukaModalVerifikasi(id) {
                 let tanggal = match[1]; let isiHtml = match[2];
                 let isCatatan = isiHtml.includes('- Catatan:');
                 let isPb = isiHtml.includes('PINDAHBUKU SELESAI') || isiHtml.includes('DIPINDAHBUKUKAN');
+                
+                // Styling dasar untuk badge agar lebih besar (text-xs, padding ekstra) dan pakai inline-flex untuk icon
+                let badgeClass = "text-white px-3 py-1.5 rounded-md shadow-sm font-bold uppercase inline-flex items-center gap-1.5 text-xs mb-1";
                 
                 if (isCatatan) {
                     let parts = isiHtml.split('- Catatan:'); 
@@ -667,15 +670,15 @@ function bukaModalVerifikasi(id) {
                     if (statusTeks.includes('REVISI')) {
                         dotColor = 'bg-orange-500 ring-orange-200';
                         isiHtml = `
-                            <div class="mb-1"><span class="bg-orange-500 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${statusTeks}</span></div>
-                            <div class="mt-1.5 p-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-900 text-[11px] leading-relaxed shadow-sm">
+                            <div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${statusTeks}</span></div>
+                            <div class="mt-1 p-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-900 text-[11px] leading-relaxed shadow-sm">
                                 <i class="fa-solid fa-circle-exclamation me-1 text-orange-600"></i> <b class="text-orange-900">Catatan Revisi:</b><br>${isiCatatan}
                             </div>`;
                     } else if (statusTeks.includes('DITOLAK')) {
                         dotColor = 'bg-red-600 ring-red-200';
                         isiHtml = `
-                            <div class="mb-1"><span class="bg-red-600 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${statusTeks}</span></div>
-                            <div class="mt-1.5 p-2.5 bg-red-50 border border-red-200 rounded-lg text-red-900 text-[11px] leading-relaxed shadow-sm">
+                            <div><span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${statusTeks}</span></div>
+                            <div class="mt-1 p-2.5 bg-red-50 border border-red-200 rounded-lg text-red-900 text-[11px] leading-relaxed shadow-sm">
                                 <i class="fa-solid fa-circle-xmark me-1 text-red-600"></i> <b class="text-red-900">Alasan Ditolak:</b><br>${isiCatatan}
                             </div>`;
                     }
@@ -686,43 +689,54 @@ function bukaModalVerifikasi(id) {
                         let pbParts = isiHtml.split('- No PB:');
                         let statusTeks = pbParts[0].trim();
                         let noPb = pbParts[1].trim();
-                        isiHtml = `<div class="mb-1.5"><span class="bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${statusTeks}</span></div>
-                                   <div class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-2 py-1 rounded shadow-sm">
+                        isiHtml = `<div><span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${statusTeks}</span></div>
+                                   <div class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-md shadow-sm mt-1">
                                        <span class="text-[10px] text-blue-700 font-bold uppercase">NO PB:</span> 
-                                       <span class="text-sm font-black text-blue-900 tracking-wider">${noPb}</span>
+                                       <span class="text-sm font-black text-blue-900 tracking-widest">${noPb}</span>
                                    </div>`;
                     } else {
-                        isiHtml = `<span class="bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${isiHtml}</span>`; 
+                        isiHtml = `<span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${isiHtml}</span>`; 
                     }
                 }
                 else if (isiHtml.includes('REVISI')) { 
                     dotColor = 'bg-orange-500 ring-orange-200'; 
-                    isiHtml = `<span class="bg-orange-500 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${isiHtml}</span>`; 
+                    isiHtml = `<span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${isiHtml}</span>`; 
                 }
                 else if (isiHtml.includes('DITOLAK')) { 
                     dotColor = 'bg-red-600 ring-red-200'; 
-                    isiHtml = `<span class="bg-red-600 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${isiHtml}</span>`; 
+                    isiHtml = `<span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${isiHtml}</span>`; 
                 } 
                 else if (isiHtml.includes('DISETUJUI')) { 
                     dotColor = 'bg-emerald-500 ring-emerald-200'; 
-                    isiHtml = `<span class="bg-emerald-500 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${isiHtml}</span>`; 
+                    isiHtml = `<span class="bg-emerald-500 ${badgeClass}"><i class="fa-solid fa-circle-check"></i> ${isiHtml}</span>`; 
                 }
                 else if (isiHtml.includes('DIAJUKAN')) { 
                     dotColor = 'bg-slate-500 ring-slate-200'; 
-                    isiHtml = `<span class="bg-slate-500 text-white px-2 py-0.5 rounded font-bold uppercase shadow-sm">${isiHtml}</span>`; 
+                    isiHtml = `<span class="bg-slate-600 ${badgeClass}"><i class="fa-solid fa-file-arrow-up"></i> ${isiHtml}</span>`; 
                 } 
                 else { 
                     isiHtml = `<span class="text-slate-800 font-bold">${isiHtml}</span>`; 
                 }
                 
-                innerHtml = `<span class="text-[10px] font-bold text-red-600 block mb-1.5">${tanggal}</span>${isiHtml}`;
+                // Ubah warna tanggal jadi netral (slate-500)
+                innerHtml = `<span class="text-[10px] font-bold text-slate-500 block mb-1.5 tracking-wide">${tanggal}</span>${isiHtml}`;
             } else { 
                 innerHtml = `<span class="text-slate-600 italic font-medium block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; 
                 dotColor = 'bg-transparent ring-transparent'; 
             }
-            logHtml += `<div class="relative pl-5 mb-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div><div class="text-[11px] leading-relaxed">${innerHtml}</div></div>`; 
+            
+            // Perbesar sedikit titik bundarannya (w-2.5 h-2.5)
+            logHtml += `<div class="relative pl-7 mb-6">
+                            <div class="absolute -left-[6px] top-1 w-2.5 h-2.5 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
+                            <div class="text-[11px] leading-relaxed">${innerHtml}</div>
+                        </div>`; 
         }); 
-    } else { logHtml += `<div class="relative pl-5"><div class="absolute -left-[5px] top-1.5 w-2 h-2 bg-red-400 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; }
+    } else { 
+        logHtml += `<div class="relative pl-7">
+                        <div class="absolute -left-[6px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full ring-4 ring-white"></div>
+                        <p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p>
+                    </div>`; 
+    }
     logHtml += '</div>'; document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
     document.getElementById('revisiContainer').classList.add('hidden'); 
