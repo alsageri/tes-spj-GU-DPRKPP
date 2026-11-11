@@ -33,16 +33,29 @@ function updateSapaanWaktu() {
 function formatTanggalIndo(dateStr) {
     if (!dateStr || dateStr === '-') return '-';
     
-    // Jika format dari server mengandung 'T' (contoh: 2026-11-13T17:00:00.000Z)
+    // Format dari server: "2026-11-13T17:00:00.000Z"
     if (dateStr.includes('T')) {
-        const d = new Date(dateStr); // Konversi otomatis ke zona waktu lokal
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
+        const parts = dateStr.split('T');
+        let [y, m, d] = parts[0].split('-').map(Number);
+        let jamUTC = parseInt(parts[1].substring(0, 2), 10);
+        
+        // Buat objek Date lokal yang aman
+        let realDate = new Date(y, m - 1, d);
+        
+        // Jika jam UTC menunjukkan siang/sore (>= 12), artinya di zona kita (Indonesia) 
+        // sudah masuk hari esoknya. Kita paksa tambah 1 hari.
+        if (jamUTC >= 12) {
+            realDate.setDate(realDate.getDate() + 1);
+        }
+        
+        const finalDay = String(realDate.getDate()).padStart(2, '0');
+        const finalMonth = String(realDate.getMonth() + 1).padStart(2, '0');
+        const finalYear = realDate.getFullYear();
+        
+        return `${finalDay}/${finalMonth}/${finalYear}`;
     }
     
-    // Jika format murni YYYY-MM-DD
+    // Jika format sudah murni YYYY-MM-DD
     if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
         if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -796,11 +809,18 @@ function bukaFormEdit() {
     try { 
         let rawTglStr = String(item.createdAt || '');
         if (rawTglStr.includes('T')) {
-            const d = new Date(rawTglStr);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            document.getElementById('inputTanggal').value = `${year}-${month}-${day}`;
+            const parts = rawTglStr.split('T');
+            let [y, m, dNum] = parts[0].split('-').map(Number);
+            let jamUTC = parseInt(parts[1].substring(0, 2), 10);
+            
+            let realDate = new Date(y, m - 1, dNum);
+            if (jamUTC >= 12) realDate.setDate(realDate.getDate() + 1); // Koreksi paksa 1 hari
+            
+            const fDay = String(realDate.getDate()).padStart(2, '0');
+            const fMonth = String(realDate.getMonth() + 1).padStart(2, '0');
+            const fYear = realDate.getFullYear();
+            
+            document.getElementById('inputTanggal').value = `${fYear}-${fMonth}-${fDay}`;
         } else if (rawTglStr.includes('/')) { 
             let parts = rawTglStr.split('/'); 
             document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; 
