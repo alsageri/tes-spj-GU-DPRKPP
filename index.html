@@ -11,161 +11,24 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] }, colors: { sipd: { blue: '#1e40af', light: '#f4f7fb', dark: '#0f172a' } } } } }
     </script>
     <style>
-      :root {
-        --brand-navy: #101d38;
-        --brand-navy-deep: #0b1429;
-        --brand-emerald: #059669;
-        --brand-emerald-dark: #047857;
-        --app-canvas: #f4f7fb;
-        --app-border: #e2e8f0;
-      }
-
-      * { box-sizing: border-box; }
-      html { scroll-behavior: smooth; }
-      body {
-        background: var(--app-canvas);
-        color: #1e293b;
-        font-family: 'Inter', sans-serif;
-      }
-
-      #login-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        display: flex;
-        min-height: 100vh;
-        min-height: 100svh;
-        background: #fff;
-      }
+      #login-screen { position: fixed; inset: 0; z-index: 100; display: flex; }
       #main-app { display: none; }
-
-      /* LOGIN: PANEL IDENTITAS INSTANSI */
-      .login-left-panel {
-        isolation: isolate;
-        background:
-          radial-gradient(ellipse at 18% 16%, rgba(30, 64, 175, .25), transparent 34%),
-          radial-gradient(ellipse at 88% 82%, rgba(5, 150, 105, .12), transparent 32%),
-          linear-gradient(140deg, #142546 0%, #101d38 48%, #0b1429 100%);
+      .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+      .table-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+      .wrap-text { white-space: normal !important; word-break: break-word; overflow-wrap: break-word; }
+      
+      .bg-sipd-pattern {
+          background-color: #0b1120;
+          background-image: radial-gradient(circle at 20% 30%, rgba(30, 64, 175, 0.4) 0%, transparent 40%),
+                            radial-gradient(circle at 80% 70%, rgba(30, 64, 175, 0.3) 0%, transparent 40%);
       }
-      .login-left-panel::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        pointer-events: none;
-        opacity: .20;
-        background-image:
-       <!-- LOGIN SCREEN: REDESAIN CORPORATE -->
-    <div id="login-screen" class="w-full min-h-screen bg-white">
-        <!-- Panel identitas instansi: tampil pada desktop -->
-        <section class="login-left-panel hidden lg:flex flex-1 min-h-screen flex-col items-center justify-between relative overflow-hidden text-white px-8 xl:px-12">
-            <div class="login-left-content relative z-10 flex flex-col items-center text-center my-auto">
-                <div class="mb-7">
-                    <p class="login-kicker mb-4">PEMERINTAH KABUPATEN BLITAR</p>
-                    <h1 class="login-agency-title">DINAS PERUMAHAN RAKYAT,<br>KAWASAN PERMUKIMAN DAN PERTANAHAN</h1>
-                </div>
-
-                <div class="login-logo-wrap flex items-center justify-center my-4">
-                    <img src="Logo_KabBlitar.png" alt="Lambang Kabupaten Blitar" onerror="this.style.display='none'; this.parentElement.classList.add('logo-missing');">
-                </div>
-
-                <div class="mt-6">
-                    <h2 class="login-product-title">SISTEM PENGELOLAAN SPJ</h2>
-                    <p class="login-product-description mt-3 mx-auto">Portal pengajuan, verifikasi, dan pemantauan dokumen pertanggungjawaban keuangan</p>
-                    <div class="flex flex-wrap justify-center gap-2 mt-5">
-                        <span class="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-[11px] font-semibold text-slate-200">SPJ Ganti Uang (GU)</span>
-                        <span class="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-[11px] font-semibold text-slate-200">SPJ Langsung (LS)</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="login-left-footer relative z-10 w-full max-w-3xl text-center border-t border-white/10 py-5">
-                <p>Dikelola oleh <strong>Tim Sub Keuangan DISPERKIMTAN</strong></p>
-                <p class="text-slate-400">Dikembangkan oleh <span class="text-white font-bold tracking-wider">NUSA MANAJEMEN</span></p>
-            </div>
-        </section>
-
-        <!-- Panel login -->
-        <section class="login-right-panel flex flex-col justify-center relative z-20">
-            <div class="flex items-center gap-3 mb-12">
-                <div class="login-brand-mark"><i class="fa-solid fa-layer-group text-lg"></i></div>
-                <div>
-                    <h2 class="login-brand-name">SISTEM SPJ GU &amp; LS</h2>
-                    <p class="login-brand-subtitle">DPRKPP KABUPATEN BLITAR</p>
-                </div>
-            </div>
-
-            <div class="mb-8">
-                <p class="login-eyebrow mb-3">PORTAL ADMINISTRASI KEUANGAN</p>
-                <h2 class="login-welcome flex items-center gap-2" id="sapaan-login">Selamat pagi 👋</h2>
-                <p class="login-description mt-2">Silakan masuk menggunakan akun yang telah terdaftar untuk melanjutkan ke sistem.</p>
-            </div>
-
-            <div class="space-y-5">
-                <div>
-                    <label for="username-input" class="login-label">Username / Nomor Induk Pegawai</label>
-                    <div class="relative flex items-center">
-                        <i class="fa-regular fa-user login-input-icon"></i>
-                        <input type="text" id="username-input" name="username" autocomplete="username" class="login-input pl-11 pr-4" placeholder="Masukkan username atau NIP">
-                    </div>
-                </div>
-
-                <div>
-                    <label for="password-input" class="login-label">Kata Sandi</label>
-                    <div class="relative flex items-center">
-                        <i class="fa-solid fa-lock login-input-icon"></i>
-                        <input type="password" id="password-input" name="password" autocomplete="current-password" class="login-input pl-11 pr-12 font-mono" placeholder="Masukkan kata sandi" onkeypress="if(event.key==='Enter') checkLogin()">
-                        <button type="button" onclick="togglePassword()" class="login-input-action cursor-pointer outline-none" title="Lihat kata sandi" aria-label="Tampilkan atau sembunyikan kata sandi"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
-                    </div>
-                </div>
-
-                <button id="login-submit" onclick="checkLogin()" class="login-submit" type="button">Masuk ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
-                <p id="pin-error" role="alert" aria-live="polite" class="text-red-600 text-xs mt-3 hidden font-semibold text-center bg-red-50 p-3 rounded-lg border border-red-200"></p>
-            </div>
-
-            <div class="login-security-note mt-8">
-                <i class="fa-solid fa-shield-halved text-emerald-600 mt-0.5"></i>
-                <span>Gunakan akun pribadi dan pastikan kata sandi tidak dibagikan kepada orang lain.</span>
-            </div>
-
-            <div class="mt-auto pt-10 flex flex-col items-center justify-center gap-2 login-help">
-                <span><i class="fa-brands fa-chrome text-emerald-600 mr-1"></i> Disarankan menggunakan Google Chrome</span>
-                <span class="text-slate-300">Sistem Informasi Pengelolaan SPJ</span>
-            </div>
-        </section>
-    </div>
-
-mal !important; word-break: break-word; overflow-wrap: break-word; }
+      
+      @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+      .node-float { animation: float 6s ease-in-out infinite; }
+      .node-float-delay-1 { animation: float 7s ease-in-out infinite 1s; }
+      .node-float-delay-2 { animation: float 5s ease-in-out infinite 2s; }
+      
       .font-credit { font-family: 'Montserrat', sans-serif; letter-spacing: 0.05em; }
-      button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-      button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-        outline: 3px solid rgba(5,150,105,.22);
-        outline-offset: 2px;
-      }
-      .menu-item { min-height: 42px; }
-      .custom-scrollbar::-webkit-scrollbar { width: 7px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-
-      @media (max-width: 1023px) {
-        #login-screen { overflow-y: auto; }
-        .login-right-panel {
-          width: min(100%, 480px);
-          min-width: 0;
-          min-height: 100vh;
-          min-height: 100svh;
-          margin: 0 auto;
-          padding: 2.5rem clamp(1.4rem, 6vw, 3rem) 1.8rem;
-          box-shadow: none;
-        }
-      }
-      @media (max-width: 480px) {
-        .login-right-panel { justify-content: flex-start; padding-top: 2rem; }
-        .login-welcome { font-size: 1.55rem; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-      }
     </style>
 </head>
 <body class="bg-sipd-light font-sans text-slate-800 h-screen overflow-hidden flex flex-col">
@@ -198,7 +61,7 @@ mal !important; word-break: break-word; overflow-wrap: break-word; }
             </div>
             <div class="absolute bottom-6 flex flex-col items-center gap-1">
                 <div class="text-[11px] text-slate-300 font-medium tracking-wide">Powered by <span class="font-credit text-emerald-400 font-bold">Tim Sub Keuangan DISPERKIMTAN</span></div>
-                <div class="text-[10px] text-slate-400 tracking-widest uppercase">Dikembangkan oleh <span class="font-credit text-white font-black">NUSA MANAJEMEN</span></div>
+                <div class="text-[10px] text-slate-400 tracking-widest uppercase">Credit by <span class="font-credit text-white font-black">NUSA MANAJEMEN</span></div>
             </div>
         </div>
 
@@ -234,7 +97,7 @@ mal !important; word-break: break-word; overflow-wrap: break-word; }
                     </div>
                 </div>
 
-                <button onclick="checkLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded shadow-md transition-all flex justify-center items-center gap-2 mt-4 text-sm">Masuk ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
+                <button onclick="checkLogin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded shadow-md transition-all flex justify-center items-center gap-2 mt-4 text-sm">Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
                 <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium text-center bg-red-50 p-2 rounded border border-red-200"></p>
             </div>
             
