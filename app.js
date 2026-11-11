@@ -793,9 +793,19 @@ function bukaModalVerifikasi(id) {
         
         if(item.status === 'REVISI' || item.status === 'BELUM_DIPROSES') {
             document.getElementById('panelPptkRevisi').classList.remove('hidden');
-            if(item.status === 'BELUM_DIPROSES') document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks atau mengunggah ulang berkas.";
-            if(item.status === 'REVISI') document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
-            document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${item.id}`;
+            
+            if(item.status === 'BELUM_DIPROSES') {
+                document.getElementById('teksRevisiPptk').innerText = "Anda masih dapat mengubah data teks atau mengunggah ulang berkas.";
+            }
+            if(item.status === 'REVISI') {
+                document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
+            }
+            
+            // === UPDATE TOMBOL UPLOAD REVISI (OTOMATIS MELOMPAT KE BAGIAN REVISI) ===
+            const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url";
+            const idTujuanRevisi = encodeURIComponent('Upload Revisi'); 
+            
+            document.getElementById('btnUploadRevisi').href = `${formBaseUrl}&entry.1525941067=${item.id}&entry.1933246266=${idTujuanRevisi}`;
             
             let existingEditBtnPptk = document.getElementById('btnEditDataPptk');
             if(existingEditBtnPptk) existingEditBtnPptk.remove();
