@@ -33,34 +33,24 @@ function updateSapaanWaktu() {
 function formatTanggalIndo(dateStr) {
     if (!dateStr || dateStr === '-') return '-';
     
-    // Format dari server: "2026-11-13T17:00:00.000Z"
+    // Jika format mengandung 'T' (misal: 2026-11-14T00:00:00.000Z)
     if (dateStr.includes('T')) {
-        const parts = dateStr.split('T');
-        let [y, m, d] = parts[0].split('-').map(Number);
-        let jamUTC = parseInt(parts[1].substring(0, 2), 10);
-        
-        // Buat objek Date lokal yang aman
-        let realDate = new Date(y, m - 1, d);
-        
-        // Jika jam UTC menunjukkan siang/sore (>= 12), artinya di zona kita (Indonesia) 
-        // sudah masuk hari esoknya. Kita paksa tambah 1 hari.
-        if (jamUTC >= 12) {
-            realDate.setDate(realDate.getDate() + 1);
-        }
-        
-        const finalDay = String(realDate.getDate()).padStart(2, '0');
-        const finalMonth = String(realDate.getMonth() + 1).padStart(2, '0');
-        const finalYear = realDate.getFullYear();
-        
-        return `${finalDay}/${finalMonth}/${finalYear}`;
+        let rawDate = dateStr.split('T')[0];
+        let parts = rawDate.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
     
-    // Jika format sudah murni YYYY-MM-DD
+    // Jika format murni YYYY-MM-DD (misal: 2026-11-14)
     if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
         if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
     
+    // Jika format sudah DD/MM/YYYY (misal dari input manual sebelumnya)
+    if (dateStr.includes('/')) {
+       return dateStr;
+    }
+
     return dateStr;
 }
 
