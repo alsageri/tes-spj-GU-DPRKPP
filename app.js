@@ -32,9 +32,23 @@ function updateSapaanWaktu() {
 // FUNGSI HELPER: FORMAT TANGGAL JADI HARI/BULAN/TAHUN (DD/MM/YYYY)
 function formatTanggalIndo(dateStr) {
     if (!dateStr || dateStr === '-') return '-';
-    const parts = dateStr.split('T')[0].split('-');
-    if (parts.length !== 3) return dateStr.split('T')[0];
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    
+    // Jika format dari server mengandung 'T' (contoh: 2026-11-13T17:00:00.000Z)
+    if (dateStr.includes('T')) {
+        const d = new Date(dateStr); // Konversi otomatis ke zona waktu lokal
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+    
+    // Jika format murni YYYY-MM-DD
+    if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    
+    return dateStr;
 }
 
 // 1. TARIK DATA DARI SPREADSHEET SAAT APLIKASI DIBUKA
@@ -780,9 +794,19 @@ function bukaFormEdit() {
     document.getElementById('formNewSpj').classList.remove('hidden');
     
     try { 
-        let rawTgl = String(item.createdAt || '').split('T')[0]; 
-        if (rawTgl.includes('/')) { let parts = rawTgl.split('/'); document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; } 
-        else { document.getElementById('inputTanggal').value = rawTgl; }
+        let rawTglStr = String(item.createdAt || '');
+        if (rawTglStr.includes('T')) {
+            const d = new Date(rawTglStr);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            document.getElementById('inputTanggal').value = `${year}-${month}-${day}`;
+        } else if (rawTglStr.includes('/')) { 
+            let parts = rawTglStr.split('/'); 
+            document.getElementById('inputTanggal').value = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+        } else { 
+            document.getElementById('inputTanggal').value = rawTglStr; 
+        }
     } catch(e){}
 
     document.getElementById('inputJenisSurat').value = item.jenisSurat || 'GU'; ubahLabelNpdKontrak();
