@@ -45,12 +45,13 @@
 <body class="bg-sipd-light font-sans text-sipd-slate h-screen overflow-hidden flex flex-col">
 
     <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="w-full h-screen bg-white">
+    <div id="login-screen" class="w-full h-screen bg-white flex flex-col lg:flex-row">
+        
         <!-- Panel Kiri: Tema Deep Navy -->
-        <div class="hidden lg:flex flex-1 flex-col justify-center items-center relative overflow-hidden bg-sipd-navy text-white px-10 border-r border-slate-800 shadow-[inset_-10px_0_20px_rgba(0,0,0,0.2)]">
+        <div class="hidden lg:flex flex-1 flex-col justify-center items-center relative overflow-hidden bg-sipd-navy text-white px-10 shadow-[inset_-10px_0_20px_rgba(0,0,0,0.2)]">
             <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             
-            <div class="relative z-10 w-full max-w-4xl text-center flex flex-col items-center justify-center h-full">
+            <div class="relative z-10 w-full max-w-4xl text-center flex flex-col items-center justify-center">
                 <!-- TULISAN DINAS (DIPERBESAR & MARGIN DISESUAIKAN) -->
                 <h1 class="text-4xl lg:text-5xl font-extrabold tracking-wide mb-8 z-30 drop-shadow-lg font-sans leading-tight">
                     DINAS PERUMAHAN RAKYAT,<br>KAWASAN PERMUKIMAN DAN PERTANAHAN
@@ -67,18 +68,53 @@
                 </div>
             </div>
             
-            <!-- CREDIT FOOTER -->
+            <!-- CREDIT FOOTER (Hanya Satu) -->
             <div class="absolute bottom-6 flex flex-col items-center gap-1">
                 <div class="text-[11px] text-slate-400 font-medium tracking-wide">Powered by <span class="text-sipd-emerald font-bold">Tim Sub Keuangan DISPERKIMTAN</span></div>
                 <div class="text-[10px] text-slate-500 tracking-widest uppercase">Credit by <span class="font-credit text-slate-300 font-bold">NUSA MANAJEMEN</span></div>
             </div>
         </div>
+
+        <!-- Panel Kanan: Form Login -->
+        <div class="w-full lg:w-[420px] bg-white flex flex-col justify-center px-10 py-12 h-full shadow-2xl relative z-20">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 rounded-lg shadow-sm flex items-center justify-center bg-sipd-navy text-white"><i class="fa-solid fa-layer-group text-lg"></i></div>
+                <div>
+                    <h2 class="text-xl font-bold text-sipd-slate tracking-tight leading-none">SISTEM ERP</h2>
+                    <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Sistem SPJ GU & LS</p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-sipd-slate flex items-center gap-2" id="sapaan-login">Selamat pagi 👋</h2>
+                <p class="text-xs text-slate-500 mt-1">Silakan masuk untuk melanjutkan ke Sistem</p>
+            </div>
             
-            <div class="absolute bottom-6 flex flex-col items-center gap-1">
-                <div class="text-[11px] text-slate-400 font-medium tracking-wide">Powered by <span class="text-sipd-emerald font-bold">Tim Sub Keuangan DISPERKIMTAN</span></div>
-                <div class="text-[10px] text-slate-500 tracking-widest uppercase">Credit by <span class="font-credit text-slate-300 font-bold">NUSA MANAJEMEN</span></div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-sipd-slate mb-1.5">Username / Nomor Induk Pegawai</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-regular fa-user absolute left-4 text-slate-400"></i>
+                        <input type="text" id="username-input" class="w-full pl-10 pr-4 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-1 focus:ring-sipd-emerald focus:border-sipd-emerald outline-none text-sm transition-all text-sipd-slate" placeholder="Masukkan Username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-sipd-slate mb-1.5">Kata Sandi</label>
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-lock absolute left-4 text-slate-400"></i>
+                        <input type="password" id="password-input" class="w-full pl-10 pr-12 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-1 focus:ring-sipd-emerald focus:border-sipd-emerald outline-none text-sm transition-all font-mono" placeholder="••••••••" onkeypress="if(event.key==='Enter') checkLogin()">
+                        <button type="button" onclick="togglePassword()" class="absolute right-0 px-4 h-full flex items-center text-slate-400 hover:text-sipd-emerald cursor-pointer outline-none" title="Lihat Password"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="checkLogin()" class="w-full py-3 bg-sipd-emerald hover:bg-emerald-700 text-white font-bold rounded shadow-sm transition-all flex justify-center items-center gap-2 mt-4 text-sm">Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
+                <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium text-center bg-red-50 p-2 rounded border border-red-200"></p>
             </div>
+            
+            <div class="mt-auto pt-8 flex items-center justify-center gap-2 text-[10px] text-slate-400"><i class="fa-brands fa-chrome text-sipd-emerald"></i> Disarankan menggunakan Google Chrome</div>
         </div>
+    </div>
 
         <!-- Panel Kanan: Form Login -->
         <div class="w-full lg:w-[420px] bg-white flex flex-col justify-center px-10 py-12 h-full shadow-2xl relative z-20">
