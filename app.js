@@ -23,7 +23,7 @@ function updateSapaanWaktu() {
     else sapaan = 'Selamat Malam';
 
     const loginSapaan = document.getElementById('sapaan-login');
-    if (loginSapaan) loginSapaan.innerHTML = `${sapaan} 👋`;
+    if (loginSapaan) loginSapaan.innerHTML = `${sapaan} `;
     
     const headerSapaan = document.getElementById('sapaan-header');
     if (headerSapaan) headerSapaan.innerText = sapaan;
