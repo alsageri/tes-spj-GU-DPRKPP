@@ -631,17 +631,63 @@ function showToast(msg) {
     setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 3500); 
 }
 
+// Fungsi Helper untuk merender link tunggal (Dok Keuangan & SPJ) dengan nama file
 function jadikanLink(textUrl, idItem, formType) {
-    if (!textUrl || textUrl === "-") {
+    if (!textUrl || textUrl === "-" || textUrl === "") {
         let formUrl = "";
         if (formType === 'GU') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}`;
         else if (formType === 'LS') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSen-_GnKkn-ye7qZKdmV8wlGf7PnXnZ7yZHhDGo8aseu0RW_g/viewform?usp=pp_url&entry.1525941067=${idItem}`;
-        else if (formType === 'REVISI') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScJt4ZSHFLsPdP8FO06i3LXuZVe3xw8q_m9T5wquH6dUGynDQ/viewform?usp=pp_url&entry.1525941067=${idItem}`;
 
         return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
                 <a href="${formUrl}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
     }
-    const urlRegex = /(https?:\/\/[^\s]+)/g; return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
+    
+    // Mengekstrak ID File dari URL untuk pura-pura dijadikan nama file
+    let namaFile = "Dokumen_Lampiran.pdf";
+    const matchId = String(textUrl).match(/[-\w]{25,}/);
+    if(matchId) { namaFile = "File_" + matchId[0].substring(0,8) + "..."; }
+    
+    return `<a href="${textUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-1.5 rounded inline-block mt-1 transition-colors flex items-center gap-1.5 w-fit"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[200px]">${namaFile}</span></a>`;
+}
+
+// FUNGSI BARU: Khusus untuk merender list revisi yang bertumpuk
+function renderListRevisi(textRaw) {
+    if (!textRaw || textRaw === "-" || textRaw === "") {
+        return `<span class="text-slate-400 italic text-[11px]">Belum ada lampiran revisi.</span>`;
+    }
+    
+    let htmlResult = '<div class="space-y-2 mt-1">';
+    const baris = String(textRaw).split('\n');
+    
+    baris.forEach(line => {
+        let trimmed = line.trim();
+        if(!trimmed) return;
+        
+        // Pola: "1. [12/11/2026] https://..."
+        const match = trimmed.match(/^(\d+\.)\s*(\[[^\]]+\])\s*(https?:\/\/[^\s]+)/);
+        if(match) {
+            const noUtama = match[1];
+            const tgl = match[2];
+            const url = match[3];
+            
+            // Buat nama file palsu yang keren
+            let namaFile = "Dokumen_Revisi.pdf";
+            const matchId = url.match(/[-\w]{25,}/);
+            if(matchId) namaFile = "Revisi_" + matchId[0].substring(0,8) + "...pdf";
+            
+            htmlResult += `
+            <div class="flex items-start gap-2 text-[11px]">
+                <span class="font-bold text-slate-700 min-w-[12px]">${noUtama}</span>
+                <span class="font-bold text-slate-500">${tgl}</span>
+                <a href="${url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold flex items-center gap-1"><i class="fa-solid fa-file-pdf text-red-500"></i> ${namaFile}</a>
+            </div>`;
+        } else {
+             htmlResult += `<div class="text-[11px] text-slate-600">${trimmed}</div>`;
+        }
+    });
+    
+    htmlResult += '</div>';
+    return htmlResult;
 }
 
 function bukaModalVerifikasi(id) {
@@ -698,20 +744,25 @@ function bukaModalVerifikasi(id) {
     } else {
         boxBerkas.innerHTML = `<div class="text-sm"><span class="font-bold text-slate-700 block mb-1">1. Dok. Keuangan (SPP/SPM/Pajak)</span><div id="linkDokKeuangan"></div></div><div class="text-sm mt-3"><span class="font-bold text-slate-700 block mb-1">2. SPJ Fungsional (Kwitansi/Nota/Absen)</span><div id="linkDokSpj"></div></div>`;
     }
+    
     document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id, item.jenisSurat); 
     document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id, item.jenisSurat); 
-    document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi, item.id, 'REVISI');
+    
+    // PEMANGGILAN FUNGSI BARU UNTUK REVISI
+    document.getElementById('linkDokRevisi').innerHTML = renderListRevisi(item.linkRevisi);
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
         document.getElementById('detailBuktiPbTeks').innerText = `No PB: ${item.noPb} (${item.tglPb})`;
         let buktiLink = String(item.buktiPb || '');
-        if(buktiLink.startsWith('http')) { document.getElementById('detailBuktiPbLink').innerHTML = `<a href="${buktiLink}" target="_blank" class="text-blue-600 underline font-bold">Buka Lampiran Bukti PB</a>`; } 
+        if(buktiLink.startsWith('http')) { document.getElementById('detailBuktiPbLink').innerHTML = `<a href="${buktiLink}" target="_blank" class="text-blue-600 underline font-bold text-xs"><i class="fa-solid fa-file-invoice"></i> Buka Bukti PB</a>`; } 
         else { document.getElementById('detailBuktiPbLink').innerHTML = `<span class="text-slate-700 font-bold">Kata Kunci Arsip: ${buktiLink}</span>`; }
         buktiPbBox.classList.remove('hidden');
     } else { buktiPbBox.classList.add('hidden'); }
 
-    // RENDER WARNA SPESIFIK UNTUK RIWAYAT (Garis netral abu-abu, status membesar + icon)
+    // ============================================
+    // RENDER RIWAYAT STATUS (Update Link Revisi)
+    // ============================================
     let logHtml = '<div class="relative border-l-2 border-slate-200 ml-3 mt-4 pb-2">'; 
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
@@ -732,8 +783,8 @@ function bukaModalVerifikasi(id) {
                 let tanggal = match[1]; let isiHtml = match[2];
                 let isCatatan = isiHtml.includes('- Catatan:');
                 let isPb = isiHtml.includes('PINDAHBUKU SELESAI') || isiHtml.includes('DIPINDAHBUKUKAN');
+                let isRevisiUpload = isiHtml.includes('BERKAS REVISI DIUPLOAD');
                 
-                // Styling dasar untuk badge agar lebih besar (text-xs, padding ekstra) dan pakai inline-flex untuk icon
                 let badgeClass = "text-white px-3 py-1.5 rounded-md shadow-sm font-bold uppercase inline-flex items-center gap-1.5 text-xs mb-1";
                 
                 if (isCatatan) {
@@ -772,6 +823,23 @@ function bukaModalVerifikasi(id) {
                         isiHtml = `<span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${isiHtml}</span>`; 
                     }
                 }
+                else if (isRevisiUpload) {
+                    dotColor = 'bg-orange-500 ring-orange-200';
+                    let parts = isiHtml.split(' - ');
+                    let judulAksi = parts[0];
+                    let urlRevisi = parts.length > 1 ? parts[1].trim() : "";
+                    
+                    let linkHtml = "";
+                    if (urlRevisi && urlRevisi.startsWith('http')) {
+                        let namaFile = "Dokumen_Revisi.pdf";
+                        const matchId = urlRevisi.match(/[-\w]{25,}/);
+                        if(matchId) namaFile = "Revisi_" + matchId[0].substring(0,8) + "...";
+                        
+                        linkHtml = `<div class="mt-1"><a href="${urlRevisi}" target="_blank" class="text-[10px] text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 px-2 py-1 rounded inline-flex items-center gap-1 border border-blue-100"><i class="fa-solid fa-link text-slate-400"></i> ${namaFile}</a></div>`;
+                    }
+                    
+                    isiHtml = `<div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-cloud-arrow-up"></i> ${judulAksi}</span></div>${linkHtml}`;
+                }
                 else if (isiHtml.includes('REVISI')) { 
                     dotColor = 'bg-orange-500 ring-orange-200'; 
                     isiHtml = `<span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${isiHtml}</span>`; 
@@ -792,14 +860,12 @@ function bukaModalVerifikasi(id) {
                     isiHtml = `<span class="text-slate-800 font-bold">${isiHtml}</span>`; 
                 }
                 
-                // Ubah warna tanggal jadi netral (slate-500)
                 innerHtml = `<span class="text-[10px] font-bold text-slate-500 block mb-1.5 tracking-wide">${tanggal}</span>${isiHtml}`;
             } else { 
                 innerHtml = `<span class="text-slate-600 italic font-medium block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; 
                 dotColor = 'bg-transparent ring-transparent'; 
             }
             
-            // Perbesar sedikit titik bundarannya (w-2.5 h-2.5)
             logHtml += `<div class="relative pl-7 mb-6">
                             <div class="absolute -left-[6px] top-1 w-2.5 h-2.5 ${dotColor} rounded-full ${dotColor !== 'bg-transparent ring-transparent' ? 'ring-4' : ''}"></div>
                             <div class="text-[11px] leading-relaxed">${innerHtml}</div>
