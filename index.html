@@ -116,47 +116,6 @@
         </div>
     </div>
 
-        <!-- Panel Kanan: Form Login -->
-        <div class="w-full lg:w-[420px] bg-white flex flex-col justify-center px-10 py-12 h-full shadow-2xl relative z-20">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="w-10 h-10 rounded-lg shadow-sm flex items-center justify-center bg-sipd-navy text-white"><i class="fa-solid fa-layer-group text-lg"></i></div>
-                <div>
-                    <h2 class="text-xl font-bold text-sipd-slate tracking-tight leading-none">SISTEM ERP</h2>
-                    <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Sistem SPJ GU & LS</p>
-                </div>
-            </div>
-
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-sipd-slate flex items-center gap-2" id="sapaan-login">Selamat pagi </h2>
-                <p class="text-xs text-slate-500 mt-1">Silakan masuk untuk melanjutkan ke Sistem</p>
-            </div>
-            
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-xs font-bold text-sipd-slate mb-1.5">Username / Nomor Induk Pegawai</label>
-                    <div class="relative flex items-center">
-                        <i class="fa-regular fa-user absolute left-4 text-slate-400"></i>
-                        <input type="text" id="username-input" class="w-full pl-10 pr-4 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-1 focus:ring-sipd-emerald focus:border-sipd-emerald outline-none text-sm transition-all text-sipd-slate" placeholder="Masukkan Username">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-sipd-slate mb-1.5">Kata Sandi</label>
-                    <div class="relative flex items-center">
-                        <i class="fa-solid fa-lock absolute left-4 text-slate-400"></i>
-                        <input type="password" id="password-input" class="w-full pl-10 pr-12 py-2.5 bg-sipd-light border border-slate-200 rounded focus:ring-1 focus:ring-sipd-emerald focus:border-sipd-emerald outline-none text-sm transition-all font-mono" placeholder="••••••••" onkeypress="if(event.key==='Enter') checkLogin()">
-                        <button type="button" onclick="togglePassword()" class="absolute right-0 px-4 h-full flex items-center text-slate-400 hover:text-sipd-emerald cursor-pointer outline-none" title="Lihat Password"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
-                    </div>
-                </div>
-
-                <button onclick="checkLogin()" class="w-full py-3 bg-sipd-emerald hover:bg-emerald-700 text-white font-bold rounded shadow-sm transition-all flex justify-center items-center gap-2 mt-4 text-sm">Masuk Ke Sistem <i class="fa-solid fa-arrow-right-long"></i></button>
-                <p id="pin-error" class="text-red-500 text-xs mt-3 hidden font-medium text-center bg-red-50 p-2 rounded border border-red-200"></p>
-            </div>
-            
-            <div class="mt-auto pt-8 flex items-center justify-center gap-2 text-[10px] text-slate-400"><i class="fa-brands fa-chrome text-sipd-emerald"></i> Disarankan menggunakan Google Chrome</div>
-        </div>
-    </div>
-
     <!-- MAIN APP -->
     <div id="main-app" class="flex w-full h-full bg-sipd-light hidden">
         
