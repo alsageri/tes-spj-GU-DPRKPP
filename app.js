@@ -642,12 +642,65 @@ function jadikanLink(textUrl, idItem, formType) {
                 <a href="${formUrl}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
     }
     
-    // Mengekstrak ID File dari URL untuk pura-pura dijadikan nama file
-    let namaFile = "Dokumen_Lampiran.pdf";
-    const matchId = String(textUrl).match(/[-\w]{25,}/);
-    if(matchId) { namaFile = "File_" + matchId[0].substring(0,8) + "..."; }
+    // Pisahkan URL dan Nama File (Format: URL|NAMA_FILE)
+    let urlFinal = textUrl;
+    let namaFile = "Dokumen_Lampiran";
     
-    return `<a href="${textUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-1.5 rounded inline-block mt-1 transition-colors flex items-center gap-1.5 w-fit"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[200px]">${namaFile}</span></a>`;
+    if (textUrl.includes("|")) {
+        const parts = textUrl.split("|");
+        urlFinal = parts[0];
+        namaFile = parts[1];
+    } else {
+        // Fallback jika format lama
+        const matchId = String(textUrl).match(/[-\w]{25,}/);
+        if(matchId) namaFile = "File_" + matchId[0].substring(0,8) + "...";
+    }
+    
+    return `<a href="${urlFinal}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-1.5 rounded inline-block mt-1 transition-colors flex items-center gap-1.5 w-fit"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[200px]">${namaFile}</span></a>`;
+}
+
+function renderListRevisi(textRaw) {
+    if (!textRaw || textRaw === "-" || textRaw === "") {
+        return `<span class="text-slate-400 italic text-[11px]">Belum ada lampiran revisi.</span>`;
+    }
+    
+    let htmlResult = '<div class="space-y-2 mt-2">';
+    const baris = String(textRaw).split('\n');
+    
+    baris.forEach(line => {
+        let trimmed = line.trim();
+        if(!trimmed) return;
+        
+        // Menangkap format: 1. [DD/MM/YYYY] URL|NAMA_FILE
+        const match = trimmed.match(/^(\d+\.)\s*(\[[^\]]+\])\s*(.*)/);
+        
+        if(match) {
+            const noUtama = match[1];
+            const tgl = match[2];
+            const sisaTeks = match[3];
+            
+            let url = sisaTeks;
+            let namaFile = "Dokumen_Revisi.pdf";
+            
+            if (sisaTeks.includes("|")) {
+                const parts = sisaTeks.split("|");
+                url = parts[0];
+                namaFile = parts[1];
+            }
+            
+            htmlResult += `
+            <div class="flex items-start gap-2 text-[11px]">
+                <span class="font-bold text-slate-700 min-w-[12px] pt-1.5">${noUtama}</span>
+                <span class="font-bold text-slate-500 pt-1.5">${tgl}</span>
+                <a href="${url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 px-2 py-1.5 rounded flex items-center gap-1 border border-blue-100"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[150px]">${namaFile}</span></a>
+            </div>`;
+        } else {
+             htmlResult += `<div class="text-[11px] text-slate-600">${trimmed}</div>`;
+        }
+    });
+    
+    htmlResult += '</div>';
+    return htmlResult;
 }
 
 // FUNGSI BARU: Khusus untuk merender list revisi yang bertumpuk
