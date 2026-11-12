@@ -337,9 +337,8 @@ function kirimPengajuanSpjBaru(e) {
                 } else {
                     
                     // === PERSIAPAN LINK FORM OTOMATIS (GU & LS) ===
-                    const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url";
-                    const fieldIdPengajuan = "entry.1525941067"; // ID Pengajuan
-                    const fieldTujuanUpload = "entry.1933246266"; // ID Tujuan Upload (GU/LS/Revisi)
+                    const formUrlGU = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`;
+                    const formUrlLS = `https://docs.google.com/forms/d/e/1FAIpQLSen-_GnKkn-ye7qZKdmV8wlGf7PnXnZ7yZHhDGo8aseu0RW_g/viewform?usp=pp_url&entry.1525941067=${idSistem}`;
                     
                     // Merakit link spesifik sesuai jenis dokumen
                     const formUrlGU = `${formBaseUrl}&${fieldIdPengajuan}=${idSistem}&${fieldTujuanUpload}=${encodeURIComponent('Upload Berkas GU')}`;
@@ -623,10 +622,15 @@ function showToast(msg) {
     setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 3500); 
 }
 
-function jadikanLink(textUrl, idItem) {
+function jadikanLink(textUrl, idItem, formType) {
     if (!textUrl || textUrl === "-") {
+        let formUrl = "";
+        if (formType === 'GU') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}`;
+        else if (formType === 'LS') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSen-_GnKkn-ye7qZKdmV8wlGf7PnXnZ7yZHhDGo8aseu0RW_g/viewform?usp=pp_url&entry.1525941067=${idItem}`;
+        else if (formType === 'REVISI') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLScJt4ZSHFLsPdP8FO06i3LXuZVe3xw8q_m9T5wquH6dUGynDQ/viewform?usp=pp_url&entry.1525941067=${idItem}`;
+
         return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
+                <a href="${formUrl}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
     }
     const urlRegex = /(https?:\/\/[^\s]+)/g; return textUrl.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-600 underline font-bold bg-blue-50 px-2 py-1 rounded inline-block mt-1"><i class="fa-solid fa-download me-1"></i> Buka Berkas</a>');
 }
@@ -679,7 +683,9 @@ function bukaModalVerifikasi(id) {
     } else {
         boxBerkas.innerHTML = `<div class="text-sm"><span class="font-bold text-slate-700 block mb-1">1. Dok. Keuangan (SPP/SPM/Pajak)</span><div id="linkDokKeuangan"></div></div><div class="text-sm mt-3"><span class="font-bold text-slate-700 block mb-1">2. SPJ Fungsional (Kwitansi/Nota/Absen)</span><div id="linkDokSpj"></div></div>`;
     }
-    document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id); document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id); document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi, item.id);
+    document.getElementById('linkDokKeuangan').innerHTML = jadikanLink(item.linkKeuangan, item.id, item.jenisSurat); 
+    document.getElementById('linkDokSpj').innerHTML = jadikanLink(item.linkSpj, item.id, item.jenisSurat); 
+    document.getElementById('linkDokRevisi').innerHTML = jadikanLink(item.linkRevisi, item.id, 'REVISI');
 
     const buktiPbBox = document.getElementById('detailBuktiPbBox');
     if (item.status === 'SUDAH DIPINDAHBUKUKAN' && item.buktiPb) {
@@ -820,9 +826,8 @@ function bukaModalVerifikasi(id) {
                 document.getElementById('teksRevisiPptk').innerHTML = "Catatan Verifikator: <br>" + String(item.catatanRevisi || "-");
             }
             
-            // === UPDATE TOMBOL UPLOAD REVISI (OTOMATIS MELOMPAT KE BAGIAN REVISI) ===
-            const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url";
-            const idTujuanRevisi = encodeURIComponent('Upload Revisi'); 
+            // === UPDATE TOMBOL UPLOAD REVISI ===
+            document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLScJt4ZSHFLsPdP8FO06i3LXuZVe3xw8q_m9T5wquH6dUGynDQ/viewform?usp=pp_url&entry.1525941067=${item.id}`;
             
             document.getElementById('btnUploadRevisi').href = `${formBaseUrl}&entry.1525941067=${item.id}&entry.1933246266=${idTujuanRevisi}`;
             
