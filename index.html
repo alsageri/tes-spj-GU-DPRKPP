@@ -153,7 +153,7 @@
             </div>
             
             <div class="p-4 border-t border-slate-100 flex-shrink-0">
-                <button onclick="location.reload()" class="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-500 hover:bg-red-50 rounded text-xs font-bold transition-colors"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
+                <button onclick="sessionStorage.clear(); location.reload();" class="flex items-center justify-center gap-2 w-full px-4 py-2 text-red-500 hover:bg-red-50 rounded text-xs font-bold transition-colors"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
             </div>
         </aside>
 
@@ -217,18 +217,23 @@
                     <div class="overflow-x-auto overflow-y-auto max-h-[60vh] table-scroll rounded border border-slate-200 pb-2 relative">
                         <table class="w-full text-left border-collapse text-sm min-w-[1200px]">
                             <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] sticky top-0 z-20 shadow-sm border-b border-slate-200">
-                                <tr>
-                                    <th class="py-3.5 px-4 border-b border-slate-200">Tanggal</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200" id="th-npd-kontrak">No. NPD / Kontrak</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center" id="th-jenis">Jenis</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200">PPTK & Unit Kerja</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200 leading-relaxed">Program / Kegiatan / Sub Kegiatan</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200">Uraian SPJ</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center">Status</th>
-                                    <th class="py-3.5 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-50 shadow-[-4px_0_10px_rgba(0,0,0,0.02)] z-20 border-l border-slate-200">Aksi</th>
-                                </tr>
-                            </thead>
+    <tr>
+        <th class="py-3.5 px-4 border-b border-slate-200">Tanggal</th>
+        <th class="py-3.5 px-4 border-b border-slate-200" id="th-npd-kontrak">No. NPD / Kontrak</th>
+        <th class="py-3.5 px-4 border-b border-slate-200 text-center" id="th-jenis">Jenis</th>
+        <th class="py-3.5 px-4 border-b border-slate-200">PPTK & Unit Kerja</th>
+        <th class="py-3.5 px-4 border-b border-slate-200 leading-relaxed">Program / Kegiatan / Sub Kegiatan</th>
+        
+        <!-- KOLOM BARU -->
+        <th class="py-3.5 px-4 border-b border-slate-200">Penyedia / CV</th>
+        <th class="py-3.5 px-4 border-b border-slate-200 text-center">Tahap</th>
+        <th class="py-3.5 px-4 border-b border-slate-200">Nama Pekerjaan</th>
+        
+        <th class="py-3.5 px-4 border-b border-slate-200 text-right">Nominal (Rp)</th>
+        <th class="py-3.5 px-4 border-b border-slate-200 text-center">Status</th>
+        <th class="py-3.5 px-4 border-b border-slate-200 text-center sticky right-0 bg-slate-50 shadow-[-4px_0_10px_rgba(0,0,0,0.02)] z-20 border-l border-slate-200">Aksi</th>
+    </tr>
+</thead>
                             <tbody id="spjTableBody" class="divide-y divide-slate-100 bg-white text-slate-600"><tr id="rowLoading"><td colspan="9" class="text-center py-12 text-slate-400 font-medium"><i class="fa-solid fa-spinner fa-spin me-2 text-sipd-emerald"></i> Memuat data dari server...</td></tr></tbody>
                         </table>
                     </div>
