@@ -119,6 +119,11 @@ document.addEventListener('click', function(event) {
 });
 
 function masukSistem() {
+    // TAMBAHAN: Simpan Sesi di Browser
+    sessionStorage.setItem('sesiAktif_role', sesiAktif.role);
+    sessionStorage.setItem('sesiAktif_username', sesiAktif.username);
+    sessionStorage.setItem('sesiAktif_namaLengkap', sesiAktif.namaLengkap);
+
     document.getElementById('login-screen').style.display = 'none'; 
     document.getElementById('main-app').style.display = 'flex';
     updateSapaanWaktu();
@@ -139,6 +144,21 @@ function masukSistem() {
     
     isiDropdownPptkUtama(); renderTabelSpj(); hitungAnggaran(); isiDropdownProgram();
 }
+
+// TAMBAHAN: Eksekusi Otomatis Cek Sesi Saat Halaman Di-Refresh
+document.addEventListener('DOMContentLoaded', () => {
+    const savedRole = sessionStorage.getItem('sesiAktif_role');
+    const savedName = sessionStorage.getItem('sesiAktif_namaLengkap');
+    
+    if (savedRole && savedName) {
+        sesiAktif = { 
+            role: savedRole, 
+            username: sessionStorage.getItem('sesiAktif_username'), 
+            namaLengkap: savedName 
+        };
+        masukSistem();
+    }
+});
 
 function isiDropdownPptkUtama() {
     const selectPptk = document.getElementById('inputPptk');
@@ -445,7 +465,8 @@ function renderTabelSpj() {
     if (btnPrev) btnPrev.disabled = currentPage === 1; if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
     const dataHalamanIni = filteredData.slice(startIndex, endIndex);
 
-    if (dataHalamanIni.length === 0) { tbody.innerHTML = `<tr><td colspan="${filterJenis === 'ALL' ? '9' : '8'}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`; return; }
+    // UBAH COLSPAN (9 jadi 11, 8 jadi 10) karena penambahan kolom
+    if (dataHalamanIni.length === 0) { tbody.innerHTML = `<tr><td colspan="${filterJenis === 'ALL' ? '11' : '10'}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`; return; }
 
     dataHalamanIni.forEach(item => {
         let badge = `<span class="px-2.5 py-1 rounded-full border border-slate-200 font-bold text-slate-600 bg-slate-100 text-[10px] tracking-wide">MENUNGGU</span>`;
@@ -460,17 +481,10 @@ function renderTabelSpj() {
         let actionBtnColor = sesiAktif.role === 'VERIFIKATOR' || sesiAktif.role === 'SUPER_ADMIN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900';
         let tdJenisHtml = filterJenis === 'ALL' ? `<td class="py-4 px-4 text-xs align-top text-center whitespace-nowrap"><span class="px-2 py-1 rounded-md border font-bold text-[10px] ${jenisBadge}">${jenisSurat}</span></td>` : ``;
 
-        let uraianTeks = `<div class="text-slate-600 leading-relaxed pt-1" title="${String(item.uraian || '-')}">${String(item.uraian || '-')}</div>`;
-        
-        if (jenisSurat === 'LS' && item.namaCv) {
-            uraianTeks = `<div class="mb-1.5 pb-1.5 border-b border-slate-200 text-xs">
-                            <span class="font-bold text-purple-700">Penyedia / CV:</span> <span class="text-slate-800 font-bold">${item.namaCv}</span>
-                          </div>
-                          <div class="mb-1.5 pb-1.5 border-b border-slate-200 text-xs">
-                            <span class="font-bold text-purple-700">Tahap:</span> <span class="text-slate-600">${item.tahap || '-'}</span>
-                          </div>
-                          ${uraianTeks}`;
-        }
+        // VARIABEL BARU UNTUK KOLOM TERPISAH
+        let cvText = jenisSurat === 'LS' && item.namaCv ? item.namaCv : '-';
+        let tahapText = jenisSurat === 'LS' && item.tahap ? item.tahap : '-';
+        let uraianPekerjaan = String(item.uraian || '-');
 
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
@@ -478,12 +492,17 @@ function renderTabelSpj() {
                 <td class="py-4 px-4 text-xs align-top font-bold text-slate-800 max-w-[150px] whitespace-normal break-words">${String(item.npd || '-')}</td>
                 ${tdJenisHtml}
                 <td class="py-4 px-4 text-xs align-top whitespace-nowrap">${String(item.pptk || '-')}<br><span class="text-[10px] text-slate-500">${String(item.unitKerja || '-')}</span></td>
-                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[250px] whitespace-normal break-words">
+                <td class="py-4 px-4 text-xs align-top leading-relaxed min-w-[200px] whitespace-normal break-words">
                     <span class="font-bold text-slate-800">${String(item.program || '-')}</span><br>
                     <span class="text-slate-500">${String(item.kegiatan || '-')}</span><br>
                     <span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span>
                 </td>
-                <td class="py-4 px-4 text-xs align-top max-w-[200px] whitespace-normal break-words">${uraianTeks}</td>
+                
+                <!-- KOLOM BARU YANG DIPISAH -->
+                <td class="py-4 px-4 text-xs align-top font-bold text-purple-700">${cvText}</td>
+                <td class="py-4 px-4 text-xs align-top text-center">${tahapText}</td>
+                <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words">${uraianPekerjaan}</td>
+                
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap">${badge}</td>
                 <td class="py-4 px-4 text-center align-top whitespace-nowrap sticky right-0 bg-white/90 backdrop-blur-sm shadow-[-8px_0_15px_rgba(0,0,0,0.02)] z-10 border-l border-slate-100">
