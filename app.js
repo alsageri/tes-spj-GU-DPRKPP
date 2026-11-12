@@ -151,14 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedName = sessionStorage.getItem('sesiAktif_namaLengkap');
     
     if (savedRole && savedName) {
+        // 1. TAMPILKAN LAYAR LOADING & SEMBUNYIKAN LOGIN SCREEN
+        const loader = document.getElementById('global-loader');
+        if (loader) { loader.classList.remove('hidden'); loader.classList.add('flex'); }
+        document.getElementById('login-screen').style.display = 'none';
+
         sesiAktif = { 
             role: savedRole, 
             username: sessionStorage.getItem('sesiAktif_username'), 
             namaLengkap: savedName 
         };
-        // Menunggu data ditarik dari Google Sheets, baru masuk ke sistem
+        
+        // 2. Menunggu data ditarik dari Google Sheets, baru masuk ke sistem
         tarikDataDariServer().then(() => {
             masukSistem();
+            
+            // 3. TUTUP LAYAR LOADING SETELAH SELESAI
+            if (loader) { loader.classList.remove('flex'); loader.classList.add('hidden'); }
         });
     }
 });
