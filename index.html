@@ -43,6 +43,15 @@
     </style>
 </head>
 <body class="bg-sipd-light font-sans text-sipd-slate h-screen overflow-hidden flex flex-col">
+    <!-- GLOBAL LOADING SCREEN (Saat Refresh) -->
+    <div id="global-loader" class="fixed inset-0 bg-sipd-light z-[9999] flex-col items-center justify-center hidden">
+        <div class="w-16 h-16 mb-5 relative">
+            <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-sipd-emerald rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <h2 class="text-xl font-bold text-sipd-slate tracking-tight mb-1">Memuat Sistem...</h2>
+        <p class="text-xs text-slate-500 font-medium tracking-wide">Menyinkronkan data dengan Database Server</p>
+    </div>
 
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="w-full h-screen bg-white flex flex-col lg:flex-row">
