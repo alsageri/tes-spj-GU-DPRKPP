@@ -648,18 +648,24 @@ function bukaModalVerifikasi(id) {
     activeSelectedId = id; const item = spjData.find(i => String(i.id) === String(id)); if(!item) return;
 
     let textUraian = '';
-    if (String(item.jenisSurat) === 'LS' && item.namaCv) {
+    if (String(item.jenisSurat) === 'LS') {
         textUraian = `<div class="pb-2 mb-2 border-b border-slate-200">
                         <span class="block text-[10px] font-bold text-purple-700 uppercase mb-0.5">Penyedia / CV</span>
-                        <span class="text-sm font-bold text-slate-800">${item.namaCv}</span>
+                        <span class="text-sm font-bold text-slate-800">${item.namaCv || '-'}</span>
                       </div>
                       <div class="pb-2 mb-2 border-b border-slate-200">
                         <span class="block text-[10px] font-bold text-purple-700 uppercase mb-0.5">Tahap</span>
                         <span class="text-sm text-slate-700">${item.tahap || '-'}</span>
                       </div>
-                      <div class="text-sm font-medium text-slate-700 leading-relaxed pt-1">${String(item.uraian || '-')}</div>`;
+                      <div class="pt-1">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nama Pekerjaan</span>
+                        <div class="text-sm font-medium text-slate-700 leading-relaxed">${String(item.uraian || '-')}</div>
+                      </div>`;
     } else {
-        textUraian = `<div class="text-sm font-medium text-slate-700 leading-relaxed">${String(item.uraian || '-')}</div>`;
+        textUraian = `<div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Uraian SPJ</span>
+                        <div class="text-sm font-medium text-slate-700 leading-relaxed">${String(item.uraian || '-')}</div>
+                      </div>`;
     }
     document.getElementById('detailUraian').innerHTML = textUraian;
     document.getElementById('detailPptkNama').innerText = String(item.pptk || "-");
