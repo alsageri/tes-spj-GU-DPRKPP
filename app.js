@@ -703,36 +703,56 @@ function renderListRevisi(textRaw) {
     return htmlResult;
 }
 
-// FUNGSI BARU: Khusus untuk merender list revisi yang bertumpuk
-function renderListRevisi(textRaw) {
-    if (!textRaw || textRaw === "-" || textRaw === "") {
-        return `<span class="text-slate-400 italic text-[11px]">Belum ada lampiran revisi.</span>`;
+// Fungsi Helper untuk merender link tunggal (Dok Keuangan & SPJ) dengan nama file
+function jadikanLink(textUrl, idItem, formType) {
+    if (!textUrl || textUrl === "-" || textUrl === "") {
+        let formUrl = "";
+        if (formType === 'GU') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idItem}`;
+        else if (formType === 'LS') formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSen-_GnKkn-ye7qZKdmV8wlGf7PnXnZ7yZHhDGo8aseu0RW_g/viewform?usp=pp_url&entry.1525941067=${idItem}`;
+
+        return `<span class="text-slate-400 italic block mb-2">Belum dilampirkan</span>
+                <a href="${formUrl}" target="_blank" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold inline-block border border-blue-200"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Berkas</a>`;
     }
     
-    let htmlResult = '<div class="space-y-2 mt-1">';
+    let urlFinal = textUrl; let namaFile = "Dokumen_Lampiran";
+    if (textUrl.includes("|")) {
+        const parts = textUrl.split("|");
+        urlFinal = parts[0]; namaFile = parts[1];
+    } else {
+        const matchId = String(textUrl).match(/[-\w]{25,}/);
+        if(matchId) namaFile = "File_" + matchId[0].substring(0,8) + "...";
+    }
+    
+    return `<a href="${urlFinal}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-1.5 rounded inline-block mt-1 transition-colors flex items-center gap-1.5 w-fit"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[200px]">${namaFile}</span></a>`;
+}
+
+function renderListRevisi(textRaw) {
+    if (!textRaw || textRaw === "-" || textRaw === "") return `<span class="text-slate-400 italic text-[11px]">Belum ada lampiran revisi.</span>`;
+    
+    let htmlResult = '<div class="space-y-2 mt-2">';
     const baris = String(textRaw).split('\n');
     
     baris.forEach(line => {
-        let trimmed = line.trim();
-        if(!trimmed) return;
+        let trimmed = line.trim(); if(!trimmed) return;
         
-        // Pola: "1. [12/11/2026] https://..."
-        const match = trimmed.match(/^(\d+\.)\s*(\[[^\]]+\])\s*(https?:\/\/[^\s]+)/);
+        const match = trimmed.match(/^(\d+\.)\s*(\[[^\]]+\])\s*(.*)/);
         if(match) {
-            const noUtama = match[1];
-            const tgl = match[2];
-            const url = match[3];
+            const noUtama = match[1]; const tgl = match[2]; const sisaTeks = match[3];
+            let url = sisaTeks; let namaFile = "Dokumen_Revisi.pdf";
             
-            // Buat nama file palsu yang keren
-            let namaFile = "Dokumen_Revisi.pdf";
-            const matchId = url.match(/[-\w]{25,}/);
-            if(matchId) namaFile = "Revisi_" + matchId[0].substring(0,8) + "...pdf";
+            if (sisaTeks.includes("|")) {
+                const parts = sisaTeks.split("|");
+                url = parts[0]; namaFile = parts[1];
+            } else {
+                const matchId = url.match(/[-\w]{25,}/);
+                if(matchId) namaFile = "Revisi_" + matchId[0].substring(0,8) + "...pdf";
+            }
             
             htmlResult += `
             <div class="flex items-start gap-2 text-[11px]">
-                <span class="font-bold text-slate-700 min-w-[12px]">${noUtama}</span>
-                <span class="font-bold text-slate-500">${tgl}</span>
-                <a href="${url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold flex items-center gap-1"><i class="fa-solid fa-file-pdf text-red-500"></i> ${namaFile}</a>
+                <span class="font-bold text-slate-700 min-w-[12px] pt-1.5">${noUtama}</span>
+                <span class="font-bold text-slate-500 pt-1.5">${tgl}</span>
+                <a href="${url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 px-2 py-1.5 rounded flex items-center gap-1 border border-blue-100"><i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate max-w-[150px]">${namaFile}</span></a>
             </div>`;
         } else {
              htmlResult += `<div class="text-[11px] text-slate-600">${trimmed}</div>`;
@@ -820,17 +840,41 @@ function bukaModalVerifikasi(id) {
     const safeRiwayat = String(item.riwayatLog || '');
     if (safeRiwayat.trim() !== "") { 
         let logEntries = [];
+        let currentEntry = "";
         safeRiwayat.split('\n').forEach(line => { 
             let trimmed = line.trim(); 
             if (!trimmed) return; 
-            if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) { logEntries.push(trimmed); } 
-            else { if (logEntries.length > 0) { logEntries[logEntries.length - 1] += '<br>' + trimmed; } else { logEntries.push(trimmed); } } 
+            
+            if (/^\[\d{2}\/\d{2}\/\d{4}/.test(trimmed)) { 
+                if (currentEntry) logEntries.push(currentEntry);
+                currentEntry = trimmed; 
+            } else { 
+                if (currentEntry) { currentEntry += '\n' + trimmed; } 
+                else { currentEntry = trimmed; } 
+            } 
         });
+        if (currentEntry) logEntries.push(currentEntry);
         
-        logEntries.forEach((line) => { 
+        logEntries.forEach((entryBlock) => { 
             let dotColor = 'bg-slate-400 ring-slate-100'; 
-            let innerHtml = line; 
-            let match = line.match(/^(\[[^\]]+\])\s*(.*)$/);
+            
+            let blockLines = entryBlock.split('\n');
+            let mainLog = blockLines[0];
+            let extraLinkHtml = "";
+            
+            for(let j = 1; j < blockLines.length; j++) {
+                if(blockLines[j].startsWith("LinkRevisiLog:")) {
+                    let linkData = blockLines[j].replace("LinkRevisiLog:", "").trim();
+                    let urlFile = linkData; let nmFile = "Berkas Revisi";
+                    if(linkData.includes("|")){
+                        let p = linkData.split("|"); urlFile = p[0]; nmFile = p[1];
+                    }
+                    extraLinkHtml = `<div class="mt-1.5"><a href="${urlFile}" target="_blank" class="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-100 text-blue-700 hover:bg-blue-100 rounded text-[10px] font-bold transition-colors underline"><i class="fa-solid fa-file-pdf text-red-500"></i> ${nmFile}</a></div>`;
+                }
+            }
+
+            let innerHtml = mainLog; 
+            let match = mainLog.match(/^(\[[^\]]+\])\s*(.*)$/);
             
             if (match) {
                 let tanggal = match[1]; let isiHtml = match[2];
@@ -842,80 +886,41 @@ function bukaModalVerifikasi(id) {
                 
                 if (isCatatan) {
                     let parts = isiHtml.split('- Catatan:'); 
-                    let statusTeks = parts[0].trim();
-                    let isiCatatan = parts[1].trim();
-                    
+                    let statusTeks = parts[0].trim(); let isiCatatan = parts[1].trim();
                     if (statusTeks.includes('REVISI')) {
                         dotColor = 'bg-orange-500 ring-orange-200';
-                        isiHtml = `
-                            <div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${statusTeks}</span></div>
+                        isiHtml = `<div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${statusTeks}</span></div>
                             <div class="mt-1 p-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-900 text-[11px] leading-relaxed shadow-sm">
-                                <i class="fa-solid fa-circle-exclamation me-1 text-orange-600"></i> <b class="text-orange-900">Catatan Revisi:</b><br>${isiCatatan}
-                            </div>`;
+                            <i class="fa-solid fa-circle-exclamation me-1 text-orange-600"></i> <b class="text-orange-900">Catatan Revisi:</b><br>${isiCatatan}</div>`;
                     } else if (statusTeks.includes('DITOLAK')) {
                         dotColor = 'bg-red-600 ring-red-200';
-                        isiHtml = `
-                            <div><span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${statusTeks}</span></div>
+                        isiHtml = `<div><span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${statusTeks}</span></div>
                             <div class="mt-1 p-2.5 bg-red-50 border border-red-200 rounded-lg text-red-900 text-[11px] leading-relaxed shadow-sm">
-                                <i class="fa-solid fa-circle-xmark me-1 text-red-600"></i> <b class="text-red-900">Alasan Ditolak:</b><br>${isiCatatan}
-                            </div>`;
+                            <i class="fa-solid fa-circle-xmark me-1 text-red-600"></i> <b class="text-red-900">Alasan Ditolak:</b><br>${isiCatatan}</div>`;
                     }
                 }
                 else if (isPb) {
                     dotColor = 'bg-blue-600 ring-blue-200'; 
                     if (isiHtml.includes('- No PB:')) {
-                        let pbParts = isiHtml.split('- No PB:');
-                        let statusTeks = pbParts[0].trim();
-                        let noPb = pbParts[1].trim();
+                        let pbParts = isiHtml.split('- No PB:'); let statusTeks = pbParts[0].trim(); let noPb = pbParts[1].trim();
                         isiHtml = `<div><span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${statusTeks}</span></div>
                                    <div class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-md shadow-sm mt-1">
-                                       <span class="text-[10px] text-blue-700 font-bold uppercase">NO PB:</span> 
-                                       <span class="text-sm font-black text-blue-900 tracking-widest">${noPb}</span>
-                                   </div>`;
-                    } else {
-                        isiHtml = `<span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${isiHtml}</span>`; 
-                    }
+                                   <span class="text-[10px] text-blue-700 font-bold uppercase">NO PB:</span> <span class="text-sm font-black text-blue-900 tracking-widest">${noPb}</span></div>`;
+                    } else { isiHtml = `<span class="bg-blue-600 ${badgeClass}"><i class="fa-solid fa-money-bill-transfer"></i> ${isiHtml}</span>`; }
                 }
                 else if (isRevisiUpload) {
                     dotColor = 'bg-orange-500 ring-orange-200';
-                    let parts = isiHtml.split(' - ');
-                    let judulAksi = parts[0];
-                    let urlRevisi = parts.length > 1 ? parts[1].trim() : "";
-                    
-                    let linkHtml = "";
-                    if (urlRevisi && urlRevisi.startsWith('http')) {
-                        let namaFile = "Dokumen_Revisi.pdf";
-                        const matchId = urlRevisi.match(/[-\w]{25,}/);
-                        if(matchId) namaFile = "Revisi_" + matchId[0].substring(0,8) + "...";
-                        
-                        linkHtml = `<div class="mt-1"><a href="${urlRevisi}" target="_blank" class="text-[10px] text-blue-600 hover:text-blue-800 underline font-bold bg-blue-50 px-2 py-1 rounded inline-flex items-center gap-1 border border-blue-100"><i class="fa-solid fa-link text-slate-400"></i> ${namaFile}</a></div>`;
-                    }
-                    
-                    isiHtml = `<div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-cloud-arrow-up"></i> ${judulAksi}</span></div>${linkHtml}`;
+                    isiHtml = `<div><span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-cloud-arrow-up"></i> ${isiHtml}</span></div>${extraLinkHtml}`;
                 }
-                else if (isiHtml.includes('REVISI')) { 
-                    dotColor = 'bg-orange-500 ring-orange-200'; 
-                    isiHtml = `<span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${isiHtml}</span>`; 
-                }
-                else if (isiHtml.includes('DITOLAK')) { 
-                    dotColor = 'bg-red-600 ring-red-200'; 
-                    isiHtml = `<span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${isiHtml}</span>`; 
-                } 
-                else if (isiHtml.includes('DISETUJUI')) { 
-                    dotColor = 'bg-emerald-500 ring-emerald-200'; 
-                    isiHtml = `<span class="bg-emerald-500 ${badgeClass}"><i class="fa-solid fa-circle-check"></i> ${isiHtml}</span>`; 
-                }
-                else if (isiHtml.includes('DIAJUKAN')) { 
-                    dotColor = 'bg-slate-500 ring-slate-200'; 
-                    isiHtml = `<span class="bg-slate-600 ${badgeClass}"><i class="fa-solid fa-file-arrow-up"></i> ${isiHtml}</span>`; 
-                } 
-                else { 
-                    isiHtml = `<span class="text-slate-800 font-bold">${isiHtml}</span>`; 
-                }
+                else if (isiHtml.includes('REVISI')) { dotColor = 'bg-orange-500 ring-orange-200'; isiHtml = `<span class="bg-orange-500 ${badgeClass}"><i class="fa-solid fa-rotate-left"></i> ${isiHtml}</span>`; }
+                else if (isiHtml.includes('DITOLAK')) { dotColor = 'bg-red-600 ring-red-200'; isiHtml = `<span class="bg-red-600 ${badgeClass}"><i class="fa-solid fa-circle-xmark"></i> ${isiHtml}</span>`; } 
+                else if (isiHtml.includes('DISETUJUI')) { dotColor = 'bg-emerald-500 ring-emerald-200'; isiHtml = `<span class="bg-emerald-500 ${badgeClass}"><i class="fa-solid fa-circle-check"></i> ${isiHtml}</span>`; }
+                else if (isiHtml.includes('DIAJUKAN')) { dotColor = 'bg-slate-500 ring-slate-200'; isiHtml = `<span class="bg-slate-600 ${badgeClass}"><i class="fa-solid fa-file-arrow-up"></i> ${isiHtml}</span>`; } 
+                else { isiHtml = `<span class="text-slate-800 font-bold">${isiHtml}</span>`; }
                 
                 innerHtml = `<span class="text-[10px] font-bold text-slate-500 block mb-1.5 tracking-wide">${tanggal}</span>${isiHtml}`;
             } else { 
-                innerHtml = `<span class="text-slate-600 italic font-medium block mt-1 pl-2 border-l-2 border-slate-300">${line}</span>`; 
+                innerHtml = `<span class="text-slate-600 italic font-medium block mt-1 pl-2 border-l-2 border-slate-300">${mainLog}</span>`; 
                 dotColor = 'bg-transparent ring-transparent'; 
             }
             
@@ -925,10 +930,7 @@ function bukaModalVerifikasi(id) {
                         </div>`; 
         }); 
     } else { 
-        logHtml += `<div class="relative pl-7">
-                        <div class="absolute -left-[6px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full ring-4 ring-white"></div>
-                        <p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p>
-                    </div>`; 
+        logHtml += `<div class="relative pl-7"><div class="absolute -left-[6px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full ring-4 ring-white"></div><p class="text-[11px] text-slate-400 italic">Belum ada riwayat aktivitas.</p></div>`; 
     }
     logHtml += '</div>'; document.getElementById('detailRiwayatBox').innerHTML = logHtml;
     
