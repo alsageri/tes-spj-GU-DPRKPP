@@ -156,7 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             username: sessionStorage.getItem('sesiAktif_username'), 
             namaLengkap: savedName 
         };
-        masukSistem();
+        // Menunggu data ditarik dari Google Sheets, baru masuk ke sistem
+        tarikDataDariServer().then(() => {
+            masukSistem();
+        });
     }
 });
 
@@ -414,8 +417,9 @@ function cetakNomorUrut(noUrut, npd, tglUpload) {
         <html><head><title>Bukti Antrean LS</title>
         <style>
             @media print {
-                @page { size: A4; margin: 15mm; }
+                @page { margin: 15mm; } /* Hapus 'size' agar opsi Layout/Tata Letak muncul */
                 body { -webkit-print-color-adjust: exact; }
+                .antrean-card { page-break-inside: avoid; }
             }
             body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; padding: 10px; margin: 0; background: #fff; }
             .antrean-card { border: 2px solid #000; padding: 18px; margin-bottom: 20px; background: #fff; }
@@ -931,4 +935,21 @@ function kirimEmailManual() {
     .finally(() => { 
         if(btn) { btn.innerHTML = '<i class="fa-solid fa-envelope"></i> KIRIM NOTIFIKASI EMAIL KE PPTK'; btn.disabled = false; } 
     });
+}
+
+// FUNGSI UNTUK LOGOUT / KELUAR SISTEM
+function keluarSistem() {
+    sessionStorage.clear(); // Hapus sesi penyimpanan browser
+    sesiAktif = { role: "", username: "", namaLengkap: "" }; // Reset user
+    
+    // Sembunyikan dashboard, tampilkan halaman login
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    
+    // Tutup dropdown profil jika masih terbuka
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+    
+    // Opsional: kosongkan input password
+    document.getElementById('password-input').value = "";
 }
