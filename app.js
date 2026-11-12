@@ -339,10 +339,6 @@ function kirimPengajuanSpjBaru(e) {
                     // === PERSIAPAN LINK FORM OTOMATIS (GU & LS) ===
                     const formUrlGU = `https://docs.google.com/forms/d/e/1FAIpQLSfCvsVCiHDjMtDos9giKhhljCFlfXuWNbC5wgP_IXsmBGyqPw/viewform?usp=pp_url&entry.1525941067=${idSistem}`;
                     const formUrlLS = `https://docs.google.com/forms/d/e/1FAIpQLSen-_GnKkn-ye7qZKdmV8wlGf7PnXnZ7yZHhDGo8aseu0RW_g/viewform?usp=pp_url&entry.1525941067=${idSistem}`;
-                    
-                    // Merakit link spesifik sesuai jenis dokumen
-                    const formUrlGU = `${formBaseUrl}&${fieldIdPengajuan}=${idSistem}&${fieldTujuanUpload}=${encodeURIComponent('Upload Berkas GU')}`;
-                    const formUrlLS = `${formBaseUrl}&${fieldIdPengajuan}=${idSistem}&${fieldTujuanUpload}=${encodeURIComponent('Upload Berkas LS')}`;
 
                     const divSukses = document.createElement('div'); divSukses.id = "pesanSuksesDiv"; divSukses.className = "text-center py-4 space-y-4";
                     
@@ -828,8 +824,6 @@ function bukaModalVerifikasi(id) {
             
             // === UPDATE TOMBOL UPLOAD REVISI ===
             document.getElementById('btnUploadRevisi').href = `https://docs.google.com/forms/d/e/1FAIpQLScJt4ZSHFLsPdP8FO06i3LXuZVe3xw8q_m9T5wquH6dUGynDQ/viewform?usp=pp_url&entry.1525941067=${item.id}`;
-            
-            document.getElementById('btnUploadRevisi').href = `${formBaseUrl}&entry.1525941067=${item.id}&entry.1933246266=${idTujuanRevisi}`;
             
             let existingEditBtnPptk = document.getElementById('btnEditDataPptk');
             if(existingEditBtnPptk) existingEditBtnPptk.remove();
