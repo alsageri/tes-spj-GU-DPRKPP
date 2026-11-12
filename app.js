@@ -275,8 +275,28 @@ function setJenisTampilan(jenis) {
     }
     
     const thJenis = document.getElementById('th-jenis'); 
-    if (jenis === 'ALL') { if(thJenis) thJenis.style.display = 'table-cell'; } 
-    else { if(thJenis) thJenis.style.display = 'none'; }
+    const thCv = document.getElementById('th-cv');
+    const thTahap = document.getElementById('th-tahap');
+    const thTglPb = document.getElementById('th-tglpb');
+    
+    if (jenis === 'ALL') { 
+        if(thJenis) thJenis.style.display = 'table-cell'; 
+        if(thCv) thCv.style.display = 'table-cell';
+        if(thTahap) thTahap.style.display = 'table-cell';
+        if(thTglPb) thTglPb.style.display = 'table-cell';
+    } 
+    else if (jenis === 'GU') { 
+        if(thJenis) thJenis.style.display = 'none'; 
+        if(thCv) thCv.style.display = 'none';           // Sembunyikan CV
+        if(thTahap) thTahap.style.display = 'none';     // Sembunyikan Tahap
+        if(thTglPb) thTglPb.style.display = 'table-cell'; // Munculkan Tanggal PB
+    }
+    else if (jenis === 'LS') {
+        if(thJenis) thJenis.style.display = 'none'; 
+        if(thCv) thCv.style.display = 'table-cell';     // Munculkan CV
+        if(thTahap) thTahap.style.display = 'table-cell'; // Munculkan Tahap
+        if(thTglPb) thTglPb.style.display = 'none';     // Sembunyikan Tanggal PB
+    }
     
     renderTabelSpj();
 }
@@ -473,8 +493,9 @@ function renderTabelSpj() {
     if (btnPrev) btnPrev.disabled = currentPage === 1; if (btnNext) btnNext.disabled = currentPage === totalPages || totalPages === 0;
     const dataHalamanIni = filteredData.slice(startIndex, endIndex);
 
-    // UBAH COLSPAN (9 jadi 11, 8 jadi 10) karena penambahan kolom
-    if (dataHalamanIni.length === 0) { tbody.innerHTML = `<tr><td colspan="${filterJenis === 'ALL' ? '11' : '10'}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`; return; }
+    // UBAH COLSPAN SESUAI JENIS TAB (Dinamis)
+    let colSpanNum = filterJenis === 'ALL' ? 12 : (filterJenis === 'LS' ? 10 : 9);
+    if (dataHalamanIni.length === 0) { tbody.innerHTML = `<tr><td colspan="${colSpanNum}" class="text-center py-10 text-slate-500 font-medium">Belum ada data SPJ untuk ditampilkan.</td></tr>`; return; }
 
     dataHalamanIni.forEach(item => {
         let badge = `<span class="px-2.5 py-1 rounded-full border border-slate-200 font-bold text-slate-600 bg-slate-100 text-[10px] tracking-wide">MENUNGGU</span>`;
@@ -492,7 +513,13 @@ function renderTabelSpj() {
         // VARIABEL BARU UNTUK KOLOM TERPISAH
         let cvText = jenisSurat === 'LS' && item.namaCv ? item.namaCv : '-';
         let tahapText = jenisSurat === 'LS' && item.tahap ? item.tahap : '-';
+        let tglPbText = item.tglPb ? item.tglPb : '-';
         let uraianPekerjaan = String(item.uraian || '-');
+
+        // Render cell sesuai filterJenis saat ini
+        let tdCvHtml = (filterJenis === 'ALL' || filterJenis === 'LS') ? `<td class="py-4 px-4 text-xs align-top font-bold text-purple-700">${cvText}</td>` : ``;
+        let tdTahapHtml = (filterJenis === 'ALL' || filterJenis === 'LS') ? `<td class="py-4 px-4 text-xs align-top text-center">${tahapText}</td>` : ``;
+        let tdTglPbHtml = (filterJenis === 'ALL' || filterJenis === 'GU') ? `<td class="py-4 px-4 text-xs align-top font-bold text-blue-600">${tglPbText}</td>` : ``;
 
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50/50 border-b border-slate-100 transition-colors">
@@ -506,9 +533,10 @@ function renderTabelSpj() {
                     <span class="text-[10px] text-slate-400">${String(item.subKegiatan || '-')}</span>
                 </td>
                 
-                <!-- KOLOM BARU YANG DIPISAH -->
-                <td class="py-4 px-4 text-xs align-top font-bold text-purple-700">${cvText}</td>
-                <td class="py-4 px-4 text-xs align-top text-center">${tahapText}</td>
+                <!-- KOLOM DINAMIS -->
+                ${tdCvHtml}
+                ${tdTahapHtml}
+                ${tdTglPbHtml}
                 <td class="py-4 px-4 text-xs align-top text-slate-600 max-w-[200px] whitespace-normal break-words">${uraianPekerjaan}</td>
                 
                 <td class="py-4 px-4 text-xs text-right font-bold align-top whitespace-nowrap text-slate-800">${formatRupiah(item.nominal)}</td>
